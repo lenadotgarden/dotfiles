@@ -60,6 +60,7 @@
 
   # User Packages
   home.packages = with pkgs; [
+    fastfetch
     obsidian
     wl-clipboard
     vesktop
@@ -74,6 +75,37 @@
       hyprctl dispatch exec "[float; size 1000 650; center]" "kitty --class quicklauncher --name quicklauncher --title fsel -e fsel -d $@"
     '')
   ];
+
+  # Fish Shell Configuration
+  programs.fish = {
+    enable = true;
+    interactiveShellInit = ''
+      set fish_greeting ""
+      fastfetch
+    '';
+  };
+
+  # Tmux Configuration
+  programs.tmux = {
+    enable = true;
+    shortcut = "a";
+    baseIndex = 1;
+    newSession = true;
+    escapeTime = 0;
+    historyLimit = 10000;
+    terminal = "screen-256color";
+  };
+
+  # Bash fallback to auto-exec fish for interactive shells
+  programs.bash = {
+    enable = true;
+    initExtra = ''
+      unset "Xft.dpi"
+      if [[ $- == *i* ]] && [ -z "$NIX_BUILD_TOP" ] && [ -z "$FISH_VERSION" ]; then
+        exec ${pkgs.fish}/bin/fish
+      fi
+    '';
+  };
 
   # Dotfiles Symlinks (Hyprland, fsel, quickshell, etc.)
   xdg.configFile."hypr/hyprland.conf".source = ../config/hypr/hyprland.conf;

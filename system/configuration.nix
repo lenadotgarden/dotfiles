@@ -46,8 +46,15 @@
   # User Account
   users.users.lena = {
     isNormalUser = true;
+    shell = pkgs.fish;
     extraGroups = [ "wheel" "networkmanager" ];
     initialPassword = "3141";
+  };
+
+  # Enable Fish shell system-wide
+  programs.fish = {
+    enable = true;
+    useBabelfish = true;
   };
 
   # Allow Unfree & Insecure Packages if necessary
