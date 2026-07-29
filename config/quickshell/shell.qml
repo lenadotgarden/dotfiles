@@ -16,7 +16,7 @@ PanelWindow {
         right: true
     }
 
-    WlrLayershell.layer: WlrLayer.Overlay
+    WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.exclusiveZone: 38
 
     implicitHeight: 38
@@ -25,10 +25,10 @@ PanelWindow {
     Rectangle {
         width: barWindow.width
         height: 38
-        anchors.leftMargin: 12
-        anchors.rightMargin: 12
-        anchors.topMargin: 4
-        anchors.bottomMargin: 4
+        anchors.leftMargin: 0
+        anchors.rightMargin: 0
+        anchors.topMargin: 0
+        anchors.bottomMargin: 0
         color: "#1e1e2e"
         radius: 8
         border.color: "#89b4fa"

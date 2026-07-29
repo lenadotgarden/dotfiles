@@ -13,6 +13,12 @@
   # Enable fontconfig for user fonts
   fonts.fontconfig.enable = true;
 
+  # Session variables for Apple Silicon / Asahi Hyprland compatibility
+  home.sessionVariables = {
+    WLR_NO_HARDWARE_CURSORS = "1";
+    AQ_NO_MODIFIERS = "1";
+  };
+
   # Git Configuration
   programs.git = {
     enable = true;
@@ -65,7 +71,7 @@
     inputs.helium.packages.${pkgs.system}.default
     inputs.fsel.packages.${pkgs.system}.default
     (writeShellScriptBin "quicklauncher" ''
-      exec kitty --class quicklauncher --name quicklauncher --title fsel -e fsel -d "$@"
+      hyprctl dispatch exec "[float; size 1000 650; center]" "kitty --class quicklauncher --name quicklauncher --title fsel -e fsel -d $@"
     '')
   ];
 
