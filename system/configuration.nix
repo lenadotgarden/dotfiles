@@ -12,7 +12,7 @@
   # Asahi / Apple Silicon support
   hardware.asahi.enable = true;
   hardware.asahi.extractPeripheralFirmware = true;
-  hardware.asahi.peripheralFirmwareDirectory = "/etc/nixos/firmware";
+  hardware.asahi.peripheralFirmwareDirectory = ../firmware;
 
   # Bluetooth enable
   hardware.bluetooth.enable = true;
