@@ -11,9 +11,9 @@
   # Git Configuration
   programs.git = {
     enable = true;
-    userName = "lena";
-    userEmail = "lena@example.com"; # Modifier avec votre email Git
-    extraConfig = {
+    settings = {
+      user.name = "lena";
+      user.email = "lena@example.com"; # Modifier avec votre email Git
       init.defaultBranch = "main";
     };
   };
@@ -33,6 +33,8 @@
     defaultEditor = true;
     viAlias = true;
     vimAlias = true;
+    withRuby = false;
+    withPython3 = false;
   };
 
   # User Packages
