@@ -35,10 +35,8 @@
     font = {
       name = "Iosevka";
       package = pkgs.iosevka-bin;
-      size = 14.0;
     };
     settings = {
-      font_size = "14.0";
       enable_audio_bell = false;
       confirm_os_window_close = 0;
     };
