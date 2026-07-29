@@ -93,7 +93,7 @@
 
   # Fonts (Iosevka Nerd Font)
   fonts.packages = with pkgs; [
-    nerd-fonts.iosevka
+    iosevka-bin
   ];
 
   # Hyprland Compositor

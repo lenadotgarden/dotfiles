@@ -14,18 +14,22 @@ PanelWindow {
         right: true
     }
 
-    height: 38
+    WlrLayershell.layer: WlrLayer.Overlay
+    WlrLayershell.exclusiveZone: 38
+
+    implicitHeight: 38
     color: "transparent"
 
     Rectangle {
-        anchors.fill: parent
+        width: barWindow.width
+        height: 38
         anchors.leftMargin: 12
         anchors.rightMargin: 12
         anchors.topMargin: 4
         anchors.bottomMargin: 4
-        color: "#181825"
+        color: "#1e1e2e"
         radius: 8
-        border.color: "#313244"
+        border.color: "#89b4fa"
         border.width: 1
 
         RowLayout {

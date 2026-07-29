@@ -5,8 +5,10 @@
   home.homeDirectory = "/home/lena";
   home.stateVersion = "25.11";
 
-  # Let Home Manager install and manage itself
-  programs.home-manager.enable = true;
+  # Shell Aliases
+  home.shellAliases = {
+    fsel = "quicklauncher";
+  };
 
   # Enable fontconfig for user fonts
   fonts.fontconfig.enable = true;
@@ -25,8 +27,8 @@
   programs.kitty = {
     enable = true;
     font = {
-      name = "Iosevka Nerd Font";
-      package = pkgs.nerd-fonts.iosevka;
+      name = "Iosevka";
+      package = pkgs.iosevka-bin;
     };
     settings = {
       enable_audio_bell = false;
@@ -58,10 +60,12 @@
     wlsunset
     bitwarden-desktop
     quickshell
+    pavucontrol
+    pamixer
     inputs.helium.packages.${pkgs.system}.default
     inputs.fsel.packages.${pkgs.system}.default
     (writeShellScriptBin "quicklauncher" ''
-      exec kitty --class quicklauncher -e fsel "$@"
+      exec kitty --class quicklauncher --name quicklauncher --title fsel -e fsel -d "$@"
     '')
   ];
 
