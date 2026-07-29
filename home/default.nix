@@ -25,6 +25,12 @@
       enable_audio_bell = false;
       confirm_os_window_close = 0;
     };
+    keybindings = {
+      "super+c" = "copy_to_clipboard";
+      "super+v" = "paste_from_clipboard";
+      "ctrl+shift+c" = "copy_to_clipboard";
+      "ctrl+shift+v" = "paste_from_clipboard";
+    };
   };
 
   # Neovim Configuration
