@@ -21,6 +21,10 @@
   # Bootloader
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+  boot.kernelParams = [
+    "appledrm.show_notch=1"
+    "apple_dcp.show_notch=1"
+  ];
 
   # Networking
   networking.hostName = "nixos-macbook";
