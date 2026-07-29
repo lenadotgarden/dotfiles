@@ -83,6 +83,19 @@
       ];
   };
 
+  # Syncthing Service
+  services.syncthing = {
+    enable = true;
+    user = "lena";
+    dataDir = "/home/lena";
+    configDir = "/home/lena/.config/syncthing";
+  };
+
+  # Fonts (Iosevka Nerd Font)
+  fonts.packages = with pkgs; [
+    nerd-fonts.iosevka
+  ];
+
   # Hyprland Compositor
   programs.hyprland.enable = true;
 

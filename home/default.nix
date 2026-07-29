@@ -50,7 +50,10 @@
     wl-clipboard
     vesktop
     wlsunset
+    bitwarden-desktop
+    quickshell
     inputs.helium.packages.${pkgs.system}.default
+    inputs.fsel.packages.${pkgs.system}.default
   ];
 
   # Dotfiles Symlinks (Hyprland, etc.)
