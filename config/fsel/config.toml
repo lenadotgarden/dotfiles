@@ -1,0 +1,5 @@
+# Configuration simple pour fsel
+
+match_mode = "fuzzy"
+ranking_mode = "frecency"
+rounded_borders = true

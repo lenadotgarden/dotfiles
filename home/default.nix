@@ -8,6 +8,9 @@
   # Let Home Manager install and manage itself
   programs.home-manager.enable = true;
 
+  # Enable fontconfig for user fonts
+  fonts.fontconfig.enable = true;
+
   # Git Configuration
   programs.git = {
     enable = true;
@@ -21,6 +24,10 @@
   # Kitty Terminal Configuration
   programs.kitty = {
     enable = true;
+    font = {
+      name = "Iosevka Nerd Font";
+      package = pkgs.nerd-fonts.iosevka;
+    };
     settings = {
       enable_audio_bell = false;
       confirm_os_window_close = 0;
@@ -46,7 +53,6 @@
   # User Packages
   home.packages = with pkgs; [
     obsidian
-    wofi
     wl-clipboard
     vesktop
     wlsunset
@@ -54,8 +60,13 @@
     quickshell
     inputs.helium.packages.${pkgs.system}.default
     inputs.fsel.packages.${pkgs.system}.default
+    (writeShellScriptBin "quicklauncher" ''
+      exec kitty --class quicklauncher -e fsel "$@"
+    '')
   ];
 
-  # Dotfiles Symlinks (Hyprland, etc.)
+  # Dotfiles Symlinks (Hyprland, fsel, quickshell, etc.)
   xdg.configFile."hypr/hyprland.conf".source = ../config/hypr/hyprland.conf;
+  xdg.configFile."fsel/config.toml".source = ../config/fsel/config.toml;
+  xdg.configFile."quickshell/shell.qml".source = ../config/quickshell/shell.qml;
 }
