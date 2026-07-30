@@ -21,7 +21,7 @@ PanelWindow {
 
     // Fixed height: 44px logical (scaling 1.6 on MacBook Pro 14" = ~70 native px)
     WlrLayershell.layer: WlrLayer.Top
-    WlrLayershell.exclusiveZone: expanded ? 320 : 44
+    WlrLayershell.exclusiveZone: 44
 
     implicitHeight: expanded ? 320 : 44
     color: "transparent"
@@ -85,14 +85,7 @@ PanelWindow {
         }
     }
 
-    onPywalAccentChanged: {
-        var hex = pywalAccent.toString().replace("#", "")
-        if (hex !== "") {
-            var formatted = "rgba(" + hex.slice(-6) + "ee)"
-            hyprBorderProc.command = ["hyprctl", "keyword", "general:col.active_border", formatted]
-            hyprBorderProc.running = true
-        }
-    }
+    // Pywal accent color state
 
     Timer {
         interval: 1000

@@ -5,7 +5,7 @@
     enable = true;
     interactiveShellInit = ''
       set fish_greeting ""
-      fastfetch
+      fastfetch --logo nixos2
 
       # Auto-start Hyprland on TTY1 if not already inside a graphical session
       if test (tty) = "/dev/tty1"; and test -z "$WAYLAND_DISPLAY"

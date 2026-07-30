@@ -73,8 +73,8 @@ else
     wal -i "$selected_wall" -n -q -b 11111b
 fi
 
-# Extract exact color4 (pywalAccent used in QuickShell) to synchronize Hyprland active border
-acc_color=$(grep "color4=" "$HOME/.cache/wal/colors.sh" 2>/dev/null | cut -d"'" -f2 | tr -d '#')
+# Extract exact color6 (vibrant accent used in QuickShell) to synchronize Hyprland active border
+acc_color=$(grep "color6=" "$HOME/.cache/wal/colors.sh" 2>/dev/null | cut -d"'" -f2 | tr -d '#')
 if [ -n "$acc_color" ]; then
     hyprctl keyword general:col.active_border "rgba(${acc_color}ee)"
 fi
