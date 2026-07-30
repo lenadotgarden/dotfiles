@@ -289,6 +289,80 @@ PanelWindow {
                 }
             }
 
+            // brightness control
+            MouseArea {
+                id: brightWidget
+                property int brightVal: 100
+
+                implicitWidth: brightContent.implicitWidth + 12
+                implicitHeight: 24
+                cursorShape: Qt.PointingHandCursor
+
+                Rectangle {
+                    id: brightBg
+                    anchors.fill: parent
+                    color: brightWidget.containsMouse ? barWindow.pywalAccent : barWindow.pywalCard
+                    radius: 8
+                }
+
+                function updateBright() {
+                    brightGetProc.running = true
+                }
+
+                Component.onCompleted: updateBright()
+
+                Process {
+                    id: brightGetProc
+                    command: ["brightnessctl", "info"]
+                    stdout: SplitParser {
+                        onRead: data => {
+                            var match = data.match(/\((\d+)%\)/)
+                            if (match && match.length >= 2) {
+                                brightWidget.brightVal = parseInt(match[1])
+                            }
+                        }
+                    }
+                }
+
+                Process {
+                    id: brightSetProc
+                    command: []
+                    onExited: brightWidget.updateBright()
+                }
+
+                onWheel: (wheel) => {
+                    var change = wheel.angleDelta.y > 0 ? "+5%" : "5%-"
+                    brightSetProc.command = ["brightnessctl", "set", change]
+                    brightSetProc.running = true
+                }
+
+                Timer {
+                    interval: 2000
+                    running: true
+                    repeat: true
+                    onTriggered: brightWidget.updateBright()
+                }
+
+                RowLayout {
+                    id: brightContent
+                    anchors.centerIn: parent
+                    spacing: 5
+
+                    Text {
+                        text: "☀️"
+                        color: brightWidget.containsMouse ? barWindow.calcReadableColor(barWindow.pywalAccent) : barWindow.pywalAccent
+                        font.pixelSize: 12
+                    }
+
+                    Text {
+                        text: brightWidget.brightVal + "%"
+                        color: brightWidget.containsMouse ? barWindow.calcReadableColor(barWindow.pywalAccent) : barWindow.pywalFg
+                        font.pixelSize: 11
+                        font.bold: true
+                    }
+                }
+            }
+
             // battery indicator
             Rectangle {
                 id: batBg

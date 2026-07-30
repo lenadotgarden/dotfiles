@@ -12,17 +12,31 @@ if [ ! -d "$wall_dir" ] || [ -z "$(ls -A "$wall_dir" 2>/dev/null)" ]; then
     exit 1
 fi
 
-# read pywal colors if available for theme matching
-bg_color="#181825"
-fg_color="#cdd6f4"
-accent_color="#89b4fa"
-card_color="#1e1e2e"
+# detect current system mode (dark/light) to adapt rofi background and text contrast
+current_scheme=$(dconf read /org/gnome/desktop/interface/color-scheme 2>/dev/null)
 
-if [ -f "$HOME/.cache/wal/colors.sh" ]; source "$HOME/.cache/wal/colors.sh" 2>/dev/null; then
-    bg_color="${background:-#181825}"
-    fg_color="${foreground:-#cdd6f4}"
-    accent_color="${color4:-#89b4fa}"
-    card_color="${color8:-#1e1e2e}"
+if [ "$current_scheme" = "'prefer-light'" ]; then
+    bg_color="#f5f5f7"
+    fg_color="#1d1d1f"
+    card_color="#e5e5ea"
+    accent_color="#007aff"
+    selected_fg="#ffffff"
+else
+    bg_color="#181825"
+    fg_color="#ffffff"
+    card_color="#1e1e2e"
+    accent_color="#89b4fa"
+    selected_fg="#11111b"
+fi
+
+if [ -f "$HOME/.cache/wal/colors.sh" ]; then
+    source "$HOME/.cache/wal/colors.sh" 2>/dev/null
+    if [ "$current_scheme" != "'prefer-light'" ]; then
+        bg_color="${background:-#181825}"
+        fg_color="${foreground:-#ffffff}"
+        accent_color="${color4:-#89b4fa}"
+        card_color="${color8:-#1e1e2e}"
+    fi
 fi
 
 # build rofi icon grid input
@@ -42,18 +56,18 @@ while IFS= read -r img; do
     rofi_input="${rofi_input}${name}\x00icon\x1f${thumb}\n"
 done < <(find "$wall_dir" -type f \( -name "*.jpg" -o -name "*.png" -o -name "*.jpeg" -o -name "*.webp" \))
 
-# open styled rofi grid gallery matching OS design system
+# open rofi grid gallery matching light/dark OS design
 selected=$(echo -e "$rofi_input" | rofi -dmenu -p "🎨 Wallpapers" -i -show-icons -theme-str "
     * { background-color: transparent; text-color: ${fg_color}; font: \"Iosevka 11\"; }
     window { width: 68%; height: 52%; border-radius: 18px; location: center; background-color: ${bg_color}; border: 2px; border-color: ${accent_color}; }
     mainbox { padding: 18px; children: [ inputbar, listview ]; }
     inputbar { margin: 0 0 14px 0; padding: 10px 14px; border-radius: 10px; background-color: ${card_color}; children: [ prompt, entry ]; }
-    prompt { margin: 0 10px 0 0; text-color: ${accent_color}; }
+    prompt { margin: 0 10px 0 0; text-color: ${accent_color}; font: \"Iosevka Bold 11\"; }
     entry { text-color: ${fg_color}; placeholder: \"Search wallpaper...\"; }
     listview { columns: 4; lines: 2; spacing: 14px; cycle: true; dynamic: true; }
     element { orientation: vertical; padding: 12px; border-radius: 12px; background-color: ${card_color}; }
     element selected { background-color: ${accent_color}; border-radius: 12px; }
-    element selected element-text { text-color: ${bg_color}; }
+    element selected element-text { text-color: ${selected_fg}; font: \"Iosevka Bold 10\"; }
     element-icon { size: 140px; horizontal-align: 0.5; }
     element-text { horizontal-align: 0.5; font: \"Iosevka 10\"; margin: 6px 0 0 0; }
 ")
@@ -73,9 +87,7 @@ fi
 # smooth fast wallpaper transition
 awww img "$selected_wall" --transition-type simple --transition-step 255 --transition-fps 120
 
-# check current system mode (dark/light) to maintain global state
-current_scheme=$(dconf read /org/gnome/desktop/interface/color-scheme 2>/dev/null)
-
+# maintain global light/dark mode state upon changing wallpaper
 if [ "$current_scheme" = "'prefer-light'" ]; then
     wal -i "$selected_wall" -n -q -l
 else

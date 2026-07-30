@@ -70,6 +70,7 @@
     rofi
     jq
     imagemagick
+    brightnessctl
     inputs.helium.packages.${pkgs.system}.default
     inputs.handy.packages.${pkgs.system}.default
   ];
