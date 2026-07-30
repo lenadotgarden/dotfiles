@@ -26,8 +26,6 @@ PanelWindow {
     implicitHeight: expanded ? 320 : (volHUDVisible ? 78 : 44)
     color: "transparent"
 
-    Behavior on implicitHeight { NumberAnimation { duration: 220; easing.type: Easing.OutQuint } }
-
     property bool expanded: false
     property string activeTab: "control"
 
@@ -243,6 +241,10 @@ PanelWindow {
                     color: barWindow.volHUDMuted ? "#6c7185" : barWindow.pywalAccent
                     font.family: "Symbols Nerd Font"
                     font.pixelSize: 17
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    Layout.preferredWidth: 22
+                    Layout.preferredHeight: 22
                 }
 
                 // Smooth 0% to 100% progress bar (No percentage text)
@@ -258,7 +260,7 @@ PanelWindow {
                         radius: 3
                         color: barWindow.volHUDMuted ? "#6c7185" : barWindow.pywalAccent
 
-                        Behavior on width { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+                        Behavior on width { NumberAnimation { duration: 180; easing.type: Easing.OutQuint } }
                     }
                 }
             }
