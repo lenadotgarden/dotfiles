@@ -592,7 +592,6 @@ PanelWindow {
     Process { id: toggleThemeProc; command: ["/home/lena/dotfiles/home/scripts/toggle-theme.sh"] }
     Process { id: toggleWlProc; command: ["pkill", "-TOGGLE", "wlsunset"] }
     Process { id: wallSelectProc; command: ["/home/lena/dotfiles/home/scripts/wallselect.sh"] }
-    Process { id: volSetProc; command: [] }
     Process { id: brightSetProc; command: [] }
     Process { id: themeSetProc; command: [] }
 }
