@@ -12,27 +12,19 @@ PanelWindow {
 
     screen: Quickshell.screens[0]
 
-    // Floating Dynamic Island anchored at top
+    // Anchored across top with exclusive height for notch area
     anchors {
         top: true
+        left: true
+        right: true
     }
-    // Center alignment handled via margins / layout
-
 
     WlrLayershell.layer: WlrLayer.Top
-    WlrLayershell.exclusiveZone: 46
+    WlrLayershell.exclusiveZone: root.expanded ? 280 : 42
 
-    // Dimensions: dynamic width & height with smooth transitions
-    property bool expanded: false
-    property string activeTab: "control" // "control", "theme", "wallpaper"
-
-    implicitWidth: expanded ? 440 : 320
-    implicitHeight: expanded ? 280 : 42
+    implicitHeight: root.expanded ? 280 : 42
     color: "transparent"
 
-    Behavior on implicitWidth {
-        NumberAnimation { duration: 250; easing.type: Easing.OutQuint }
-    }
     Behavior on implicitHeight {
         NumberAnimation { duration: 250; easing.type: Easing.OutQuint }
     }
@@ -43,6 +35,9 @@ PanelWindow {
     property color pywalAccent: "#89b4fa"
     property color pywalCard: "#1e1e2e"
     property color pywalMantle: "#181825"
+
+    property bool expanded: false
+    property string activeTab: "control"
 
     function calcReadableColor(bgHex) {
         try {
@@ -96,81 +91,213 @@ PanelWindow {
 
     Component.onCompleted: pywalCatProc.running = true
 
-    // Main Floating Pill Container
-    Rectangle {
-        id: mainCapsule
+    // MAIN CONTAINER ROW ACROSS NOTCH
+    RowLayout {
         anchors.fill: parent
+        anchors.leftMargin: 16
+        anchors.rightMargin: 16
         anchors.topMargin: 4
-        anchors.bottomMargin: 4
-        anchors.leftMargin: 4
-        anchors.rightMargin: 4
+        spacing: 0
 
-        radius: root.expanded ? 24 : 20
+        // LEFT WING: Workspaces Pill
+        MouseArea {
+            id: leftWing
+            Layout.preferredWidth: leftContent.implicitWidth + 24
+            Layout.preferredHeight: 34
+            cursorShape: Qt.PointingHandCursor
+
+            onClicked: {
+                root.expanded = !root.expanded
+                if (root.expanded) root.activeTab = "control"
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                radius: 17
+                color: root.pywalBg
+                opacity: 0.92
+                border.color: root.pywalAccent
+                border.width: 1.5
+
+                RowLayout {
+                    id: leftContent
+                    anchors.centerIn: parent
+                    spacing: 8
+
+                    Text {
+                        text: "❄"
+                        color: root.pywalAccent
+                        font.pixelSize: 13
+                        font.bold: true
+                    }
+
+                    Repeater {
+                        model: [1, 2, 3, 4]
+
+                        Rectangle {
+                            required property int modelData
+                            property bool isFocused: Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.id === modelData : false
+                            implicitWidth: isFocused ? 18 : 8
+                            implicitHeight: 8
+                            radius: 4
+                            color: isFocused ? root.pywalAccent : root.pywalFg
+                            opacity: isFocused ? 1.0 : 0.4
+
+                            Behavior on implicitWidth {
+                                NumberAnimation { duration: 150 }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // CENTER NOTCH SPACER (Clears MacBook Notch ~220px)
+        Item {
+            Layout.fillWidth: true
+        }
+
+        Item {
+            Layout.preferredWidth: 230
+            Layout.preferredHeight: 34
+        }
+
+        Item {
+            Layout.fillWidth: true
+        }
+
+        // RIGHT WING: Clock & Battery/Volume Controls Pill
+        MouseArea {
+            id: rightWing
+            Layout.preferredWidth: rightContent.implicitWidth + 24
+            Layout.preferredHeight: 34
+            cursorShape: Qt.PointingHandCursor
+
+            onClicked: {
+                root.expanded = !root.expanded
+                if (root.expanded) root.activeTab = "control"
+            }
+
+            Rectangle {
+                anchors.fill: parent
+                radius: 17
+                color: root.pywalBg
+                opacity: 0.92
+                border.color: root.pywalAccent
+                border.width: 1.5
+
+                RowLayout {
+                    id: rightContent
+                    anchors.centerIn: parent
+                    spacing: 10
+
+                    // Clock
+                    Text {
+                        id: clockText
+                        text: Qt.formatDateTime(new Date(), "HH:mm")
+                        color: root.pywalFg
+                        font.pixelSize: 12
+                        font.bold: true
+
+                        Timer {
+                            interval: 1000
+                            running: true
+                            repeat: true
+                            onTriggered: clockText.text = Qt.formatDateTime(new Date(), "HH:mm")
+                        }
+                    }
+
+                    // Battery Indicator
+                    RowLayout {
+                        spacing: 4
+                        Text {
+                            property var displayBat: UPower.displayDevice
+                            property double pct: displayBat ? displayBat.percentage * 100 : 100
+                            property int state: displayBat ? displayBat.state : UPowerDeviceState.Unknown
+
+                            text: {
+                                if (state === UPowerDeviceState.Charging) return "⚡"
+                                if (pct <= 20) return "🪫"
+                                return "🔋"
+                            }
+                            color: state === UPowerDeviceState.Charging ? "#a6e3a1" : (pct <= 20 ? "#f38ba8" : root.pywalAccent)
+                            font.pixelSize: 11
+                        }
+
+                        Text {
+                            property var displayBat: UPower.displayDevice
+                            text: displayBat ? Math.round(displayBat.percentage * 100) + "%" : "100%"
+                            color: root.pywalFg
+                            font.pixelSize: 11
+                            font.bold: true
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // EXPANDED CONTROL CENTER CARD (Positioned below the notch when expanded)
+    Rectangle {
+        id: expandedCenterCard
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.top
+        anchors.topMargin: 44
+        width: 440
+        height: 220
+
+        visible: root.expanded
+        opacity: root.expanded ? 1.0 : 0.0
+
+        radius: 22
         color: root.pywalBg
-        opacity: 0.92
+        opacity: 0.95
         border.color: root.pywalAccent
         border.width: 1.5
 
-        Behavior on radius {
-            NumberAnimation { duration: 250; easing.type: Easing.OutQuint }
+        Behavior on opacity {
+            NumberAnimation { duration: 200 }
         }
 
         ColumnLayout {
             anchors.fill: parent
-            anchors.margins: 6
-            spacing: 8
+            anchors.margins: 12
+            spacing: 10
 
-            // TOP BAR (Compact Pill View)
+            // Navigation Tabs Header
             RowLayout {
                 Layout.fillWidth: true
-                Layout.preferredHeight: 30
                 spacing: 8
 
-                // Left: NixOS Badge / Workspaces
-                MouseArea {
-                    id: wsBadge
-                    implicitWidth: wsRow.implicitWidth + 12
-                    implicitHeight: 26
-                    cursorShape: Qt.PointingHandCursor
+                Repeater {
+                    model: [
+                        { id: "control", label: "🎛️ Control Center" },
+                        { id: "theme", label: "🎨 Themes" },
+                        { id: "wallpaper", label: "🖼️ Wallpapers" }
+                    ]
 
-                    onClicked: {
-                        root.expanded = !root.expanded
-                        if (root.expanded) root.activeTab = "control"
-                    }
+                    MouseArea {
+                        required property var modelData
+                        implicitWidth: tabBtn.implicitWidth
+                        implicitHeight: 28
+                        cursorShape: Qt.PointingHandCursor
 
-                    Rectangle {
-                        anchors.fill: parent
-                        radius: 13
-                        color: root.pywalCard
+                        onClicked: root.activeTab = modelData.id
 
-                        RowLayout {
-                            id: wsRow
-                            anchors.centerIn: parent
-                            spacing: 6
+                        Rectangle {
+                            id: tabBtn
+                            implicitWidth: tabLabel.implicitWidth + 16
+                            implicitHeight: 28
+                            radius: 14
+                            color: root.activeTab === modelData.id ? root.pywalAccent : root.pywalCard
 
                             Text {
-                                text: "❄"
-                                color: root.pywalAccent
-                                font.pixelSize: 13
+                                id: tabLabel
+                                anchors.centerIn: parent
+                                text: modelData.label
+                                color: root.activeTab === modelData.id ? root.calcReadableColor(root.pywalAccent) : root.pywalFg
+                                font.pixelSize: 11
                                 font.bold: true
-                            }
-
-                            Repeater {
-                                model: [1, 2, 3, 4]
-
-                                Rectangle {
-                                    required property int modelData
-                                    property bool isFocused: Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.id === modelData : false
-                                    implicitWidth: isFocused ? 16 : 7
-                                    implicitHeight: 7
-                                    radius: 3.5
-                                    color: isFocused ? root.pywalAccent : root.pywalFg
-                                    opacity: isFocused ? 1.0 : 0.4
-
-                                    Behavior on implicitWidth {
-                                        NumberAnimation { duration: 150 }
-                                    }
-                                }
                             }
                         }
                     }
@@ -178,385 +305,216 @@ PanelWindow {
 
                 Item { Layout.fillWidth: true }
 
-                // Center: Dynamic Clock Pill
+                // Close Button
                 MouseArea {
-                    id: clockWidget
-                    implicitWidth: clockText.implicitWidth + 16
-                    implicitHeight: 26
+                    implicitWidth: 28
+                    implicitHeight: 28
                     cursorShape: Qt.PointingHandCursor
-
-                    onClicked: {
-                        root.expanded = !root.expanded
-                        if (root.expanded) root.activeTab = "control"
-                    }
+                    onClicked: root.expanded = false
 
                     Rectangle {
                         anchors.fill: parent
-                        radius: 13
-                        color: root.expanded ? root.pywalAccent : root.pywalCard
+                        radius: 14
+                        color: root.pywalCard
 
                         Text {
-                            id: clockText
                             anchors.centerIn: parent
-                            text: Qt.formatDateTime(new Date(), "HH:mm")
-                            color: root.expanded ? root.calcReadableColor(root.pywalAccent) : root.pywalFg
+                            text: "✕"
+                            color: root.pywalFg
                             font.pixelSize: 12
-                            font.bold: true
+                        }
+                    }
+                }
+            }
 
-                            Timer {
-                                interval: 1000
-                                running: true
-                                repeat: true
-                                onTriggered: clockText.text = Qt.formatDateTime(new Date(), "HH:mm")
+            // TAB 1: Control Center
+            ColumnLayout {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                visible: root.activeTab === "control"
+                spacing: 8
+
+                // Quick Toggles Grid
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    MouseArea {
+                        Layout.fillWidth: true
+                        implicitHeight: 34
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: toggleThemeProc.running = true
+
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: 10
+                            color: root.pywalCard
+
+                            RowLayout {
+                                anchors.centerIn: parent
+                                spacing: 6
+                                Text { text: "☯️"; font.pixelSize: 12 }
+                                Text { text: "Toggle Theme"; color: root.pywalFg; font.pixelSize: 11; font.bold: true }
+                            }
+                        }
+                    }
+
+                    MouseArea {
+                        Layout.fillWidth: true
+                        implicitHeight: 34
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: toggleWlProc.running = true
+
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: 10
+                            color: root.pywalCard
+
+                            RowLayout {
+                                anchors.centerIn: parent
+                                spacing: 6
+                                Text { text: "🌙"; font.pixelSize: 12 }
+                                Text { text: "Night Light"; color: root.pywalFg; font.pixelSize: 11; font.bold: true }
                             }
                         }
                     }
                 }
 
-                Item { Layout.fillWidth: true }
+                // Sliders Container (Volume & Brightness)
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    radius: 14
+                    color: root.pywalCard
 
-                // Right: Quick Status (Volume & Battery)
-                MouseArea {
-                    id: quickStatus
-                    implicitWidth: statusRow.implicitWidth + 12
-                    implicitHeight: 26
-                    cursorShape: Qt.PointingHandCursor
-
-                    onClicked: {
-                        root.expanded = !root.expanded
-                        if (root.expanded) root.activeTab = "control"
-                    }
-
-                    Rectangle {
+                    ColumnLayout {
                         anchors.fill: parent
-                        radius: 13
-                        color: root.pywalCard
+                        anchors.margins: 8
+                        spacing: 6
 
+                        // Volume Controls
                         RowLayout {
-                            id: statusRow
-                            anchors.centerIn: parent
-                            spacing: 6
+                            Layout.fillWidth: true
+                            spacing: 8
+                            Text { text: "🔊"; color: root.pywalAccent; font.pixelSize: 12 }
+                            Text { text: "Volume"; color: root.pywalFg; font.pixelSize: 11; font.bold: true }
+                            Item { Layout.fillWidth: true }
+                        }
 
-                            // Battery State
-                            Text {
-                                property var displayBat: UPower.displayDevice
-                                property double pct: displayBat ? displayBat.percentage * 100 : 100
-                                property int state: displayBat ? displayBat.state : UPowerDeviceState.Unknown
-
-                                text: {
-                                    if (state === UPowerDeviceState.Charging) return "⚡"
-                                    if (pct <= 20) return "🪫"
-                                    return "🔋"
-                                }
-                                color: state === UPowerDeviceState.Charging ? "#a6e3a1" : (pct <= 20 ? "#f38ba8" : root.pywalAccent)
-                                font.pixelSize: 11
+                        Slider {
+                            id: volSlider
+                            Layout.fillWidth: true
+                            from: 0
+                            to: 100
+                            value: 50
+                            onMoved: {
+                                volSetProc.command = ["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", Math.round(value) + "%"]
+                                volSetProc.running = true
                             }
+                        }
 
-                            Text {
-                                property var displayBat: UPower.displayDevice
-                                text: displayBat ? Math.round(displayBat.percentage * 100) + "%" : "100%"
-                                color: root.pywalFg
-                                font.pixelSize: 11
-                                font.bold: true
+                        // Brightness Controls
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 8
+                            Text { text: "☀️"; color: root.pywalAccent; font.pixelSize: 12 }
+                            Text { text: "Brightness"; color: root.pywalFg; font.pixelSize: 11; font.bold: true }
+                            Item { Layout.fillWidth: true }
+                        }
+
+                        Slider {
+                            id: brightSlider
+                            Layout.fillWidth: true
+                            from: 5
+                            to: 100
+                            value: 80
+                            onMoved: {
+                                brightSetProc.command = ["brightnessctl", "set", Math.round(value) + "%"]
+                                brightSetProc.running = true
                             }
                         }
                     }
                 }
             }
 
-            // EXPANDED BODY (Control Center & Switchers)
-            Item {
-                id: expandedContent
+            // TAB 2: Themes Selector
+            ColumnLayout {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                visible: root.expanded
-                opacity: root.expanded ? 1.0 : 0.0
+                visible: root.activeTab === "theme"
+                spacing: 6
 
-                Behavior on opacity {
-                    NumberAnimation { duration: 200 }
-                }
+                GridLayout {
+                    Layout.fillWidth: true
+                    columns: 2
+                    rowSpacing: 6
+                    columnSpacing: 6
 
-                ColumnLayout {
-                    anchors.fill: parent
-                    spacing: 10
+                    Repeater {
+                        model: [
+                            { name: "Catppuccin Mocha", flag: "catppuccin" },
+                            { name: "Gruvbox Dark", flag: "gruvbox" },
+                            { name: "Nord Ice", flag: "nord" },
+                            { name: "Tokyo Night", flag: "tokyonight" }
+                        ]
 
-                    // Navigation Tabs Header
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: 8
-
-                        Repeater {
-                            model: [
-                                { id: "control", label: "🎛️ Control Center" },
-                                { id: "theme", label: "🎨 Themes" },
-                                { id: "wallpaper", label: "🖼️ Wallpapers" }
-                            ]
-
-                            MouseArea {
-                                required property var modelData
-                                implicitWidth: tabBtn.implicitWidth
-                                implicitHeight: 28
-                                cursorShape: Qt.PointingHandCursor
-
-                                onClicked: root.activeTab = modelData.id
-
-                                Rectangle {
-                                    id: tabBtn
-                                    implicitWidth: tabLabel.implicitWidth + 16
-                                    implicitHeight: 28
-                                    radius: 14
-                                    color: root.activeTab === modelData.id ? root.pywalAccent : root.pywalCard
-
-                                    Text {
-                                        id: tabLabel
-                                        anchors.centerIn: parent
-                                        text: modelData.label
-                                        color: root.activeTab === modelData.id ? root.calcReadableColor(root.pywalAccent) : root.pywalFg
-                                        font.pixelSize: 11
-                                        font.bold: true
-                                    }
-                                }
-                            }
-                        }
-
-                        Item { Layout.fillWidth: true }
-
-                        // Close Pill Button
                         MouseArea {
-                            implicitWidth: 28
-                            implicitHeight: 28
+                            required property var modelData
+                            Layout.fillWidth: true
+                            implicitHeight: 36
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: root.expanded = false
+                            onClicked: {
+                                themeSetProc.command = ["/home/lena/dotfiles/home/scripts/toggle-theme.sh", modelData.flag]
+                                themeSetProc.running = true
+                            }
 
                             Rectangle {
                                 anchors.fill: parent
-                                radius: 14
+                                radius: 10
                                 color: root.pywalCard
 
                                 Text {
                                     anchors.centerIn: parent
-                                    text: "✕"
+                                    text: modelData.name
                                     color: root.pywalFg
-                                    font.pixelSize: 12
-                                }
-                            }
-                        }
-                    }
-
-                    // TAB 1: Control Center
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        visible: root.activeTab === "control"
-                        spacing: 10
-
-                        // Quick Toggles Grid
-                        RowLayout {
-                            Layout.fillWidth: true
-                            spacing: 8
-
-                            // Toggle Theme Shortcut
-                            MouseArea {
-                                Layout.fillWidth: true
-                                implicitHeight: 36
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    toggleThemeProc.running = true
-                                }
-
-                                Rectangle {
-                                    anchors.fill: parent
-                                    radius: 12
-                                    color: root.pywalCard
-
-                                    RowLayout {
-                                        anchors.centerIn: parent
-                                        spacing: 6
-                                        Text { text: "☯️"; font.pixelSize: 12 }
-                                        Text { text: "Toggle Theme"; color: root.pywalFg; font.pixelSize: 11; font.bold: true }
-                                    }
-                                }
-                            }
-
-                            // Toggle Night Light Shortcut
-                            MouseArea {
-                                Layout.fillWidth: true
-                                implicitHeight: 36
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: {
-                                    toggleWlProc.running = true
-                                }
-
-                                Rectangle {
-                                    anchors.fill: parent
-                                    radius: 12
-                                    color: root.pywalCard
-
-                                    RowLayout {
-                                        anchors.centerIn: parent
-                                        spacing: 6
-                                        Text { text: "🌙"; font.pixelSize: 12 }
-                                        Text { text: "Night Light"; color: root.pywalFg; font.pixelSize: 11; font.bold: true }
-                                    }
-                                }
-                            }
-                        }
-
-                        // Sliders Container (Volume & Brightness)
-                        Rectangle {
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            radius: 16
-                            color: root.pywalCard
-
-                            ColumnLayout {
-                                anchors.fill: parent
-                                anchors.margins: 10
-                                spacing: 8
-
-                                // Volume Controls
-                                RowLayout {
-                                    Layout.fillWidth: true
-                                    spacing: 8
-                                    Text { text: "🔊"; color: root.pywalAccent; font.pixelSize: 12 }
-                                    Text { text: "Volume"; color: root.pywalFg; font.pixelSize: 11; font.bold: true }
-                                    Item { Layout.fillWidth: true }
-                                    Text { id: volTextVal; text: "50%"; color: root.pywalFg; font.pixelSize: 11 }
-                                }
-
-                                Slider {
-                                    id: volSlider
-                                    Layout.fillWidth: true
-                                    from: 0
-                                    to: 100
-                                    value: 50
-                                    onMoved: {
-                                        volSetProc.command = ["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", Math.round(value) + "%"]
-                                        volSetProc.running = true
-                                    }
-                                }
-
-                                // Brightness Controls
-                                RowLayout {
-                                    Layout.fillWidth: true
-                                    spacing: 8
-                                    Text { text: "☀️"; color: root.pywalAccent; font.pixelSize: 12 }
-                                    Text { text: "Brightness"; color: root.pywalFg; font.pixelSize: 11; font.bold: true }
-                                    Item { Layout.fillWidth: true }
-                                    Text { id: brightTextVal; text: "100%"; color: root.pywalFg; font.pixelSize: 11 }
-                                }
-
-                                Slider {
-                                    id: brightSlider
-                                    Layout.fillWidth: true
-                                    from: 5
-                                    to: 100
-                                    value: 80
-                                    onMoved: {
-                                        brightSetProc.command = ["brightnessctl", "set", Math.round(value) + "%"]
-                                        brightSetProc.running = true
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // TAB 2: Themes Selector
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        visible: root.activeTab === "theme"
-                        spacing: 8
-
-                        Text {
-                            text: "Select Color Scheme"
-                            color: root.pywalFg
-                            font.pixelSize: 12
-                            font.bold: true
-                        }
-
-                        GridLayout {
-                            Layout.fillWidth: true
-                            columns: 2
-                            rowSpacing: 8
-                            columnSpacing: 8
-
-                            Repeater {
-                                model: [
-                                    { name: "Catppuccin Mocha", flag: "catppuccin" },
-                                    { name: "Gruvbox Dark", flag: "gruvbox" },
-                                    { name: "Nord Ice", flag: "nord" },
-                                    { name: "Tokyo Night", flag: "tokyonight" }
-                                ]
-
-                                MouseArea {
-                                    required property var modelData
-                                    Layout.fillWidth: true
-                                    implicitHeight: 40
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: {
-                                        themeSetProc.command = ["/home/lena/dotfiles/home/scripts/toggle-theme.sh", modelData.flag]
-                                        themeSetProc.running = true
-                                    }
-
-                                    Rectangle {
-                                        anchors.fill: parent
-                                        radius: 12
-                                        color: root.pywalCard
-
-                                        Text {
-                                            anchors.centerIn: parent
-                                            text: modelData.name
-                                            color: root.pywalFg
-                                            font.pixelSize: 11
-                                            font.bold: true
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        Item { Layout.fillHeight: true }
-                    }
-
-                    // TAB 3: Wallpaper Selector
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        visible: root.activeTab === "wallpaper"
-                        spacing: 8
-
-                        Text {
-                            text: "Wallpaper Manager"
-                            color: root.pywalFg
-                            font.pixelSize: 12
-                            font.bold: true
-                        }
-
-                        MouseArea {
-                            Layout.fillWidth: true
-                            implicitHeight: 44
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                wallSelectProc.running = true
-                            }
-
-                            Rectangle {
-                                anchors.fill: parent
-                                radius: 12
-                                color: root.pywalAccent
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: "🖼️ Launch Rofi Wallpaper Selector"
-                                    color: root.calcReadableColor(root.pywalAccent)
-                                    font.pixelSize: 12
+                                    font.pixelSize: 11
                                     font.bold: true
                                 }
                             }
                         }
-                        Item { Layout.fillHeight: true }
                     }
                 }
+                Item { Layout.fillHeight: true }
+            }
+
+            // TAB 3: Wallpaper Selector
+            ColumnLayout {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                visible: root.activeTab === "wallpaper"
+                spacing: 6
+
+                MouseArea {
+                    Layout.fillWidth: true
+                    implicitHeight: 40
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: wallSelectProc.running = true
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: 10
+                        color: root.pywalAccent
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: "🖼️ Launch Wallpaper Picker"
+                            color: root.calcReadableColor(root.pywalAccent)
+                            font.pixelSize: 11
+                            font.bold: true
+                        }
+                    }
+                }
+                Item { Layout.fillHeight: true }
             }
         }
     }
