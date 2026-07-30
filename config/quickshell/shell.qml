@@ -247,11 +247,8 @@ PanelWindow {
         height: 220
 
         visible: root.expanded
-        opacity: root.expanded ? 1.0 : 0.0
-
         radius: 22
         color: root.pywalBg
-        opacity: 0.95
         border.color: root.pywalAccent
         border.width: 1.5
 
