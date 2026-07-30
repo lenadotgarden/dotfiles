@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
+import QtQuick.Shapes
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
@@ -18,24 +19,23 @@ PanelWindow {
         right: true
     }
 
-    // Exclusive zone matching scale 1.6 on MacBook Pro 14" (74 native px / 1.6 scale ~ 46-48 logical px)
+    // MacBook Pro 14" notch height: ~40px logical (scaling 1.6)
     WlrLayershell.layer: WlrLayer.Top
-    WlrLayershell.exclusiveZone: expanded ? 320 : 46
+    WlrLayershell.exclusiveZone: expanded ? 310 : 40
 
-    implicitHeight: expanded ? 320 : 46
+    implicitHeight: expanded ? 310 : 40
     color: "transparent"
 
     property bool expanded: false
     property string activeTab: "control"
 
-    // pywal dynamic theme colors (automatic sync preserved!)
+    // pywal dynamic theme colors
     property color pywalBg: "#11111b"
     property color pywalFg: "#ffffff"
     property color pywalAccent: "#89b4fa"
     property color pywalCard: "#1e1e2e"
-    property color pywalOledNotch: "#000000" // Pure OLED black matching hardware notch
+    property color pywalOledNotch: "#000000" // Pure OLED black
 
-    // wcag luminance contrast calculator for text readability
     function calcReadableColor(bgHex) {
         try {
             var str = bgHex.toString().replace("#", "")
@@ -49,7 +49,7 @@ PanelWindow {
         }
     }
 
-    // pywal colors parser & active hyprland border sync
+    // pywal colors parser
     Process {
         id: pywalCatProc
         command: ["bash", "-c", "cat ~/.cache/wal/colors.sh"]
@@ -68,9 +68,7 @@ PanelWindow {
                     }
                     if (line.indexOf("color4=") === 0 || line.indexOf("color6=") === 0 || line.indexOf("color1=") === 0) {
                         var accVal = line.split("=")[1].replace(/'/g, "").replace(/"/g, "").trim()
-                        if (accVal !== "") {
-                            barWindow.pywalAccent = accVal
-                        }
+                        if (accVal !== "") barWindow.pywalAccent = accVal
                     }
                     if (line.indexOf("color8=") === 0 || line.indexOf("color0=") === 0) {
                         var cardVal = line.split("=")[1].replace(/'/g, "").replace(/"/g, "").trim()
@@ -90,44 +88,100 @@ PanelWindow {
 
     Component.onCompleted: pywalCatProc.running = true
 
-    // MAIN NOTCH EXTENSION CAPSULE
-    // Height: 46px (46 * 1.6 = ~74 native px, perfectly matching hardware notch depth)
-    Rectangle {
-        id: notchIsland
+    // MAIN CONTAINER
+    Item {
+        id: notchIslandContainer
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
-        anchors.topMargin: 0
 
-        width: barWindow.expanded ? 460 : notchContentRow.implicitWidth + 40
-        height: barWindow.expanded ? 310 : 46
-
-        radius: barWindow.expanded ? 24 : 18
-        color: barWindow.pywalOledNotch
-        border.color: barWindow.expanded ? barWindow.pywalAccent : "transparent"
-        border.width: barWindow.expanded ? 1.5 : 0
+        width: barWindow.expanded ? 450 : notchContentRow.implicitWidth + 48
+        height: barWindow.expanded ? 300 : 40
 
         Behavior on width { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
         Behavior on height { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
-        Behavior on radius { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
 
+        // OLED Black Notch Extension Shape with Inverse Top-Corners + Smooth Bottom Radius
+        Shape {
+            anchors.fill: parent
+            vendorExtensionsEnabled: true
+
+            ShapePath {
+                strokeColor: barWindow.expanded ? barWindow.pywalAccent : "transparent"
+                strokeWidth: barWindow.expanded ? 1.5 : 0
+                fillColor: barWindow.pywalOledNotch
+
+                startX: 0
+                startY: 0
+
+                // Top Left Inverse Corner Curve (Extending smoothly out of screen edge into notch)
+                PathArc {
+                    x: 10
+                    y: 10
+                    radiusX: 10
+                    radiusY: 10
+                    direction: ShapePath.CounterClockwise
+                }
+
+                // Left vertical edge down
+                PathLine { x: 10; y: notchIslandContainer.height - 16 }
+
+                // Bottom Left Rounded Corner (Smooth internal radius)
+                PathArc {
+                    x: 26
+                    y: notchIslandContainer.height
+                    radiusX: 16
+                    radiusY: 16
+                    direction: ShapePath.Clockwise
+                }
+
+                // Bottom horizontal edge across
+                PathLine { x: notchIslandContainer.width - 26; y: notchIslandContainer.height }
+
+                // Bottom Right Rounded Corner (Smooth internal radius)
+                PathArc {
+                    x: notchIslandContainer.width - 10
+                    y: notchIslandContainer.height - 16
+                    radiusX: 16
+                    radiusY: 16
+                    direction: ShapePath.Clockwise
+                }
+
+                // Right vertical edge up
+                PathLine { x: notchIslandContainer.width - 10; y: 10 }
+
+                // Top Right Inverse Corner Curve (Extending smoothly into top screen edge)
+                PathArc {
+                    x: notchIslandContainer.width
+                    y: 0
+                    radiusX: 10
+                    radiusY: 10
+                    direction: ShapePath.CounterClockwise
+                }
+
+                // Top edge back to start
+                PathLine { x: 0; y: 0 }
+            }
+        }
+
+        // CONTENT LAYOUT
         ColumnLayout {
             anchors.fill: parent
-            anchors.topMargin: 4
+            anchors.topMargin: 2
             anchors.bottomMargin: 4
-            anchors.leftMargin: 8
-            anchors.rightMargin: 8
+            anchors.leftMargin: 16
+            anchors.rightMargin: 16
             spacing: 6
 
-            // TOP COMPACT ROW (Seamless Extension around Notch)
+            // TOP COMPACT ROW (Wing items around notch)
             RowLayout {
                 id: notchContentRow
                 Layout.fillWidth: true
-                Layout.preferredHeight: 38
+                Layout.preferredHeight: 32
                 spacing: 8
 
-                // LEFT: Workspaces (Left wing of physical notch) - Nix icon removed
+                // LEFT WING: Workspaces
                 RowLayout {
-                    spacing: 6
+                    spacing: 5
 
                     Repeater {
                         model: [1, 2, 3, 4]
@@ -139,23 +193,23 @@ PanelWindow {
                             property bool isExists: wsObj !== undefined
 
                             implicitWidth: wsRect.implicitWidth
-                            implicitHeight: 28
+                            implicitHeight: 24
                             cursorShape: Qt.PointingHandCursor
 
                             onClicked: Hyprland.dispatch("workspace " + modelData)
 
                             Rectangle {
                                 id: wsRect
-                                implicitWidth: isFocused ? 28 : 18
-                                implicitHeight: 28
-                                radius: 14
+                                implicitWidth: isFocused ? 24 : 16
+                                implicitHeight: 24
+                                radius: 12
                                 color: isFocused ? barWindow.pywalAccent : (isExists ? barWindow.pywalCard : "#1a1a1a")
 
                                 Text {
                                     anchors.centerIn: parent
                                     text: modelData
                                     color: isFocused ? barWindow.calcReadableColor(barWindow.pywalAccent) : barWindow.pywalFg
-                                    font.pixelSize: 11
+                                    font.pixelSize: 10
                                     font.bold: true
                                 }
 
@@ -165,9 +219,9 @@ PanelWindow {
                     }
                 }
 
-                // PHYSICAL NOTCH SPACER (Framing ~230px hardware notch area)
+                // PHYSICAL HARDWARE NOTCH CLEARANCE (~210px)
                 MouseArea {
-                    Layout.preferredWidth: barWindow.expanded ? 120 : 230
+                    Layout.preferredWidth: barWindow.expanded ? 110 : 210
                     Layout.fillHeight: true
                     cursorShape: Qt.PointingHandCursor
                     onClicked: barWindow.expanded = !barWindow.expanded
@@ -175,18 +229,18 @@ PanelWindow {
                     Behavior on Layout.preferredWidth { NumberAnimation { duration: 250 } }
                 }
 
-                // RIGHT: Clock, Volume, Battery (Right wing of physical notch)
+                // RIGHT WING: Volume, Battery, Clock
                 RowLayout {
-                    spacing: 8
+                    spacing: 6
 
-                    // Volume Quick Pill
+                    // Volume Pill
                     MouseArea {
                         id: volWidget
                         property int volVal: 0
                         property bool isMuted: false
 
-                        implicitWidth: volContent.implicitWidth + 14
-                        implicitHeight: 28
+                        implicitWidth: volContent.implicitWidth + 12
+                        implicitHeight: 24
                         cursorShape: Qt.PointingHandCursor
 
                         function updateVol() { volGetProc.running = true }
@@ -227,7 +281,7 @@ PanelWindow {
 
                         Rectangle {
                             anchors.fill: parent
-                            radius: 14
+                            radius: 12
                             color: barWindow.pywalCard
 
                             RowLayout {
@@ -238,24 +292,24 @@ PanelWindow {
                                 Text {
                                     text: volWidget.isMuted ? "🔇" : (volWidget.volVal < 50 ? "🔉" : "🔊")
                                     color: barWindow.pywalAccent
-                                    font.pixelSize: 11
+                                    font.pixelSize: 10
                                 }
                                 Text {
                                     text: volWidget.isMuted ? "M" : volWidget.volVal + "%"
                                     color: barWindow.pywalFg
-                                    font.pixelSize: 11
+                                    font.pixelSize: 10
                                     font.bold: true
                                 }
                             }
                         }
                     }
 
-                    // Battery Quick Pill
+                    // Battery Pill
                     Rectangle {
-                        implicitWidth: batContent.implicitWidth + 14
-                        implicitHeight: 28
+                        implicitWidth: batContent.implicitWidth + 12
+                        implicitHeight: 24
                         color: barWindow.pywalCard
-                        radius: 14
+                        radius: 12
 
                         RowLayout {
                             id: batContent
@@ -269,32 +323,32 @@ PanelWindow {
 
                                 text: state === UPowerDeviceState.Charging ? "⚡" : (pct <= 20 ? "🪫" : "🔋")
                                 color: state === UPowerDeviceState.Charging ? "#a6e3a1" : (pct <= 20 ? "#f38ba8" : barWindow.pywalAccent)
-                                font.pixelSize: 11
+                                font.pixelSize: 10
                             }
 
                             Text {
                                 property var displayBat: UPower.displayDevice
                                 text: displayBat ? Math.round(displayBat.percentage * 100) + "%" : "100%"
                                 color: barWindow.pywalFg
-                                font.pixelSize: 11
+                                font.pixelSize: 10
                                 font.bold: true
                             }
                         }
                     }
 
-                    // Clock Quick Pill
+                    // Clock Pill
                     Rectangle {
-                        implicitWidth: clockText.implicitWidth + 16
-                        implicitHeight: 28
+                        implicitWidth: clockText.implicitWidth + 14
+                        implicitHeight: 24
                         color: barWindow.pywalAccent
-                        radius: 14
+                        radius: 12
 
                         Text {
                             id: clockText
                             anchors.centerIn: parent
                             text: Qt.formatDateTime(new Date(), "HH:mm")
                             color: barWindow.calcReadableColor(barWindow.pywalAccent)
-                            font.pixelSize: 11
+                            font.pixelSize: 10
                             font.bold: true
 
                             Timer {
@@ -308,7 +362,7 @@ PanelWindow {
                 }
             }
 
-            // EXPANDED BODY (Morphing Control Center)
+            // EXPANDED BODY (Control Center)
             Item {
                 id: expandedContent
                 Layout.fillWidth: true
@@ -320,10 +374,10 @@ PanelWindow {
 
                 ColumnLayout {
                     anchors.fill: parent
-                    anchors.margins: 6
-                    spacing: 10
+                    anchors.margins: 4
+                    spacing: 8
 
-                    // Navigation Tabs
+                    // Tabs Header
                     RowLayout {
                         Layout.fillWidth: true
                         spacing: 6
@@ -338,16 +392,16 @@ PanelWindow {
                             MouseArea {
                                 required property var modelData
                                 implicitWidth: tabBtn.implicitWidth
-                                implicitHeight: 28
+                                implicitHeight: 26
                                 cursorShape: Qt.PointingHandCursor
 
                                 onClicked: barWindow.activeTab = modelData.id
 
                                 Rectangle {
                                     id: tabBtn
-                                    implicitWidth: tabLabel.implicitWidth + 16
-                                    implicitHeight: 28
-                                    radius: 14
+                                    implicitWidth: tabLabel.implicitWidth + 14
+                                    implicitHeight: 26
+                                    radius: 13
                                     color: barWindow.activeTab === modelData.id ? barWindow.pywalAccent : barWindow.pywalCard
 
                                     Text {
@@ -355,7 +409,7 @@ PanelWindow {
                                         anchors.centerIn: parent
                                         text: modelData.label
                                         color: barWindow.activeTab === modelData.id ? barWindow.calcReadableColor(barWindow.pywalAccent) : barWindow.pywalFg
-                                        font.pixelSize: 11
+                                        font.pixelSize: 10
                                         font.bold: true
                                     }
                                 }
@@ -365,14 +419,14 @@ PanelWindow {
                         Item { Layout.fillWidth: true }
 
                         MouseArea {
-                            implicitWidth: 28
-                            implicitHeight: 28
+                            implicitWidth: 26
+                            implicitHeight: 26
                             cursorShape: Qt.PointingHandCursor
                             onClicked: barWindow.expanded = false
 
                             Rectangle {
                                 anchors.fill: parent
-                                radius: 14
+                                radius: 13
                                 color: barWindow.pywalCard
 
                                 Text {
@@ -398,7 +452,7 @@ PanelWindow {
 
                             MouseArea {
                                 Layout.fillWidth: true
-                                implicitHeight: 36
+                                implicitHeight: 34
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: toggleThemeProc.running = true
 
@@ -411,14 +465,14 @@ PanelWindow {
                                         anchors.centerIn: parent
                                         spacing: 6
                                         Text { text: "☯️"; font.pixelSize: 12 }
-                                        Text { text: "Toggle Theme"; color: barWindow.pywalFg; font.pixelSize: 11; font.bold: true }
+                                        Text { text: "Toggle Theme"; color: barWindow.pywalFg; font.pixelSize: 10; font.bold: true }
                                     }
                                 }
                             }
 
                             MouseArea {
                                 Layout.fillWidth: true
-                                implicitHeight: 36
+                                implicitHeight: 34
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: toggleWlProc.running = true
 
@@ -431,7 +485,7 @@ PanelWindow {
                                         anchors.centerIn: parent
                                         spacing: 6
                                         Text { text: "🌙"; font.pixelSize: 12 }
-                                        Text { text: "Night Light"; color: barWindow.pywalFg; font.pixelSize: 11; font.bold: true }
+                                        Text { text: "Night Light"; color: barWindow.pywalFg; font.pixelSize: 10; font.bold: true }
                                     }
                                 }
                             }
@@ -440,19 +494,19 @@ PanelWindow {
                         Rectangle {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
-                            radius: 14
+                            radius: 12
                             color: barWindow.pywalCard
 
                             ColumnLayout {
                                 anchors.fill: parent
-                                anchors.margins: 10
-                                spacing: 6
+                                anchors.margins: 8
+                                spacing: 4
 
                                 RowLayout {
                                     Layout.fillWidth: true
-                                    Text { text: "🔊 Volume Action"; color: barWindow.pywalAccent; font.pixelSize: 11; font.bold: true }
+                                    Text { text: "🔊 Volume"; color: barWindow.pywalAccent; font.pixelSize: 10; font.bold: true }
                                     Item { Layout.fillWidth: true }
-                                    Text { text: volWidget.volVal + "%"; color: barWindow.pywalFg; font.pixelSize: 11 }
+                                    Text { text: volWidget.volVal + "%"; color: barWindow.pywalFg; font.pixelSize: 10 }
                                 }
 
                                 RowLayout {
@@ -461,7 +515,7 @@ PanelWindow {
 
                                     MouseArea {
                                         Layout.fillWidth: true
-                                        implicitHeight: 32
+                                        implicitHeight: 30
                                         cursorShape: Qt.PointingHandCursor
                                         onClicked: {
                                             volSetProc.command = ["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", "5%-"]
@@ -471,13 +525,13 @@ PanelWindow {
                                             anchors.fill: parent
                                             radius: 8
                                             color: barWindow.pywalBg
-                                            Text { anchors.centerIn: parent; text: "- 5%"; color: barWindow.pywalFg; font.pixelSize: 11; font.bold: true }
+                                            Text { anchors.centerIn: parent; text: "- 5%"; color: barWindow.pywalFg; font.pixelSize: 10; font.bold: true }
                                         }
                                     }
 
                                     MouseArea {
                                         Layout.fillWidth: true
-                                        implicitHeight: 32
+                                        implicitHeight: 30
                                         cursorShape: Qt.PointingHandCursor
                                         onClicked: {
                                             volSetProc.command = ["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", "5%+"]
@@ -487,14 +541,14 @@ PanelWindow {
                                             anchors.fill: parent
                                             radius: 8
                                             color: barWindow.pywalBg
-                                            Text { anchors.centerIn: parent; text: "+ 5%"; color: barWindow.pywalFg; font.pixelSize: 11; font.bold: true }
+                                            Text { anchors.centerIn: parent; text: "+ 5%"; color: barWindow.pywalFg; font.pixelSize: 10; font.bold: true }
                                         }
                                     }
                                 }
 
                                 RowLayout {
                                     Layout.fillWidth: true
-                                    Text { text: "☀️ Brightness Action"; color: barWindow.pywalAccent; font.pixelSize: 11; font.bold: true }
+                                    Text { text: "☀️ Brightness"; color: barWindow.pywalAccent; font.pixelSize: 10; font.bold: true }
                                 }
 
                                 RowLayout {
@@ -503,7 +557,7 @@ PanelWindow {
 
                                     MouseArea {
                                         Layout.fillWidth: true
-                                        implicitHeight: 32
+                                        implicitHeight: 30
                                         cursorShape: Qt.PointingHandCursor
                                         onClicked: {
                                             brightSetProc.command = ["brightnessctl", "set", "5%-"]
@@ -513,13 +567,13 @@ PanelWindow {
                                             anchors.fill: parent
                                             radius: 8
                                             color: barWindow.pywalBg
-                                            Text { anchors.centerIn: parent; text: "- 5%"; color: barWindow.pywalFg; font.pixelSize: 11; font.bold: true }
+                                            Text { anchors.centerIn: parent; text: "- 5%"; color: barWindow.pywalFg; font.pixelSize: 10; font.bold: true }
                                         }
                                     }
 
                                     MouseArea {
                                         Layout.fillWidth: true
-                                        implicitHeight: 32
+                                        implicitHeight: 30
                                         cursorShape: Qt.PointingHandCursor
                                         onClicked: {
                                             brightSetProc.command = ["brightnessctl", "set", "+5%"]
@@ -529,7 +583,7 @@ PanelWindow {
                                             anchors.fill: parent
                                             radius: 8
                                             color: barWindow.pywalBg
-                                            Text { anchors.centerIn: parent; text: "+ 5%"; color: barWindow.pywalFg; font.pixelSize: 11; font.bold: true }
+                                            Text { anchors.centerIn: parent; text: "+ 5%"; color: barWindow.pywalFg; font.pixelSize: 10; font.bold: true }
                                         }
                                     }
                                 }
@@ -543,8 +597,8 @@ PanelWindow {
                         Layout.fillHeight: true
                         visible: barWindow.activeTab === "theme"
                         columns: 2
-                        rowSpacing: 8
-                        columnSpacing: 8
+                        rowSpacing: 6
+                        columnSpacing: 6
 
                         Repeater {
                             model: [
@@ -557,7 +611,7 @@ PanelWindow {
                             MouseArea {
                                 required property var modelData
                                 Layout.fillWidth: true
-                                implicitHeight: 40
+                                implicitHeight: 38
                                 cursorShape: Qt.PointingHandCursor
                                 onClicked: {
                                     themeSetProc.command = ["/home/lena/dotfiles/home/scripts/toggle-theme.sh", modelData.flag]
@@ -573,7 +627,7 @@ PanelWindow {
                                         anchors.centerIn: parent
                                         text: modelData.name
                                         color: barWindow.pywalFg
-                                        font.pixelSize: 11
+                                        font.pixelSize: 10
                                         font.bold: true
                                     }
                                 }
@@ -589,7 +643,7 @@ PanelWindow {
 
                         MouseArea {
                             Layout.fillWidth: true
-                            implicitHeight: 42
+                            implicitHeight: 40
                             cursorShape: Qt.PointingHandCursor
                             onClicked: wallSelectProc.running = true
 
@@ -602,7 +656,7 @@ PanelWindow {
                                     anchors.centerIn: parent
                                     text: "🖼️ Launch Wallpaper Picker"
                                     color: barWindow.calcReadableColor(barWindow.pywalAccent)
-                                    font.pixelSize: 11
+                                    font.pixelSize: 10
                                     font.bold: true
                                 }
                             }
