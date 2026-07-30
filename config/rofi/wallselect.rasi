@@ -1,0 +1,96 @@
+* {
+    font: "Iosevka 11";
+}
+
+window {
+    width: 70%;
+    height: 56%;
+    border-radius: 18px;
+    location: center;
+    border: 2px;
+    border-color: @selected-active-background;
+    background-color: @background;
+    padding: 0px;
+}
+
+mainbox {
+    padding: 20px;
+    background-color: @background;
+    children: [ inputbar, listview ];
+    border: 0;
+}
+
+inputbar {
+    margin: 0px 0px 16px 0px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background-color: @alternate-normal-background;
+    children: [ prompt, entry ];
+}
+
+prompt {
+    margin: 0px 10px 0px 0px;
+    font: "Iosevka Bold 11";
+    text-color: @selected-active-background;
+    background-color: transparent;
+}
+
+entry {
+    placeholder: "Search wallpaper...";
+    font: "Iosevka 11";
+    text-color: @foreground;
+    background-color: transparent;
+}
+
+listview {
+    columns: 4;
+    lines: 2;
+    spacing: 16px;
+    cycle: true;
+    dynamic: true;
+    background-color: @background;
+    border: 0;
+    padding: 0;
+}
+
+element {
+    orientation: vertical;
+    padding: 14px;
+    border-radius: 12px;
+    background-color: @alternate-normal-background;
+}
+
+element normal.normal {
+    background-color: @alternate-normal-background;
+    text-color: @foreground;
+}
+
+element alternate.normal {
+    background-color: @alternate-normal-background;
+    text-color: @foreground;
+}
+
+element selected.normal {
+    background-color: @selected-active-background;
+    border-radius: 12px;
+}
+
+element selected element-text {
+    background-color: transparent;
+    text-color: @background;
+    font: "Iosevka Bold 10";
+}
+
+element-icon {
+    size: 160px;
+    horizontal-align: 0.5;
+    background-color: transparent;
+}
+
+element-text {
+    horizontal-align: 0.5;
+    font: "Iosevka 10";
+    margin: 8px 0px 0px 0px;
+    background-color: transparent;
+    text-color: @foreground;
+}

@@ -98,4 +98,7 @@
     panel_left = ["h", "left"]
     panel_right = ["l", "right"]
   '';
+
+  # Layout Rofi pour wallselect
+  xdg.configFile."rofi/wallselect.rasi".source = ../config/rofi/wallselect.rasi;
 }
