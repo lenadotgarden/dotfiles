@@ -64,12 +64,6 @@ PanelWindow {
                         var accVal = line.split("=")[1].replace(/'/g, "").replace(/"/g, "").trim()
                         if (accVal !== "") {
                             barWindow.pywalAccent = accVal
-                            
-                            var rawHex = accVal.replace("#", "")
-                            if (rawHex.length === 6) {
-                                hyprBorderProc.command = ["hyprctl", "keyword", "general:col.active_border", "rgba(" + rawHex + "ff)"]
-                                hyprBorderProc.running = true
-                            }
                         }
                     }
                     if (line.indexOf("color8=") === 0 || line.indexOf("color0=") === 0) {
