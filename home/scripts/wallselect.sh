@@ -15,28 +15,35 @@ fi
 # detect current system mode (dark/light) to adapt rofi background and text contrast
 current_scheme=$(dconf read /org/gnome/desktop/interface/color-scheme 2>/dev/null)
 
-if [ "$current_scheme" = "'prefer-light'" ]; then
-    bg_color="#f5f5f7"
-    fg_color="#1d1d1f"
-    card_color="#e5e5ea"
-    accent_color="#007aff"
-    selected_fg="#ffffff"
-else
-    bg_color="#181825"
-    fg_color="#ffffff"
-    card_color="#1e1e2e"
-    accent_color="#89b4fa"
-    selected_fg="#11111b"
+# default fallback colors
+bg_color="#181825"
+fg_color="#ffffff"
+accent_color="#89b4fa"
+card_color="#1e1e2e"
+selected_fg="#11111b"
+
+# parse exact pywal colors from colors.sh
+if [ -f "$HOME/.cache/wal/colors.sh" ]; then
+    while IFS= read -r line; do
+        line=$(echo "$line" | tr -d "'\"" | xargs)
+        if [[ "$line" == background=* ]]; then
+            bg_color="${line#background=}"
+        elif [[ "$line" == foreground=* ]]; then
+            fg_color="${line#foreground=}"
+        elif [[ "$line" == color4=* ]] || [[ "$line" == color6=* ]] || [[ "$line" == color1=* ]]; then
+            [ -z "$found_accent" ] && accent_color="${line#*=}" && found_accent=1
+        elif [[ "$line" == color8=* ]] || [[ "$line" == color0=* ]]; then
+            card_color="${line#*=}"
+        fi
+    done < "$HOME/.cache/wal/colors.sh"
 fi
 
-if [ -f "$HOME/.cache/wal/colors.sh" ]; then
-    source "$HOME/.cache/wal/colors.sh" 2>/dev/null
-    if [ "$current_scheme" != "'prefer-light'" ]; then
-        bg_color="${background:-#181825}"
-        fg_color="${foreground:-#ffffff}"
-        accent_color="${color4:-#89b4fa}"
-        card_color="${color8:-#1e1e2e}"
-    fi
+if [ "$current_scheme" = "'prefer-light'" ]; then
+    fg_color="#11111b"
+    selected_fg="#ffffff"
+else
+    fg_color="#ffffff"
+    selected_fg="#11111b"
 fi
 
 # build rofi icon grid input
@@ -56,7 +63,7 @@ while IFS= read -r img; do
     rofi_input="${rofi_input}${name}\x00icon\x1f${thumb}\n"
 done < <(find "$wall_dir" -type f \( -name "*.jpg" -o -name "*.png" -o -name "*.jpeg" -o -name "*.webp" \))
 
-# open rofi grid gallery matching light/dark OS design
+# open rofi grid gallery matching exact quickshell & hyprland dynamic pywal colors
 selected=$(echo -e "$rofi_input" | rofi -dmenu -p "🎨 Wallpapers" -i -show-icons -theme-str "
     * { background-color: transparent; text-color: ${fg_color}; font: \"Iosevka 11\"; }
     window { width: 68%; height: 52%; border-radius: 18px; location: center; background-color: ${bg_color}; border: 2px; border-color: ${accent_color}; }
@@ -69,7 +76,7 @@ selected=$(echo -e "$rofi_input" | rofi -dmenu -p "🎨 Wallpapers" -i -show-ico
     element selected { background-color: ${accent_color}; border-radius: 12px; }
     element selected element-text { text-color: ${selected_fg}; font: \"Iosevka Bold 10\"; }
     element-icon { size: 140px; horizontal-align: 0.5; }
-    element-text { horizontal-align: 0.5; font: \"Iosevka 10\"; margin: 6px 0 0 0; }
+    element-text { horizontal-align: 0.5; font: \"Iosevka 10\"; margin: 6px 0 0 0; text-color: ${fg_color}; }
 ")
 
 if [ -z "$selected" ]; then
