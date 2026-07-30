@@ -23,8 +23,10 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.exclusiveZone: 44
 
-    implicitHeight: expanded ? 320 : 44
+    implicitHeight: expanded ? 320 : (volHUDVisible ? 78 : 44)
     color: "transparent"
+
+    Behavior on implicitHeight { NumberAnimation { duration: 220; easing.type: Easing.OutQuint } }
 
     property bool expanded: false
     property string activeTab: "control"
@@ -97,16 +99,28 @@ PanelWindow {
     Component.onCompleted: pywalCatProc.running = true
 
     // MAIN NOTCH EXTENSION CONTAINER
+    property bool volHUDVisible: false
+    property int volHUDValue: 0
+    property bool volHUDMuted: false
+
+    Timer {
+        id: volHUDTimer
+        interval: 1200
+        repeat: false
+        onTriggered: barWindow.volHUDVisible = false
+    }
+
+    // MAIN NOTCH EXTENSION CONTAINER
     Item {
         id: notchIslandContainer
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
 
         width: barWindow.expanded ? 460 : (leftWingRow.implicitWidth + 330 + rightWingRow.implicitWidth + (barWindow.itemSpacing * 2) + 24)
-        height: barWindow.expanded ? 300 : 44
+        height: barWindow.expanded ? 300 : (barWindow.volHUDVisible ? 78 : 44)
 
-        Behavior on width { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
-        Behavior on height { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
+        Behavior on width { NumberAnimation { duration: 220; easing.type: Easing.OutQuint } }
+        Behavior on height { NumberAnimation { duration: 220; easing.type: Easing.OutQuint } }
 
         // Clean Canvas Drawing: Notch Extension with Top Inverse Fillets + Rounded Capsule Bottom
         Canvas {
@@ -119,8 +133,8 @@ PanelWindow {
 
                 var w = notchIslandContainer.width;
                 var h = notchIslandContainer.height;
-                var r = barWindow.expanded ? 24 : 18; // Bottom corners radius
-                var f = barWindow.expanded ? 0 : 12;  // Top inverse fillet radius
+                var r = 18; // Constant bottom corner radius
+                var f = barWindow.expanded ? 0 : 12;  // Top inverse fillets always preserved for notch bar!
 
                 ctx.beginPath();
                 ctx.moveTo(0, 0);
@@ -161,6 +175,7 @@ PanelWindow {
             Connections {
                 target: barWindow
                 function onExpandedChanged() { notchCanvas.requestPaint(); }
+                function onVolHUDVisibleChanged() { notchCanvas.requestPaint(); }
                 function onPywalOledNotchChanged() { notchCanvas.requestPaint(); }
                 function onPywalAccentChanged() { notchCanvas.requestPaint(); }
             }
@@ -172,6 +187,83 @@ PanelWindow {
             }
         }
 
+        // Shared Volume Process Listener
+        Process {
+            id: volGetProc
+            command: ["wpctl", "get-volume", "@DEFAULT_AUDIO_SINK@"]
+            stdout: SplitParser {
+                splitMarker: "\n"
+                onRead: data => {
+                    var str = data.trim()
+                    var muted = str.indexOf("[MUTED]") !== -1
+                    var parts = str.split(" ")
+                    if (parts.length >= 2) {
+                        var newVol = Math.round(parseFloat(parts[1]) * 100)
+                        if (!isNaN(newVol)) {
+                            if (newVol !== barWindow.volHUDValue || muted !== barWindow.volHUDMuted) {
+                                barWindow.volHUDValue = newVol
+                                barWindow.volHUDMuted = muted
+                                if (!barWindow.expanded) {
+                                    barWindow.volHUDVisible = true
+                                    volHUDTimer.restart()
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Timer {
+            interval: 200
+            running: true
+            repeat: true
+            onTriggered: volGetProc.running = true
+        }
+
+        // VOLUME HUD OVERLAY DISPLAY (Positioned under physical notch)
+        Item {
+            id: notchVolHUD
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: 8
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: 300
+            height: 24
+            visible: !barWindow.expanded && barWindow.volHUDVisible
+            opacity: (visible && barWindow.volHUDVisible) ? 1.0 : 0.0
+
+            Behavior on opacity { NumberAnimation { duration: 180 } }
+
+            RowLayout {
+                anchors.fill: parent
+                spacing: 12
+
+                Text {
+                    text: barWindow.volHUDMuted ? "󰝟" : (barWindow.volHUDValue === 0 ? "󰕿" : (barWindow.volHUDValue < 50 ? "󰖀" : "󰕾"))
+                    color: barWindow.volHUDMuted ? "#6c7185" : barWindow.pywalAccent
+                    font.family: "Symbols Nerd Font"
+                    font.pixelSize: 17
+                }
+
+                // Smooth 0% to 100% progress bar (No percentage text)
+                Rectangle {
+                    Layout.fillWidth: true
+                    implicitHeight: 5
+                    radius: 3
+                    color: barWindow.pywalCard
+
+                    Rectangle {
+                        height: parent.height
+                        width: parent.width * Math.min(1.0, Math.max(0.0, barWindow.volHUDValue / 100.0))
+                        radius: 3
+                        color: barWindow.volHUDMuted ? "#6c7185" : barWindow.pywalAccent
+
+                        Behavior on width { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
+                    }
+                }
+            }
+        }
+
         // CONTENT LAYOUT
         ColumnLayout {
             anchors.fill: parent
@@ -179,7 +271,7 @@ PanelWindow {
             anchors.bottomMargin: 4
             anchors.leftMargin: barWindow.itemSpacing + 12
             anchors.rightMargin: barWindow.itemSpacing + 12
-            spacing: 6
+            spacing: 0
 
             // TOP COMPACT ROW
             RowLayout {
@@ -188,10 +280,13 @@ PanelWindow {
                 Layout.preferredHeight: 36
                 spacing: 0
 
-                // LEFT WING: Minimal Typography Workspaces (Perfectly matching 16px spacing)
+                // LEFT WING: Minimal Typography Workspaces (Fade out on volume HUD)
                 RowLayout {
                     id: leftWingRow
                     spacing: barWindow.itemSpacing
+                    opacity: (barWindow.volHUDVisible && !barWindow.expanded) ? 0.0 : 1.0
+
+                    Behavior on opacity { NumberAnimation { duration: 180 } }
 
                     Repeater {
                         model: [1, 2, 3, 4]
@@ -224,7 +319,7 @@ PanelWindow {
                     }
                 }
 
-                // PHYSICAL HARDWARE NOTCH CLEARANCE SPACER (Fixed 330px wide)
+                // PHYSICAL HARDWARE NOTCH CLEARANCE SPACER (330px)
                 MouseArea {
                     Layout.preferredWidth: barWindow.expanded ? 110 : 330
                     Layout.fillHeight: true
@@ -234,77 +329,13 @@ PanelWindow {
                     Behavior on Layout.preferredWidth { NumberAnimation { duration: 250 } }
                 }
 
-                // RIGHT WING: Minimal Typography Volume, Battery, Clock (Perfectly matching 16px spacing)
+                // RIGHT WING: Battery + Clock (Fade out on volume HUD)
                 RowLayout {
                     id: rightWingRow
                     spacing: barWindow.itemSpacing
+                    opacity: (barWindow.volHUDVisible && !barWindow.expanded) ? 0.0 : 1.0
 
-                    // Volume
-                    MouseArea {
-                        id: volWidget
-                        property int volVal: 0
-                        property bool isMuted: false
-
-                        implicitWidth: volContent.implicitWidth
-                        implicitHeight: 28
-                        cursorShape: Qt.PointingHandCursor
-
-                        function updateVol() { volGetProc.running = true }
-                        Component.onCompleted: updateVol()
-
-                        Process {
-                            id: volGetProc
-                            command: ["wpctl", "get-volume", "@DEFAULT_AUDIO_SINK@"]
-                            stdout: SplitParser {
-                                onRead: data => {
-                                    var muted = data.indexOf("[MUTED]") !== -1
-                                    var parts = data.trim().split(" ")
-                                    if (parts.length >= 2) {
-                                        volWidget.volVal = Math.round(parseFloat(parts[1]) * 100)
-                                        volWidget.isMuted = muted
-                                    }
-                                }
-                            }
-                        }
-
-                        onClicked: {
-                            volSetProc.command = ["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle"]
-                            volSetProc.running = true
-                        }
-
-                        onWheel: (wheel) => {
-                            var change = wheel.angleDelta.y > 0 ? "5%+" : "5%-"
-                            volSetProc.command = ["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", change]
-                            volSetProc.running = true
-                        }
-
-                        Timer {
-                            interval: 2000
-                            running: true
-                            repeat: true
-                            onTriggered: volWidget.updateVol()
-                        }
-
-                        RowLayout {
-                            id: volContent
-                            anchors.centerIn: parent
-                            spacing: 8
-
-                            Text {
-                                text: volWidget.isMuted ? "󰝟" : (volWidget.volVal === 0 ? "󰕿" : (volWidget.volVal < 50 ? "󰖀" : "󰕾"))
-                                color: barWindow.pywalAccent
-                                font.family: "Symbols Nerd Font"
-                                font.pixelSize: 15
-                            }
-                            Text {
-                                text: volWidget.isMuted ? "Muted" : volWidget.volVal + "%"
-                                color: barWindow.pywalFg
-                                font.family: barWindow.customFontFamily
-                                font.pixelSize: 14
-                                font.bold: true
-                            }
-                        }
-                    }
+                    Behavior on opacity { NumberAnimation { duration: 180 } }
 
                     // Battery
                     RowLayout {
