@@ -23,27 +23,27 @@ PanelWindow {
     implicitHeight: 40
     color: "transparent"
 
-    // Couleurs Pywal extraites
+    // pywal dynamic theme colors
     property color pywalBg: "#11111b"
+    property color pywalFg: "#ffffff"
     property color pywalAccent: "#89b4fa"
+    property color pywalCard: "#1e1e2e"
 
-    // FONCTION RIGOUREUSE DE DÉTERMINATION DU CONTRASTE PAR TEST DE LUMINANCE (WCAG)
+    // wcag luminance contrast calculator for text readability
     function calcReadableColor(bgHex) {
         try {
             var str = bgHex.toString().replace("#", "")
             var r = parseInt(str.substr(0, 2), 16) / 255
             var g = parseInt(str.substr(2, 2), 16) / 255
             var b = parseInt(str.substr(4, 2), 16) / 255
-            // Formule standard de Luminance Relative WCAG
             var lum = 0.2126 * r + 0.7152 * g + 0.0722 * b
-            // Si la surface est claire (> 0.5), forcer du noir pur (#000000), sinon blanc pur (#ffffff)
-            return lum > 0.5 ? "#000000" : "#ffffff"
+            return lum > 0.55 ? "#11111b" : "#ffffff"
         } catch(e) {
             return "#ffffff"
         }
     }
 
-    // Process d'extraction des couleurs Pywal + Bordure dynamique Hyprland avec alpha visible (0xff)
+    // pywal colors parser & active hyprland border sync
     Process {
         id: pywalCatProc
         command: ["bash", "-c", "cat ~/.cache/wal/colors.sh"]
@@ -56,18 +56,25 @@ PanelWindow {
                         var bgVal = line.split("=")[1].replace(/'/g, "").replace(/"/g, "").trim()
                         if (bgVal !== "") barWindow.pywalBg = bgVal
                     }
+                    if (line.indexOf("foreground=") === 0) {
+                        var fgVal = line.split("=")[1].replace(/'/g, "").replace(/"/g, "").trim()
+                        if (fgVal !== "") barWindow.pywalFg = fgVal
+                    }
                     if (line.indexOf("color4=") === 0 || line.indexOf("color6=") === 0 || line.indexOf("color1=") === 0) {
                         var accVal = line.split("=")[1].replace(/'/g, "").replace(/"/g, "").trim()
                         if (accVal !== "") {
                             barWindow.pywalAccent = accVal
                             
-                            // Forcer le format hex d'Hyprland rgba(RRGGBBff) avec alpha opaque
                             var rawHex = accVal.replace("#", "")
                             if (rawHex.length === 6) {
                                 hyprBorderProc.command = ["hyprctl", "keyword", "general:col.active_border", "rgba(" + rawHex + "ff)"]
                                 hyprBorderProc.running = true
                             }
                         }
+                    }
+                    if (line.indexOf("color8=") === 0 || line.indexOf("color0=") === 0) {
+                        var cardVal = line.split("=")[1].replace(/'/g, "").replace(/"/g, "").trim()
+                        if (cardVal !== "") barWindow.pywalCard = cardVal
                     }
                 }
             }
@@ -88,7 +95,7 @@ PanelWindow {
 
     Component.onCompleted: pywalCatProc.running = true
 
-    // BARRE PRINCIPALE
+    // main top bar
     Rectangle {
         id: mainBar
         anchors.fill: parent
@@ -107,7 +114,7 @@ PanelWindow {
             anchors.rightMargin: 14
             spacing: 12
 
-            // GAUCHE : Badge NixOS
+            // nixos logo badge
             Rectangle {
                 implicitWidth: logoRow.implicitWidth + 14
                 implicitHeight: 24
@@ -135,7 +142,7 @@ PanelWindow {
                 }
             }
 
-            // Workspaces Hyprland (1 à 4)
+            // hyprland workspaces (1-4)
             RowLayout {
                 spacing: 6
 
@@ -161,8 +168,7 @@ PanelWindow {
                             implicitWidth: wsText.implicitWidth + 14
                             implicitHeight: 24
                             radius: 7
-                            // Test de couleur selon le fond du bouton
-                            color: isFocused ? barWindow.pywalAccent : (isExists ? "#313244" : "#1e1e2e")
+                            color: isFocused ? barWindow.pywalAccent : (isExists ? barWindow.pywalCard : "transparent")
                             border.color: isFocused ? barWindow.calcReadableColor(barWindow.pywalAccent) : "transparent"
                             border.width: 1
 
@@ -170,8 +176,7 @@ PanelWindow {
                                 id: wsText
                                 anchors.centerIn: parent
                                 text: modelData
-                                // TEST DE CONTRASTE SYSTEMATIQUE : calculé directement depuis la couleur du conteneur
-                                color: isFocused ? barWindow.calcReadableColor(barWindow.pywalAccent) : "#ffffff"
+                                color: isFocused ? barWindow.calcReadableColor(barWindow.pywalAccent) : barWindow.pywalFg
                                 font.pixelSize: 11
                                 font.bold: true
                             }
@@ -180,25 +185,23 @@ PanelWindow {
                 }
             }
 
-            // SPACER GAUCHE DU NOTCH
+            // macbook pro m2 notch spacer
             Item {
                 Layout.fillWidth: true
             }
 
-            // ENCOCHE MACBOOK PRO M2 14" (220px)
             Item {
                 Layout.preferredWidth: 220
                 Layout.fillHeight: true
             }
 
-            // SPACER DROITE DU NOTCH
             Item {
                 Layout.fillWidth: true
             }
 
-            // DROITE : Volume, Batterie, Horloge
+            // system widgets (volume, battery, clock)
             
-            // Volume Widget
+            // volume control
             MouseArea {
                 id: volWidget
                 property int volVal: 0
@@ -211,7 +214,7 @@ PanelWindow {
                 Rectangle {
                     id: volBg
                     anchors.fill: parent
-                    color: volWidget.containsMouse ? barWindow.pywalAccent : "#1e1e2e"
+                    color: volWidget.containsMouse ? barWindow.pywalAccent : barWindow.pywalCard
                     radius: 8
                 }
 
@@ -279,19 +282,19 @@ PanelWindow {
 
                     Text {
                         text: volWidget.isMuted ? "Mute" : volWidget.volVal + "%"
-                        color: volWidget.containsMouse ? barWindow.calcReadableColor(barWindow.pywalAccent) : "#ffffff"
+                        color: volWidget.containsMouse ? barWindow.calcReadableColor(barWindow.pywalAccent) : barWindow.pywalFg
                         font.pixelSize: 11
                         font.bold: true
                     }
                 }
             }
 
-            // Batterie Widget
+            // battery indicator
             Rectangle {
                 id: batBg
                 implicitWidth: batContent.implicitWidth + 12
                 implicitHeight: 24
-                color: "#1e1e2e"
+                color: barWindow.pywalCard
                 radius: 8
 
                 RowLayout {
@@ -321,26 +324,26 @@ PanelWindow {
                     Text {
                         property var displayBat: UPower.displayDevice
                         text: displayBat ? Math.round(displayBat.percentage * 100) + "%" : "100%"
-                        color: "#ffffff"
+                        color: barWindow.pywalFg
                         font.pixelSize: 11
                         font.bold: true
                     }
                 }
             }
 
-            // Horloge Widget
+            // clock
             Rectangle {
                 id: clockBg
                 implicitWidth: clockText.implicitWidth + 14
                 implicitHeight: 24
-                color: "#1e1e2e"
+                color: barWindow.pywalCard
                 radius: 8
 
                 Text {
                     id: clockText
                     anchors.centerIn: parent
                     text: Qt.formatDateTime(new Date(), "ddd d MMM  HH:mm")
-                    color: "#ffffff"
+                    color: barWindow.pywalFg
                     font.pixelSize: 11
                     font.bold: true
 

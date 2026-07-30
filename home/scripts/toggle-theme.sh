@@ -1,32 +1,57 @@
 #!/usr/bin/env bash
 
-# Lire le mode actuel depuis dconf
-CURRENT_SCHEME=$(dconf read /org/gnome/desktop/interface/color-scheme 2>/dev/null)
+# read current scheme setting
+current_scheme=$(dconf read /org/gnome/desktop/interface/color-scheme 2>/dev/null)
+last_wall=$(cat ~/.cache/wal/wal 2>/dev/null)
 
-if [ "$CURRENT_SCHEME" = "'prefer-dark'" ]; then
-    # Passage en Mode Clair
+if [ -z "$last_wall" ] || [ ! -f "$last_wall" ]; then
+    last_wall=$(find "$HOME/Pictures/Wallpapers" -type f \( -name "*.jpg" -o -name "*.png" -o -name "*.jpeg" -o -name "*.webp" \) 2>/dev/null | head -n 1)
+fi
+
+if [ "$current_scheme" = "'prefer-dark'" ]; then
+    # switch to light mode
     dconf write /org/gnome/desktop/interface/color-scheme "'prefer-light'"
     dconf write /org/gnome/desktop/interface/gtk-theme "'Adwaita'"
-    LAST_WALL=$(cat ~/.cache/wal/wal 2>/dev/null)
-    if [ -n "$LAST_WALL" ] && [ -f "$LAST_WALL" ]; then
-        wal -i "$LAST_WALL" -n -q -l
+    
+    if [ -n "$last_wall" ]; then
+        wal -i "$last_wall" -n -q -l
     fi
+
+    # hyprland light active border
+    hyprctl keyword general:col.active_border "rgba(1e66f5ff) rgba(04a5e5ff) 45deg"
+    hyprctl keyword general:col.inactive_border "rgba(bcc0ccaa)"
+
+    # sync antigravity cli settings.json
+    if [ -f "$HOME/.gemini/antigravity-cli/settings.json" ]; then
+        sed -i 's/"colorScheme": *"dark"/"colorScheme": "light"/' "$HOME/.gemini/antigravity-cli/settings.json"
+    fi
+
     if command -v notify-send > /dev/null; then
-        notify-send "☀️ Mode Clair" "Système et navigateur configurés en mode clair"
+        notify-send "☀️ Light Mode" "System, Antigravity & Quickshell updated to light"
     fi
 else
-    # Passage en Mode Sombre
+    # switch to dark mode
     dconf write /org/gnome/desktop/interface/color-scheme "'prefer-dark'"
     dconf write /org/gnome/desktop/interface/gtk-theme "'Adwaita-dark'"
-    LAST_WALL=$(cat ~/.cache/wal/wal 2>/dev/null)
-    if [ -n "$LAST_WALL" ] && [ -f "$LAST_WALL" ]; then
-        wal -i "$LAST_WALL" -n -q -b 11111b
+    
+    if [ -n "$last_wall" ]; then
+        wal -i "$last_wall" -n -q -b 11111b
     fi
+
+    # hyprland dark active border
+    hyprctl keyword general:col.active_border "rgba(89b4faee) rgba(cba6f7ee) 45deg"
+    hyprctl keyword general:col.inactive_border "rgba(1e1e2eaa)"
+
+    # sync antigravity cli settings.json
+    if [ -f "$HOME/.gemini/antigravity-cli/settings.json" ]; then
+        sed -i 's/"colorScheme": *"light"/"colorScheme": "dark"/' "$HOME/.gemini/antigravity-cli/settings.json"
+    fi
+
     if command -v notify-send > /dev/null; then
-        notify-send "🌙 Mode Sombre" "Système et navigateur configurés en mode sombre"
+        notify-send "🌙 Dark Mode" "System, Antigravity & Quickshell updated to dark"
     fi
 fi
 
-# Recharger Quickshell pour refléter le mode
+# reload quickshell
 pkill quickshell
 quickshell &

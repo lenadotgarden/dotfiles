@@ -1,24 +1,23 @@
 #!/usr/bin/env bash
 
-WALL_DIR="$HOME/Pictures/Wallpapers"
-CACHE_DIR="$HOME/.cache/wallselect_thumbs"
+wall_dir="$HOME/Pictures/Wallpapers"
+cache_dir="$HOME/.cache/wallselect_thumbs"
 
-mkdir -p "$CACHE_DIR"
+mkdir -p "$cache_dir"
 
-if [ ! -d "$WALL_DIR" ] || [ -z "$(ls -A "$WALL_DIR" 2>/dev/null)" ]; then
+if [ ! -d "$wall_dir" ] || [ -z "$(ls -A "$wall_dir" 2>/dev/null)" ]; then
     if command -v notify-send > /dev/null; then
-        notify-send "🎨 Wallpapers" "Dépose tes images dans ~/Pictures/Wallpapers/"
+        notify-send "🎨 Wallpapers" "Add your images to ~/Pictures/Wallpapers/"
     fi
     exit 1
 fi
 
-# 1. Générer le menu Rofi avec aperçu des miniatures
-ROFI_INPUT=""
+# build rofi icon grid input
+rofi_input=""
 while IFS= read -r img; do
     name=$(basename "$img")
-    thumb="$CACHE_DIR/${name}.png"
+    thumb="$cache_dir/${name}.png"
     
-    # Créer la miniature si elle n'existe pas
     if [ ! -f "$thumb" ]; then
         if command -v magick > /dev/null; then
             magick "$img" -thumbnail 256x256^ -gravity center -extent 256x256 "$thumb" 2>/dev/null || cp "$img" "$thumb"
@@ -27,11 +26,11 @@ while IFS= read -r img; do
         fi
     fi
     
-    ROFI_INPUT="${ROFI_INPUT}${name}\x00icon\x1f${thumb}\n"
-done < <(find "$WALL_DIR" -type f \( -name "*.jpg" -o -name "*.png" -o -name "*.jpeg" -o -name "*.webp" \))
+    rofi_input="${rofi_input}${name}\x00icon\x1f${thumb}\n"
+done < <(find "$wall_dir" -type f \( -name "*.jpg" -o -name "*.png" -o -name "*.jpeg" -o -name "*.webp" \))
 
-# 2. Ouvrir Rofi en mode grille d'images (Icon Grid View)
-SELECTED=$(echo -e "$ROFI_INPUT" | rofi -dmenu -p "🎨 Wallpapers" -i -show-icons -theme-str '
+# open rofi grid gallery
+selected=$(echo -e "$rofi_input" | rofi -dmenu -p "🎨 Wallpapers" -i -show-icons -theme-str '
     window { width: 65%; height: 50%; border-radius: 16px; location: center; }
     listview { columns: 4; lines: 2; spacing: 14px; cycle: true; dynamic: true; }
     element { orientation: vertical; padding: 12px; border-radius: 12px; }
@@ -39,29 +38,34 @@ SELECTED=$(echo -e "$ROFI_INPUT" | rofi -dmenu -p "🎨 Wallpapers" -i -show-ico
     element-text { horizontal-align: 0.5; font: "Inter 10"; }
 ')
 
-if [ -z "$SELECTED" ]; then
+if [ -z "$selected" ]; then
     exit 0
 fi
 
-SELECTED_WALL="$WALL_DIR/$SELECTED"
+selected_wall="$wall_dir/$selected"
 
-# 3. S'assurer que awww-daemon est lancé
+# ensure daemon is alive
 if ! pgrep -x "awww-daemon" > /dev/null; then
     awww-daemon --format xrgb &
     sleep 0.2
 fi
 
-# 4. Transition rapide ultra-fluide (120 FPS)
-awww img "$SELECTED_WALL" --transition-type simple --transition-step 255 --transition-fps 120
+# smooth fast wallpaper transition
+awww img "$selected_wall" --transition-type simple --transition-step 255 --transition-fps 120
 
-# 5. Extraction de la palette Pywal en mode sombre à fort contraste
-wal -i "$SELECTED_WALL" -n -q -b 11111b
+# check current system mode (dark/light) to maintain global state
+current_scheme=$(dconf read /org/gnome/desktop/interface/color-scheme 2>/dev/null)
 
-# 6. Rechargement instantané de Quickshell
+if [ "$current_scheme" = "'prefer-light'" ]; then
+    wal -i "$selected_wall" -n -q -l
+else
+    wal -i "$selected_wall" -n -q -b 11111b
+fi
+
+# reload quickshell for instant palette update
 pkill quickshell
 quickshell &
 
-# 7. Notification discrète
 if command -v notify-send > /dev/null; then
-    notify-send "🎨 Nouveau Thème" "$(basename "$SELECTED_WALL")"
+    notify-send "🎨 Wallpaper" "$(basename "$selected_wall")"
 fi
