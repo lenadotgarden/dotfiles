@@ -29,6 +29,12 @@ PanelWindow {
     property bool expanded: false
     property string activeTab: "control"
 
+    // Default typography font family
+    property string customFontFamily: "Iosevka"
+
+    // Unified spacing constant across all items and outer margins
+    property int itemSpacing: 16
+
     // pywal dynamic theme colors
     property color pywalBg: "#11111b"
     property color pywalFg: "#ffffff"
@@ -68,7 +74,13 @@ PanelWindow {
                     }
                     if (line.indexOf("color4=") === 0 || line.indexOf("color6=") === 0 || line.indexOf("color1=") === 0) {
                         var accVal = line.split("=")[1].replace(/'/g, "").replace(/"/g, "").trim()
-                        if (accVal !== "") barWindow.pywalAccent = accVal
+                        if (accVal !== "") {
+                            barWindow.pywalAccent = accVal
+                            // Synchronize Hyprland active window border with workspace active text color
+                            var cleanHex = accVal.replace("#", "")
+                            hyprBorderProc.command = ["hyprctl", "keyword", "general:col.active_border", "rgba(" + cleanHex + "ee)"]
+                            hyprBorderProc.running = true
+                        }
                     }
                     if (line.indexOf("color8=") === 0 || line.indexOf("color0=") === 0) {
                         var cardVal = line.split("=")[1].replace(/'/g, "").replace(/"/g, "").trim()
@@ -94,7 +106,7 @@ PanelWindow {
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
 
-        width: barWindow.expanded ? 460 : (leftWingRow.implicitWidth + 330 + rightWingRow.implicitWidth + 40)
+        width: barWindow.expanded ? 460 : (leftWingRow.implicitWidth + 330 + rightWingRow.implicitWidth + (barWindow.itemSpacing * 2) + 24)
         height: barWindow.expanded ? 300 : 44
 
         Behavior on width { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
@@ -115,10 +127,9 @@ PanelWindow {
                 var f = barWindow.expanded ? 0 : 12;  // Top inverse fillet radius
 
                 ctx.beginPath();
-                // Start top-left at screen edge (0,0)
                 ctx.moveTo(0, 0);
 
-                // Top-Left Inverse Curve flaring down into the left capsule wall
+                // Top-Left Inverse Curve flaring down into left capsule wall
                 ctx.arcTo(f, 0, f, f, f);
 
                 // Left vertical side down
@@ -170,21 +181,21 @@ PanelWindow {
             anchors.fill: parent
             anchors.topMargin: 4
             anchors.bottomMargin: 4
-            anchors.leftMargin: 20
-            anchors.rightMargin: 20
+            anchors.leftMargin: barWindow.itemSpacing + 12
+            anchors.rightMargin: barWindow.itemSpacing + 12
             spacing: 6
 
-            // TOP COMPACT ROW (Wing items around notch)
+            // TOP COMPACT ROW
             RowLayout {
                 id: notchContentRow
                 Layout.fillWidth: true
                 Layout.preferredHeight: 36
                 spacing: 0
 
-                // LEFT WING: Workspaces
+                // LEFT WING: Minimal Typography Workspaces (Perfectly matching 16px spacing)
                 RowLayout {
                     id: leftWingRow
-                    spacing: 6
+                    spacing: barWindow.itemSpacing
 
                     Repeater {
                         model: [1, 2, 3, 4]
@@ -195,28 +206,23 @@ PanelWindow {
                             property bool isFocused: Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.id === modelData : false
                             property bool isExists: wsObj !== undefined
 
-                            implicitWidth: wsRect.implicitWidth
-                            implicitHeight: 26
+                            implicitWidth: wsText.implicitWidth
+                            implicitHeight: 28
                             cursorShape: Qt.PointingHandCursor
 
                             onClicked: Hyprland.dispatch("workspace " + modelData)
 
-                            Rectangle {
-                                id: wsRect
-                                implicitWidth: isFocused ? 26 : 18
-                                implicitHeight: 26
-                                radius: 13
-                                color: isFocused ? barWindow.pywalAccent : (isExists ? barWindow.pywalCard : "#1a1a1a")
+                            Text {
+                                id: wsText
+                                anchors.centerIn: parent
+                                text: modelData
+                                color: isFocused ? barWindow.pywalAccent : barWindow.pywalFg
+                                opacity: isFocused ? 1.0 : (isExists ? 0.6 : 0.25)
+                                font.family: barWindow.customFontFamily
+                                font.pixelSize: 15
+                                font.bold: isFocused
 
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: modelData
-                                    color: isFocused ? barWindow.calcReadableColor(barWindow.pywalAccent) : barWindow.pywalFg
-                                    font.pixelSize: 10
-                                    font.bold: true
-                                }
-
-                                Behavior on implicitWidth { NumberAnimation { duration: 150 } }
+                                Behavior on opacity { NumberAnimation { duration: 150 } }
                             }
                         }
                     }
@@ -232,19 +238,19 @@ PanelWindow {
                     Behavior on Layout.preferredWidth { NumberAnimation { duration: 250 } }
                 }
 
-                // RIGHT WING: Volume, Battery, Clock
+                // RIGHT WING: Minimal Typography Volume, Battery, Clock (Perfectly matching 16px spacing)
                 RowLayout {
                     id: rightWingRow
-                    spacing: 8
+                    spacing: barWindow.itemSpacing
 
-                    // Volume Pill
+                    // Volume
                     MouseArea {
                         id: volWidget
                         property int volVal: 0
                         property bool isMuted: false
 
-                        implicitWidth: volContent.implicitWidth + 14
-                        implicitHeight: 26
+                        implicitWidth: volContent.implicitWidth
+                        implicitHeight: 28
                         cursorShape: Qt.PointingHandCursor
 
                         function updateVol() { volGetProc.running = true }
@@ -283,84 +289,69 @@ PanelWindow {
                             onTriggered: volWidget.updateVol()
                         }
 
-                        Rectangle {
-                            anchors.fill: parent
-                            radius: 13
-                            color: barWindow.pywalCard
-
-                            RowLayout {
-                                id: volContent
-                                anchors.centerIn: parent
-                                spacing: 4
-
-                                Text {
-                                    text: volWidget.isMuted ? "🔇" : (volWidget.volVal < 50 ? "🔉" : "🔊")
-                                    color: barWindow.pywalAccent
-                                    font.pixelSize: 10
-                                }
-                                Text {
-                                    text: volWidget.isMuted ? "M" : volWidget.volVal + "%"
-                                    color: barWindow.pywalFg
-                                    font.pixelSize: 10
-                                    font.bold: true
-                                }
-                            }
-                        }
-                    }
-
-                    // Battery Pill
-                    Rectangle {
-                        implicitWidth: batContent.implicitWidth + 14
-                        implicitHeight: 26
-                        color: barWindow.pywalCard
-                        radius: 13
-
                         RowLayout {
-                            id: batContent
+                            id: volContent
                             anchors.centerIn: parent
-                            spacing: 4
+                            spacing: 5
 
                             Text {
-                                property var displayBat: UPower.displayDevice
-                                property double pct: displayBat ? displayBat.percentage * 100 : 100
-                                property int state: displayBat ? displayBat.state : UPowerDeviceState.Unknown
-
-                                text: state === UPowerDeviceState.Charging ? "⚡" : (pct <= 20 ? "🪫" : "🔋")
-                                color: state === UPowerDeviceState.Charging ? "#a6e3a1" : (pct <= 20 ? "#f38ba8" : barWindow.pywalAccent)
-                                font.pixelSize: 10
+                                text: volWidget.isMuted ? "🔇" : (volWidget.volVal < 50 ? "🔉" : "🔊")
+                                color: barWindow.pywalAccent
+                                font.family: barWindow.customFontFamily
+                                font.pixelSize: 13
                             }
-
                             Text {
-                                property var displayBat: UPower.displayDevice
-                                text: displayBat ? Math.round(displayBat.percentage * 100) + "%" : "100%"
+                                text: volWidget.isMuted ? "Muted" : volWidget.volVal + "%"
                                 color: barWindow.pywalFg
-                                font.pixelSize: 10
+                                font.family: barWindow.customFontFamily
+                                font.pixelSize: 14
                                 font.bold: true
                             }
                         }
                     }
 
-                    // Clock Pill
-                    Rectangle {
-                        implicitWidth: clockText.implicitWidth + 16
-                        implicitHeight: 26
-                        color: barWindow.pywalAccent
-                        radius: 13
+                    // Battery
+                    RowLayout {
+                        id: batContent
+                        implicitWidth: batContent.implicitWidth
+                        implicitHeight: 28
+                        spacing: 5
 
                         Text {
-                            id: clockText
-                            anchors.centerIn: parent
-                            text: Qt.formatDateTime(new Date(), "HH:mm")
-                            color: barWindow.calcReadableColor(barWindow.pywalAccent)
-                            font.pixelSize: 10
-                            font.bold: true
+                            property var displayBat: UPower.displayDevice
+                            property double pct: displayBat ? displayBat.percentage * 100 : 100
+                            property int state: displayBat ? displayBat.state : UPowerDeviceState.Unknown
 
-                            Timer {
-                                interval: 1000
-                                running: true
-                                repeat: true
-                                onTriggered: clockText.text = Qt.formatDateTime(new Date(), "HH:mm")
-                            }
+                            text: state === UPowerDeviceState.Charging ? "⚡" : (pct <= 20 ? "🪫" : "🔋")
+                            color: state === UPowerDeviceState.Charging ? "#a6e3a1" : (pct <= 20 ? "#f38ba8" : barWindow.pywalAccent)
+                            font.family: barWindow.customFontFamily
+                            font.pixelSize: 13
+                        }
+
+                        Text {
+                            property var displayBat: UPower.displayDevice
+                            text: displayBat ? Math.round(displayBat.percentage * 100) + "%" : "100%"
+                            color: barWindow.pywalFg
+                            font.family: barWindow.customFontFamily
+                            font.pixelSize: 14
+                            font.bold: true
+                        }
+                    }
+
+                    // Clock
+                    Text {
+                        id: clockText
+                        text: Qt.formatDateTime(new Date(), "HH:mm")
+                        color: barWindow.pywalFg
+                        font.family: barWindow.customFontFamily
+                        font.pixelSize: 15
+                        font.bold: true
+
+                        Timer {
+                            interval: 1000
+                            running: true
+                            repeat: true
+                            onTriggered: clockText.text = Qt.formatDateTime(new Date(), "HH:mm")
                         }
                     }
                 }
@@ -413,7 +404,8 @@ PanelWindow {
                                         anchors.centerIn: parent
                                         text: modelData.label
                                         color: barWindow.activeTab === modelData.id ? barWindow.calcReadableColor(barWindow.pywalAccent) : barWindow.pywalFg
-                                        font.pixelSize: 10
+                                        font.family: barWindow.customFontFamily
+                                        font.pixelSize: 11
                                         font.bold: true
                                     }
                                 }
@@ -437,6 +429,7 @@ PanelWindow {
                                     anchors.centerIn: parent
                                     text: "✕"
                                     color: barWindow.pywalFg
+                                    font.family: barWindow.customFontFamily
                                     font.pixelSize: 11
                                 }
                             }
@@ -469,7 +462,7 @@ PanelWindow {
                                         anchors.centerIn: parent
                                         spacing: 6
                                         Text { text: "☯️"; font.pixelSize: 12 }
-                                        Text { text: "Toggle Theme"; color: barWindow.pywalFg; font.pixelSize: 10; font.bold: true }
+                                        Text { text: "Toggle Theme"; color: barWindow.pywalFg; font.family: barWindow.customFontFamily; font.pixelSize: 11; font.bold: true }
                                     }
                                 }
                             }
@@ -489,7 +482,7 @@ PanelWindow {
                                         anchors.centerIn: parent
                                         spacing: 6
                                         Text { text: "🌙"; font.pixelSize: 12 }
-                                        Text { text: "Night Light"; color: barWindow.pywalFg; font.pixelSize: 10; font.bold: true }
+                                        Text { text: "Night Light"; color: barWindow.pywalFg; font.family: barWindow.customFontFamily; font.pixelSize: 11; font.bold: true }
                                     }
                                 }
                             }
@@ -508,9 +501,9 @@ PanelWindow {
 
                                 RowLayout {
                                     Layout.fillWidth: true
-                                    Text { text: "🔊 Volume"; color: barWindow.pywalAccent; font.pixelSize: 10; font.bold: true }
+                                    Text { text: "🔊 Volume"; color: barWindow.pywalAccent; font.family: barWindow.customFontFamily; font.pixelSize: 11; font.bold: true }
                                     Item { Layout.fillWidth: true }
-                                    Text { text: volWidget.volVal + "%"; color: barWindow.pywalFg; font.pixelSize: 10 }
+                                    Text { text: volWidget.volVal + "%"; color: barWindow.pywalFg; font.family: barWindow.customFontFamily; font.pixelSize: 11 }
                                 }
 
                                 RowLayout {
@@ -529,7 +522,7 @@ PanelWindow {
                                             anchors.fill: parent
                                             radius: 8
                                             color: barWindow.pywalBg
-                                            Text { anchors.centerIn: parent; text: "- 5%"; color: barWindow.pywalFg; font.pixelSize: 10; font.bold: true }
+                                            Text { anchors.centerIn: parent; text: "- 5%"; color: barWindow.pywalFg; font.family: barWindow.customFontFamily; font.pixelSize: 11; font.bold: true }
                                         }
                                     }
 
@@ -545,14 +538,14 @@ PanelWindow {
                                             anchors.fill: parent
                                             radius: 8
                                             color: barWindow.pywalBg
-                                            Text { anchors.centerIn: parent; text: "+ 5%"; color: barWindow.pywalFg; font.pixelSize: 10; font.bold: true }
+                                            Text { anchors.centerIn: parent; text: "+ 5%"; color: barWindow.pywalFg; font.family: barWindow.customFontFamily; font.pixelSize: 10; font.bold: true }
                                         }
                                     }
                                 }
 
                                 RowLayout {
                                     Layout.fillWidth: true
-                                    Text { text: "☀️ Brightness"; color: barWindow.pywalAccent; font.pixelSize: 10; font.bold: true }
+                                    Text { text: "☀️ Brightness"; color: barWindow.pywalAccent; font.family: barWindow.customFontFamily; font.pixelSize: 11; font.bold: true }
                                 }
 
                                 RowLayout {
@@ -571,7 +564,7 @@ PanelWindow {
                                             anchors.fill: parent
                                             radius: 8
                                             color: barWindow.pywalBg
-                                            Text { anchors.centerIn: parent; text: "- 5%"; color: barWindow.pywalFg; font.pixelSize: 10; font.bold: true }
+                                            Text { anchors.centerIn: parent; text: "- 5%"; color: barWindow.pywalFg; font.family: barWindow.customFontFamily; font.pixelSize: 11; font.bold: true }
                                         }
                                     }
 
@@ -587,7 +580,7 @@ PanelWindow {
                                             anchors.fill: parent
                                             radius: 8
                                             color: barWindow.pywalBg
-                                            Text { anchors.centerIn: parent; text: "+ 5%"; color: barWindow.pywalFg; font.pixelSize: 10; font.bold: true }
+                                            Text { anchors.centerIn: parent; text: "+ 5%"; color: barWindow.pywalFg; font.family: barWindow.customFontFamily; font.pixelSize: 11; font.bold: true }
                                         }
                                     }
                                 }
@@ -631,7 +624,8 @@ PanelWindow {
                                         anchors.centerIn: parent
                                         text: modelData.name
                                         color: barWindow.pywalFg
-                                        font.pixelSize: 10
+                                        font.family: barWindow.customFontFamily
+                                        font.pixelSize: 11
                                         font.bold: true
                                     }
                                 }
@@ -660,7 +654,8 @@ PanelWindow {
                                     anchors.centerIn: parent
                                     text: "🖼️ Launch Wallpaper Picker"
                                     color: barWindow.calcReadableColor(barWindow.pywalAccent)
-                                    font.pixelSize: 10
+                                    font.family: barWindow.customFontFamily
+                                    font.pixelSize: 11
                                     font.bold: true
                                 }
                             }
@@ -678,4 +673,5 @@ PanelWindow {
     Process { id: volSetProc; command: [] }
     Process { id: brightSetProc; command: [] }
     Process { id: themeSetProc; command: [] }
+    Process { id: hyprBorderProc; command: [] }
 }
