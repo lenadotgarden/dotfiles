@@ -291,10 +291,10 @@ PanelWindow {
                             spacing: 5
 
                             Text {
-                                text: volWidget.isMuted ? "🔇" : (volWidget.volVal < 50 ? "🔉" : "🔊")
+                                text: volWidget.isMuted ? "󰝟" : (volWidget.volVal === 0 ? "󰕿" : (volWidget.volVal < 50 ? "󰖀" : "󰕾"))
                                 color: barWindow.pywalAccent
-                                font.family: barWindow.customFontFamily
-                                font.pixelSize: 13
+                                font.family: "Symbols Nerd Font"
+                                font.pixelSize: 15
                             }
                             Text {
                                 text: volWidget.isMuted ? "Muted" : volWidget.volVal + "%"
@@ -318,10 +318,17 @@ PanelWindow {
                             property double pct: displayBat ? displayBat.percentage * 100 : 100
                             property int state: displayBat ? displayBat.state : UPowerDeviceState.Unknown
 
-                            text: state === UPowerDeviceState.Charging ? "⚡" : (pct <= 20 ? "🪫" : "🔋")
+                            text: {
+                                if (state === UPowerDeviceState.Charging) return "󰂄"
+                                if (pct <= 20) return "󰁺"
+                                if (pct <= 40) return "󰁼"
+                                if (pct <= 60) return "󰁾"
+                                if (pct <= 80) return "󰂀"
+                                return "󰁹"
+                            }
                             color: state === UPowerDeviceState.Charging ? "#a6e3a1" : (pct <= 20 ? "#f38ba8" : barWindow.pywalAccent)
-                            font.family: barWindow.customFontFamily
-                            font.pixelSize: 13
+                            font.family: "Symbols Nerd Font"
+                            font.pixelSize: 15
                         }
 
                         Text {
