@@ -1,21 +1,30 @@
 #!/usr/bin/env bash
 
-MODE="$1"
+# Lire le mode actuel depuis dconf
+CURRENT_SCHEME=$(dconf read /org/gnome/desktop/interface/color-scheme 2>/dev/null)
 
-if [ "$MODE" = "light" ]; then
-    # Mode Clair
+if [ "$CURRENT_SCHEME" = "'prefer-dark'" ]; then
+    # Passage en Mode Clair
     dconf write /org/gnome/desktop/interface/color-scheme "'prefer-light'"
-    wal -i "$HOME/Pictures/Wallpapers" -n -q -l
-    notify-send "☀️ Mode Clair" "Système et navigateur configurés en mode clair"
+    dconf write /org/gnome/desktop/interface/gtk-theme "'Adwaita'"
+    LAST_WALL=$(cat ~/.cache/wal/wal 2>/dev/null)
+    if [ -n "$LAST_WALL" ] && [ -f "$LAST_WALL" ]; then
+        wal -i "$LAST_WALL" -n -q -l
+    fi
+    if command -v notify-send > /dev/null; then
+        notify-send "☀️ Mode Clair" "Système et navigateur configurés en mode clair"
+    fi
 else
-    # Mode Sombre (Par défaut)
+    # Passage en Mode Sombre
     dconf write /org/gnome/desktop/interface/color-scheme "'prefer-dark'"
-    # Utiliser la dernière image de wallpaper si présente
+    dconf write /org/gnome/desktop/interface/gtk-theme "'Adwaita-dark'"
     LAST_WALL=$(cat ~/.cache/wal/wal 2>/dev/null)
     if [ -n "$LAST_WALL" ] && [ -f "$LAST_WALL" ]; then
         wal -i "$LAST_WALL" -n -q -b 11111b
     fi
-    notify-send "🌙 Mode Sombre" "Système et navigateur configurés en mode sombre"
+    if command -v notify-send > /dev/null; then
+        notify-send "🌙 Mode Sombre" "Système et navigateur configurés en mode sombre"
+    fi
 fi
 
 # Recharger Quickshell pour refléter le mode

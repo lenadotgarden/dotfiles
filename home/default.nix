@@ -38,6 +38,7 @@
       name = "Adwaita-dark";
       package = pkgs.gnome-themes-extra;
     };
+    gtk4.theme = null;
     gtk3.extraConfig = {
       gtk-application-prefer-dark-theme = 1;
     };
