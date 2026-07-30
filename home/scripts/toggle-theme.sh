@@ -52,6 +52,5 @@ else
     fi
 fi
 
-# reload quickshell
-pkill quickshell
-quickshell &
+# reload quickshell systemd user service
+systemctl --user restart quickshell || (pkill quickshell; nohup quickshell >/dev/null 2>&1 & disown)

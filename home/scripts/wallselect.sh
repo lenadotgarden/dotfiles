@@ -77,9 +77,8 @@ else
     [ -n "$acc_color" ] && hyprctl keyword general:col.active_border "rgba(${acc_color//#/}ff)"
 fi
 
-# reload quickshell for instant palette update
-pkill quickshell
-quickshell &
+# reload quickshell systemd user service
+systemctl --user restart quickshell || (pkill quickshell; nohup quickshell >/dev/null 2>&1 & disown)
 
 if command -v notify-send > /dev/null; then
     notify-send "🎨 Wallpaper" "$(basename "$selected_wall")"

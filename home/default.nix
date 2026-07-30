@@ -21,6 +21,23 @@
     fsel = "quicklauncher";
   };
 
+  # Service systemd permanent pour Quickshell
+  systemd.user.services.quickshell = {
+    Unit = {
+      Description = "Quickshell Desktop Bar Service";
+      After = [ "graphical-session.target" ];
+      PartOf = [ "graphical-session.target" ];
+    };
+    Service = {
+      ExecStart = "${pkgs.quickshell}/bin/quickshell";
+      Restart = "always";
+      RestartSec = "2s";
+    };
+    Install = {
+      WantedBy = [ "graphical-session.target" ];
+    };
+  };
+
   # Activer fontconfig pour les polices utilisateur
   fonts.fontconfig.enable = true;
 
