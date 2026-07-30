@@ -94,13 +94,14 @@ PanelWindow {
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
 
-        width: barWindow.expanded ? 450 : notchContentRow.implicitWidth + 48
+        width: barWindow.expanded ? 450 : notchContentRow.implicitWidth + 64
         height: barWindow.expanded ? 300 : 40
 
         Behavior on width { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
         Behavior on height { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
 
-        // OLED Black Notch Extension Shape with Inverse Top-Corners + Smooth Bottom Radius
+        // OLED Black Notch Extension Shape
+        // Top corners: inverse curve outwards. Bottom corners: convex curve outwards forming the capsule bottom.
         Shape {
             anchors.fill: parent
             vendorExtensionsEnabled: true
@@ -110,51 +111,52 @@ PanelWindow {
                 strokeWidth: barWindow.expanded ? 1.5 : 0
                 fillColor: barWindow.pywalOledNotch
 
+                // Top Left Start at screen edge
                 startX: 0
                 startY: 0
 
-                // Top Left Inverse Corner Curve (Extending smoothly out of screen edge into notch)
+                // Top Left Inverse Curve (Extending out from screen top)
                 PathArc {
-                    x: 10
-                    y: 10
-                    radiusX: 10
-                    radiusY: 10
+                    x: 12
+                    y: 12
+                    radiusX: 12
+                    radiusY: 12
                     direction: ShapePath.CounterClockwise
                 }
 
-                // Left vertical edge down
-                PathLine { x: 10; y: notchIslandContainer.height - 16 }
+                // Left vertical edge down to bottom corner
+                PathLine { x: 12; y: notchIslandContainer.height - 16 }
 
-                // Bottom Left Rounded Corner (Smooth internal radius)
+                // Bottom Left Outer Convex Curve
                 PathArc {
-                    x: 26
+                    x: 28
                     y: notchIslandContainer.height
                     radiusX: 16
                     radiusY: 16
-                    direction: ShapePath.Clockwise
+                    direction: ShapePath.CounterClockwise
                 }
 
                 // Bottom horizontal edge across
-                PathLine { x: notchIslandContainer.width - 26; y: notchIslandContainer.height }
+                PathLine { x: notchIslandContainer.width - 28; y: notchIslandContainer.height }
 
-                // Bottom Right Rounded Corner (Smooth internal radius)
+                // Bottom Right Outer Convex Curve
                 PathArc {
-                    x: notchIslandContainer.width - 10
+                    x: notchIslandContainer.width - 12
                     y: notchIslandContainer.height - 16
                     radiusX: 16
                     radiusY: 16
-                    direction: ShapePath.Clockwise
+                    direction: ShapePath.CounterClockwise
                 }
 
                 // Right vertical edge up
-                PathLine { x: notchIslandContainer.width - 10; y: 10 }
+                PathLine { x: notchIslandContainer.width - 12; y: 12 }
 
-                // Top Right Inverse Corner Curve (Extending smoothly into top screen edge)
+                // Top Right Inverse Curve (Extending back out to top screen edge)
                 PathArc {
                     x: notchIslandContainer.width
                     y: 0
-                    radiusX: 10
-                    radiusY: 10
+                    radiusX: 12
+                    radiusY: 12
                     direction: ShapePath.CounterClockwise
                 }
 
@@ -168,8 +170,8 @@ PanelWindow {
             anchors.fill: parent
             anchors.topMargin: 2
             anchors.bottomMargin: 4
-            anchors.leftMargin: 16
-            anchors.rightMargin: 16
+            anchors.leftMargin: 24
+            anchors.rightMargin: 24
             spacing: 6
 
             // TOP COMPACT ROW (Wing items around notch)
@@ -219,9 +221,9 @@ PanelWindow {
                     }
                 }
 
-                // PHYSICAL HARDWARE NOTCH CLEARANCE (~210px)
+                // PHYSICAL HARDWARE NOTCH CLEARANCE (~270px wide spacer)
                 MouseArea {
-                    Layout.preferredWidth: barWindow.expanded ? 110 : 210
+                    Layout.preferredWidth: barWindow.expanded ? 110 : 270
                     Layout.fillHeight: true
                     cursorShape: Qt.PointingHandCursor
                     onClicked: barWindow.expanded = !barWindow.expanded
