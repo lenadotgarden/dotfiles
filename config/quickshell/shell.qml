@@ -129,7 +129,7 @@ PanelWindow {
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
 
-        width: barWindow.expanded ? 460 : (leftWingRow.implicitWidth + 330 + rightWingRow.implicitWidth + (barWindow.itemSpacing * 2) + 24)
+        width: barWindow.expanded ? 460 : (leftWingRow.implicitWidth + 270 + rightWingRow.implicitWidth + 56)
         height: barWindow.expanded ? 300 : (barWindow.hudVisible ? 78 : 44)
 
         Behavior on width { NumberAnimation { duration: 220; easing.type: Easing.OutQuint } }
@@ -311,8 +311,8 @@ PanelWindow {
             anchors.fill: parent
             anchors.topMargin: 4
             anchors.bottomMargin: 4
-            anchors.leftMargin: barWindow.itemSpacing + 12
-            anchors.rightMargin: barWindow.itemSpacing + 12
+            anchors.leftMargin: 28
+            anchors.rightMargin: 28
             spacing: 0
 
             // TOP COMPACT ROW
@@ -361,9 +361,9 @@ PanelWindow {
                     }
                 }
 
-                // PHYSICAL HARDWARE NOTCH CLEARANCE SPACER (330px)
+                // PHYSICAL HARDWARE NOTCH CLEARANCE SPACER (270px)
                 MouseArea {
-                    Layout.preferredWidth: barWindow.expanded ? 110 : 330
+                    Layout.preferredWidth: barWindow.expanded ? 110 : 270
                     Layout.fillHeight: true
                     cursorShape: Qt.PointingHandCursor
                     onClicked: barWindow.expanded = !barWindow.expanded
