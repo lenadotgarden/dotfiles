@@ -12,6 +12,19 @@ if [ ! -d "$wall_dir" ] || [ -z "$(ls -A "$wall_dir" 2>/dev/null)" ]; then
     exit 1
 fi
 
+# read pywal colors if available for theme matching
+bg_color="#181825"
+fg_color="#cdd6f4"
+accent_color="#89b4fa"
+card_color="#1e1e2e"
+
+if [ -f "$HOME/.cache/wal/colors.sh" ]; source "$HOME/.cache/wal/colors.sh" 2>/dev/null; then
+    bg_color="${background:-#181825}"
+    fg_color="${foreground:-#cdd6f4}"
+    accent_color="${color4:-#89b4fa}"
+    card_color="${color8:-#1e1e2e}"
+fi
+
 # build rofi icon grid input
 rofi_input=""
 while IFS= read -r img; do
@@ -29,14 +42,21 @@ while IFS= read -r img; do
     rofi_input="${rofi_input}${name}\x00icon\x1f${thumb}\n"
 done < <(find "$wall_dir" -type f \( -name "*.jpg" -o -name "*.png" -o -name "*.jpeg" -o -name "*.webp" \))
 
-# open rofi grid gallery
-selected=$(echo -e "$rofi_input" | rofi -dmenu -p "🎨 Wallpapers" -i -show-icons -theme-str '
-    window { width: 65%; height: 50%; border-radius: 16px; location: center; }
+# open styled rofi grid gallery matching OS design system
+selected=$(echo -e "$rofi_input" | rofi -dmenu -p "🎨 Wallpapers" -i -show-icons -theme-str "
+    * { background-color: transparent; text-color: ${fg_color}; font: \"Iosevka 11\"; }
+    window { width: 68%; height: 52%; border-radius: 18px; location: center; background-color: ${bg_color}; border: 2px; border-color: ${accent_color}; }
+    mainbox { padding: 18px; children: [ inputbar, listview ]; }
+    inputbar { margin: 0 0 14px 0; padding: 10px 14px; border-radius: 10px; background-color: ${card_color}; children: [ prompt, entry ]; }
+    prompt { margin: 0 10px 0 0; text-color: ${accent_color}; }
+    entry { text-color: ${fg_color}; placeholder: \"Search wallpaper...\"; }
     listview { columns: 4; lines: 2; spacing: 14px; cycle: true; dynamic: true; }
-    element { orientation: vertical; padding: 12px; border-radius: 12px; }
+    element { orientation: vertical; padding: 12px; border-radius: 12px; background-color: ${card_color}; }
+    element selected { background-color: ${accent_color}; border-radius: 12px; }
+    element selected element-text { text-color: ${bg_color}; }
     element-icon { size: 140px; horizontal-align: 0.5; }
-    element-text { horizontal-align: 0.5; font: "Inter 10"; }
-')
+    element-text { horizontal-align: 0.5; font: \"Iosevka 10\"; margin: 6px 0 0 0; }
+")
 
 if [ -z "$selected" ]; then
     exit 0
