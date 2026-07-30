@@ -288,7 +288,7 @@ PanelWindow {
                         RowLayout {
                             id: volContent
                             anchors.centerIn: parent
-                            spacing: 5
+                            spacing: 8
 
                             Text {
                                 text: volWidget.isMuted ? "󰝟" : (volWidget.volVal === 0 ? "󰕿" : (volWidget.volVal < 50 ? "󰖀" : "󰕾"))
@@ -311,7 +311,7 @@ PanelWindow {
                         id: batContent
                         implicitWidth: batContent.implicitWidth
                         implicitHeight: 28
-                        spacing: 5
+                        spacing: 8
 
                         Text {
                             property var displayBat: UPower.displayDevice
