@@ -19,10 +19,6 @@
   outputs = { self, nixpkgs, home-manager, apple-silicon-support, antigravity-nix, helium, fsel, handy, ... }@inputs:
   let
     system = "aarch64-linux";
-    pkgs = import nixpkgs {
-      inherit system;
-      config.allowUnfree = true;
-    };
   in {
     nixosConfigurations.macbook = nixpkgs.lib.nixosSystem {
       inherit system;
@@ -30,8 +26,7 @@
 
       modules = [
         apple-silicon-support.nixosModules.apple-silicon-support
-        ./system/hardware-configuration.nix
-        ./system/configuration.nix
+        ./hosts/laptop/default.nix
 
         home-manager.nixosModules.home-manager
         {
@@ -41,13 +36,6 @@
           home-manager.users.lena = import ./home/default.nix;
           home-manager.extraSpecialArgs = { inherit inputs; };
         }
-
-        ({ config, lib, ... }: {
-          environment.systemPackages = [
-            antigravity-nix.packages.${system}.default
-            antigravity-nix.packages.${system}.google-antigravity-cli
-          ];
-        })
       ];
     };
   };

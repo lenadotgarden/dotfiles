@@ -1,12 +1,7 @@
 { config, lib, pkgs, inputs, ... }:
 
 {
-  imports =
-    [
-      ./hardware-configuration.nix
-    ];
-
-  # Nix Flakes & nix-command support
+  # Nix command & Flakes enable
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
   # Asahi / Apple Silicon support
@@ -17,18 +12,6 @@
   # Bluetooth enable
   hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = true;
-
-  # Bootloader
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-  boot.kernelParams = [
-    "appledrm.show_notch=1"
-    "apple_dcp.show_notch=1"
-  ];
-
-  # Networking
-  networking.hostName = "nixos-macbook";
-  networking.networkmanager.enable = true;
 
   # Time Zone & Locale
   time.timeZone = "Europe/Paris";
@@ -43,21 +26,13 @@
     pulse.enable = true;
   };
 
-  # User Account
-  users.users.lena = {
-    isNormalUser = true;
-    shell = pkgs.fish;
-    extraGroups = [ "wheel" "networkmanager" ];
-    initialPassword = "3141";
-  };
-
   # Enable Fish shell system-wide
   programs.fish = {
     enable = true;
     useBabelfish = true;
   };
 
-  # Allow Unfree & Insecure Packages if necessary
+  # Allow Unfree & Insecure Packages
   nixpkgs.config.allowUnfree = true;
   nixpkgs.config.permittedInsecurePackages = [
     "electron-40.10.5"
@@ -73,6 +48,8 @@
     kbdlight
     evtest
     actkbd
+    inputs.antigravity-nix.packages.${pkgs.system}.default
+    inputs.antigravity-nix.packages.${pkgs.system}.google-antigravity-cli
   ];
 
   # Hardware brightness keys (Asahi / MacBook)
@@ -103,14 +80,6 @@
     configDir = "/home/lena/.config/syncthing";
   };
 
-  # Fonts (Iosevka Nerd Font)
-  fonts.packages = with pkgs; [
-    iosevka-bin
-  ];
-
-  # Hyprland Compositor
+  # Hyprland Compositor system-level enablement
   programs.hyprland.enable = true;
-
-  # State version
-  system.stateVersion = "25.11";
 }
