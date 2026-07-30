@@ -13,9 +13,10 @@
     helium.url = "github:schembriaiden/helium-browser-nix-flake";
     antigravity-nix.url = "github:jacopone/antigravity-nix";
     fsel.url = "github:Mjoyufull/fsel";
+    handy.url = "github:cjpais/Handy";
   };
 
-  outputs = { self, nixpkgs, home-manager, apple-silicon-support, antigravity-nix, helium, fsel, ... }@inputs:
+  outputs = { self, nixpkgs, home-manager, apple-silicon-support, antigravity-nix, helium, fsel, handy, ... }@inputs:
   let
     system = "aarch64-linux";
     pkgs = import nixpkgs {

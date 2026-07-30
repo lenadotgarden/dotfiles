@@ -71,6 +71,9 @@
     pamixer
     inputs.helium.packages.${pkgs.system}.default
     inputs.fsel.packages.${pkgs.system}.default
+    inputs.handy.packages.${pkgs.system}.default
+    wtype
+    xdotool
     (writeShellScriptBin "quicklauncher" ''
       hyprctl dispatch exec "[float; size 1000 650; center]" "kitty --class quicklauncher --name quicklauncher --title fsel -e fsel -d $@"
     '')
@@ -105,6 +108,16 @@
         exec ${pkgs.fish}/bin/fish
       fi
     '';
+  };
+
+  # Desktop Entries
+  xdg.desktopEntries.handy = {
+    name = "Handy";
+    comment = "Offline Speech-to-Text Application";
+    exec = "${inputs.handy.packages.${pkgs.system}.default}/bin/handy";
+    icon = "handy";
+    terminal = false;
+    categories = [ "Utility" "AudioVideo" ];
   };
 
   # Dotfiles Symlinks (Hyprland, fsel, quickshell, etc.)
