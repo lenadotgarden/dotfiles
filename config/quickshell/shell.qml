@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
+import QtQuick.Shapes
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Hyprland
@@ -88,8 +89,7 @@ PanelWindow {
     Component.onCompleted: pywalCatProc.running = true
 
     // MAIN NOTCH EXTENSION CONTAINER
-    // Width is calculated explicitly from left content + fixed 330px notch clearance + right content + margins
-    Rectangle {
+    Item {
         id: notchIslandContainer
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
@@ -97,22 +97,81 @@ PanelWindow {
         width: barWindow.expanded ? 460 : (leftWingRow.implicitWidth + 330 + rightWingRow.implicitWidth + 40)
         height: barWindow.expanded ? 300 : 44
 
-        radius: barWindow.expanded ? 24 : 20
-        color: barWindow.pywalOledNotch
-        border.color: barWindow.expanded ? barWindow.pywalAccent : "transparent"
-        border.width: barWindow.expanded ? 1.5 : 0
-
         Behavior on width { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
         Behavior on height { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
-        Behavior on radius { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
+
+        // Clean Canvas Drawing: Notch Extension with Top Inverse Fillets + Rounded Capsule Bottom
+        Canvas {
+            id: notchCanvas
+            anchors.fill: parent
+            onPaint: {
+                var ctx = getContext("2d");
+                ctx.reset();
+                ctx.fillStyle = barWindow.pywalOledNotch.toString();
+
+                var w = notchIslandContainer.width;
+                var h = notchIslandContainer.height;
+                var r = barWindow.expanded ? 24 : 18; // Bottom corners radius
+                var f = barWindow.expanded ? 0 : 12;  // Top inverse fillet radius
+
+                ctx.beginPath();
+                // Start top-left at screen edge (0,0)
+                ctx.moveTo(0, 0);
+
+                // Top-Left Inverse Curve flaring down into the left capsule wall
+                ctx.arcTo(f, 0, f, f, f);
+
+                // Left vertical side down
+                ctx.lineTo(f, h - r);
+
+                // Bottom-Left Outer Capsule Curve
+                ctx.arcTo(f, h, f + r, h, r);
+
+                // Bottom horizontal edge
+                ctx.lineTo(w - f - r, h);
+
+                // Bottom-Right Outer Capsule Curve
+                ctx.arcTo(w - f, h, w - f, h - r, r);
+
+                // Right vertical side up
+                ctx.lineTo(w - f, f);
+
+                // Top-Right Inverse Curve flaring up into screen top edge
+                ctx.arcTo(w - f, 0, w, 0, f);
+
+                // Close top edge to (0,0)
+                ctx.lineTo(w, 0);
+                ctx.closePath();
+                ctx.fill();
+
+                if (barWindow.expanded) {
+                    ctx.strokeStyle = barWindow.pywalAccent.toString();
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                }
+            }
+
+            Connections {
+                target: barWindow
+                function onExpandedChanged() { notchCanvas.requestPaint(); }
+                function onPywalOledNotchChanged() { notchCanvas.requestPaint(); }
+                function onPywalAccentChanged() { notchCanvas.requestPaint(); }
+            }
+
+            Connections {
+                target: notchIslandContainer
+                function onWidthChanged() { notchCanvas.requestPaint(); }
+                function onHeightChanged() { notchCanvas.requestPaint(); }
+            }
+        }
 
         // CONTENT LAYOUT
         ColumnLayout {
             anchors.fill: parent
             anchors.topMargin: 4
             anchors.bottomMargin: 4
-            anchors.leftMargin: 16
-            anchors.rightMargin: 16
+            anchors.leftMargin: 20
+            anchors.rightMargin: 20
             spacing: 6
 
             // TOP COMPACT ROW (Wing items around notch)
