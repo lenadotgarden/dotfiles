@@ -24,8 +24,8 @@ if [ "$current_scheme" = "'prefer-light'" ]; then
     border_color="#d0d0da"
     selected_fg="#ffffff"
 else
-    # Mode Sombre (Clean Dark Theme matching Catppuccin Mocha/QS)
-    bg_color="#181825"
+    # Mode Sombre Profond (Matching Catppuccin Crust/Mocha #11111b & Quickshell)
+    bg_color="#11111b"
     fg_color="#ffffff"
     card_color="#1e1e2e"
     accent_color="#89b4fa"
