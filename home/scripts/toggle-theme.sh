@@ -18,7 +18,7 @@ if [ "$current_scheme" = "'prefer-dark'" ]; then
     fi
 
     # hyprland light active border
-    hyprctl keyword general:col.active_border "rgba(1e66f5ff) rgba(04a5e5ff) 45deg"
+    hyprctl keyword general:col.active_border "rgba(1e66f5ff)"
     hyprctl keyword general:col.inactive_border "rgba(bcc0ccaa)"
 
     # sync antigravity cli settings.json
@@ -39,7 +39,7 @@ else
     fi
 
     # hyprland dark active border
-    hyprctl keyword general:col.active_border "rgba(89b4faee) rgba(cba6f7ee) 45deg"
+    hyprctl keyword general:col.active_border "rgba(89b4faee)"
     hyprctl keyword general:col.inactive_border "rgba(1e1e2eaa)"
 
     # sync antigravity cli settings.json

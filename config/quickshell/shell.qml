@@ -72,7 +72,7 @@ PanelWindow {
                         var fgVal = line.split("=")[1].replace(/'/g, "").replace(/"/g, "").trim()
                         if (fgVal !== "") barWindow.pywalFg = fgVal
                     }
-                    if (line.indexOf("color4=") === 0 || line.indexOf("color6=") === 0 || line.indexOf("color1=") === 0) {
+                    if (line.indexOf("color6=") === 0 || line.indexOf("color4=") === 0) {
                         var accVal = line.split("=")[1].replace(/'/g, "").replace(/"/g, "").trim()
                         if (accVal !== "") barWindow.pywalAccent = accVal
                     }
@@ -82,6 +82,15 @@ PanelWindow {
                     }
                 }
             }
+        }
+    }
+
+    onPywalAccentChanged: {
+        var hex = pywalAccent.toString().replace("#", "")
+        if (hex !== "") {
+            var formatted = "rgba(" + hex.slice(-6) + "ee)"
+            hyprBorderProc.command = ["hyprctl", "keyword", "general:col.active_border", formatted]
+            hyprBorderProc.running = true
         }
     }
 

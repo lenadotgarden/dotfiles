@@ -69,12 +69,14 @@ awww img "$selected_wall" --transition-type simple --transition-step 255 --trans
 # maintain global light/dark mode state upon changing wallpaper
 if [ "$current_scheme" = "'prefer-light'" ]; then
     wal -i "$selected_wall" -n -q -l
-    acc_color=$(cat ~/.cache/wal/colors 2>/dev/null | sed -n '5p')
-    [ -n "$acc_color" ] && hyprctl keyword general:col.active_border "rgba(${acc_color//#/}ff)"
 else
     wal -i "$selected_wall" -n -q -b 11111b
-    acc_color=$(cat ~/.cache/wal/colors 2>/dev/null | sed -n '5p')
-    [ -n "$acc_color" ] && hyprctl keyword general:col.active_border "rgba(${acc_color//#/}ff)"
+fi
+
+# Extract exact color4 (pywalAccent used in QuickShell) to synchronize Hyprland active border
+acc_color=$(grep "color4=" "$HOME/.cache/wal/colors.sh" 2>/dev/null | cut -d"'" -f2 | tr -d '#')
+if [ -n "$acc_color" ]; then
+    hyprctl keyword general:col.active_border "rgba(${acc_color}ee)"
 fi
 
 # reload quickshell systemd user service
