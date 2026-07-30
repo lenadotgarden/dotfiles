@@ -88,6 +88,7 @@
     jq
     imagemagick
     brightnessctl
+    playerctl
     inputs.helium.packages.${pkgs.system}.default
     inputs.handy.packages.${pkgs.system}.default
     pkgs.superfile
