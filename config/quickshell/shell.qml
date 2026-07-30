@@ -23,7 +23,7 @@ PanelWindow {
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.exclusiveZone: 44
 
-    implicitHeight: expanded ? 320 : (volHUDVisible ? 78 : 44)
+    implicitHeight: expanded ? 320 : (hudVisible ? 78 : 44)
     color: "transparent"
 
     property bool expanded: false
@@ -96,16 +96,31 @@ PanelWindow {
 
     Component.onCompleted: pywalCatProc.running = true
 
-    // MAIN NOTCH EXTENSION CONTAINER
-    property bool volHUDVisible: false
-    property int volHUDValue: 0
-    property bool volHUDMuted: false
+    // UNIFIED NOTCH HUD OVERLAY STATE (Supports Volume, Brightness, and future OSDs)
+    property bool hudVisible: false
+    property int hudValue: 0
+    property string hudIcon: "󰕾"
+    property bool hudMuted: false
+
+    property int lastVolVal: -1
+    property bool lastVolMuted: false
+    property int lastBrightVal: -1
 
     Timer {
-        id: volHUDTimer
+        id: hudTimer
         interval: 1200
         repeat: false
-        onTriggered: barWindow.volHUDVisible = false
+        onTriggered: barWindow.hudVisible = false
+    }
+
+    function triggerHUD(icon, value, isMuted) {
+        barWindow.hudIcon = icon
+        barWindow.hudValue = value
+        barWindow.hudMuted = isMuted
+        if (!barWindow.expanded) {
+            barWindow.hudVisible = true
+            hudTimer.restart()
+        }
     }
 
     // MAIN NOTCH EXTENSION CONTAINER
@@ -115,7 +130,7 @@ PanelWindow {
         anchors.horizontalCenter: parent.horizontalCenter
 
         width: barWindow.expanded ? 460 : (leftWingRow.implicitWidth + 330 + rightWingRow.implicitWidth + (barWindow.itemSpacing * 2) + 24)
-        height: barWindow.expanded ? 300 : (barWindow.volHUDVisible ? 78 : 44)
+        height: barWindow.expanded ? 300 : (barWindow.hudVisible ? 78 : 44)
 
         Behavior on width { NumberAnimation { duration: 220; easing.type: Easing.OutQuint } }
         Behavior on height { NumberAnimation { duration: 220; easing.type: Easing.OutQuint } }
@@ -173,7 +188,7 @@ PanelWindow {
             Connections {
                 target: barWindow
                 function onExpandedChanged() { notchCanvas.requestPaint(); }
-                function onVolHUDVisibleChanged() { notchCanvas.requestPaint(); }
+                function onHudVisibleChanged() { notchCanvas.requestPaint(); }
                 function onPywalOledNotchChanged() { notchCanvas.requestPaint(); }
                 function onPywalAccentChanged() { notchCanvas.requestPaint(); }
             }
@@ -198,14 +213,36 @@ PanelWindow {
                     if (parts.length >= 2) {
                         var newVol = Math.round(parseFloat(parts[1]) * 100)
                         if (!isNaN(newVol)) {
-                            if (newVol !== barWindow.volHUDValue || muted !== barWindow.volHUDMuted) {
-                                barWindow.volHUDValue = newVol
-                                barWindow.volHUDMuted = muted
-                                if (!barWindow.expanded) {
-                                    barWindow.volHUDVisible = true
-                                    volHUDTimer.restart()
-                                }
+                            if (barWindow.lastVolVal !== -1 && (newVol !== barWindow.lastVolVal || muted !== barWindow.lastVolMuted)) {
+                                var icon = muted ? "󰝟" : (newVol === 0 ? "󰕿" : (newVol < 50 ? "󰖀" : "󰕾"))
+                                barWindow.triggerHUD(icon, newVol, muted)
                             }
+                            barWindow.lastVolVal = newVol
+                            barWindow.lastVolMuted = muted
+                        }
+                    }
+                }
+            }
+        }
+
+        // Shared Brightness Process Listener
+        Process {
+            id: brightGetProc
+            command: ["brightnessctl", "-m"]
+            stdout: SplitParser {
+                splitMarker: "\n"
+                onRead: data => {
+                    var str = data.trim()
+                    var parts = str.split(",")
+                    if (parts.length >= 4) {
+                        var pctStr = parts[3].replace("%", "")
+                        var newBright = Math.round(parseFloat(pctStr))
+                        if (!isNaN(newBright)) {
+                            if (barWindow.lastBrightVal !== -1 && newBright !== barWindow.lastBrightVal) {
+                                var icon = newBright < 30 ? "󰃞" : (newBright < 70 ? "󰃟" : "󰃠")
+                                barWindow.triggerHUD(icon, newBright, false)
+                            }
+                            barWindow.lastBrightVal = newBright
                         }
                     }
                 }
@@ -216,19 +253,22 @@ PanelWindow {
             interval: 200
             running: true
             repeat: true
-            onTriggered: volGetProc.running = true
+            onTriggered: {
+                volGetProc.running = true
+                brightGetProc.running = true
+            }
         }
 
-        // VOLUME HUD OVERLAY DISPLAY (Positioned under physical notch)
+        // UNIFIED NOTCH HUD OVERLAY DISPLAY (Positioned under physical notch)
         Item {
-            id: notchVolHUD
+            id: notchHUD
             anchors.bottom: parent.bottom
             anchors.bottomMargin: 8
             anchors.horizontalCenter: parent.horizontalCenter
             width: 300
             height: 24
-            visible: !barWindow.expanded && barWindow.volHUDVisible
-            opacity: (visible && barWindow.volHUDVisible) ? 1.0 : 0.0
+            visible: !barWindow.expanded && barWindow.hudVisible
+            opacity: (visible && barWindow.hudVisible) ? 1.0 : 0.0
 
             Behavior on opacity { NumberAnimation { duration: 180 } }
 
@@ -237,8 +277,8 @@ PanelWindow {
                 spacing: 12
 
                 Text {
-                    text: barWindow.volHUDMuted ? "󰝟" : (barWindow.volHUDValue === 0 ? "󰕿" : (barWindow.volHUDValue < 50 ? "󰖀" : "󰕾"))
-                    color: barWindow.volHUDMuted ? "#6c7185" : barWindow.pywalAccent
+                    text: barWindow.hudIcon
+                    color: barWindow.hudMuted ? "#6c7185" : barWindow.pywalAccent
                     font.family: "Symbols Nerd Font"
                     font.pixelSize: 17
                     horizontalAlignment: Text.AlignHCenter
@@ -256,9 +296,9 @@ PanelWindow {
 
                     Rectangle {
                         height: parent.height
-                        width: parent.width * Math.min(1.0, Math.max(0.0, barWindow.volHUDValue / 100.0))
+                        width: parent.width * Math.min(1.0, Math.max(0.0, barWindow.hudValue / 100.0))
                         radius: 3
-                        color: barWindow.volHUDMuted ? "#6c7185" : barWindow.pywalAccent
+                        color: barWindow.hudMuted ? "#6c7185" : barWindow.pywalAccent
 
                         Behavior on width { NumberAnimation { duration: 180; easing.type: Easing.OutQuint } }
                     }
@@ -282,11 +322,11 @@ PanelWindow {
                 Layout.preferredHeight: 36
                 spacing: 0
 
-                // LEFT WING: Minimal Typography Workspaces (Fade out on volume HUD)
+                // LEFT WING: Minimal Typography Workspaces (Fade out on HUD)
                 RowLayout {
                     id: leftWingRow
                     spacing: barWindow.itemSpacing
-                    opacity: (barWindow.volHUDVisible && !barWindow.expanded) ? 0.0 : 1.0
+                    opacity: (barWindow.hudVisible && !barWindow.expanded) ? 0.0 : 1.0
 
                     Behavior on opacity { NumberAnimation { duration: 180 } }
 
@@ -331,11 +371,11 @@ PanelWindow {
                     Behavior on Layout.preferredWidth { NumberAnimation { duration: 250 } }
                 }
 
-                // RIGHT WING: Battery + Clock (Fade out on volume HUD)
+                // RIGHT WING: Battery + Clock (Fade out on HUD)
                 RowLayout {
                     id: rightWingRow
                     spacing: barWindow.itemSpacing
-                    opacity: (barWindow.volHUDVisible && !barWindow.expanded) ? 0.0 : 1.0
+                    opacity: (barWindow.hudVisible && !barWindow.expanded) ? 0.0 : 1.0
 
                     Behavior on opacity { NumberAnimation { duration: 180 } }
 
