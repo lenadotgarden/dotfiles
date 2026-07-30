@@ -12,37 +12,24 @@ if [ ! -d "$wall_dir" ] || [ -z "$(ls -A "$wall_dir" 2>/dev/null)" ]; then
     exit 1
 fi
 
-# detect current system mode (dark/light) to adapt rofi background and text contrast
+# detect current system mode (dark/light)
 current_scheme=$(dconf read /org/gnome/desktop/interface/color-scheme 2>/dev/null)
 
-# default fallback colors
-bg_color="#181825"
-fg_color="#ffffff"
-accent_color="#89b4fa"
-card_color="#1e1e2e"
-selected_fg="#11111b"
-
-# parse exact pywal colors from colors.sh
-if [ -f "$HOME/.cache/wal/colors.sh" ]; then
-    while IFS= read -r line; do
-        line=$(echo "$line" | tr -d "'\"" | xargs)
-        if [[ "$line" == background=* ]]; then
-            bg_color="${line#background=}"
-        elif [[ "$line" == foreground=* ]]; then
-            fg_color="${line#foreground=}"
-        elif [[ "$line" == color4=* ]] || [[ "$line" == color6=* ]] || [[ "$line" == color1=* ]]; then
-            [ -z "$found_accent" ] && accent_color="${line#*=}" && found_accent=1
-        elif [[ "$line" == color8=* ]] || [[ "$line" == color0=* ]]; then
-            card_color="${line#*=}"
-        fi
-    done < "$HOME/.cache/wal/colors.sh"
-fi
-
 if [ "$current_scheme" = "'prefer-light'" ]; then
+    # Mode Clair (Clean Light Theme matching macOS/Adwaita)
+    bg_color="#ffffff"
     fg_color="#11111b"
+    card_color="#f0f0f5"
+    accent_color="#1e66f5"
+    border_color="#d0d0da"
     selected_fg="#ffffff"
 else
+    # Mode Sombre (Clean Dark Theme matching Catppuccin Mocha/QS)
+    bg_color="#181825"
     fg_color="#ffffff"
+    card_color="#1e1e2e"
+    accent_color="#89b4fa"
+    border_color="#313244"
     selected_fg="#11111b"
 fi
 
@@ -63,7 +50,7 @@ while IFS= read -r img; do
     rofi_input="${rofi_input}${name}\x00icon\x1f${thumb}\n"
 done < <(find "$wall_dir" -type f \( -name "*.jpg" -o -name "*.png" -o -name "*.jpeg" -o -name "*.webp" \))
 
-# open rofi grid gallery matching exact quickshell & hyprland dynamic pywal colors
+# open rofi grid gallery using clean, solid UI palette
 selected=$(echo -e "$rofi_input" | rofi -dmenu -p "🎨 Wallpapers" -i -show-icons -theme-str "
     * { background-color: transparent; text-color: ${fg_color}; font: \"Iosevka 11\"; }
     window { width: 68%; height: 52%; border-radius: 18px; location: center; background-color: ${bg_color}; border: 2px; border-color: ${accent_color}; }
