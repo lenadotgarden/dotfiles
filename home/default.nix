@@ -24,6 +24,33 @@
   # Activer fontconfig pour les polices utilisateur
   fonts.fontconfig.enable = true;
 
+  # Configuration du Thème Sombre Global (GTK + XDG Desktop Portal + Chromium/Helium)
+  dconf.settings = {
+    "org/gnome/desktop/interface" = {
+      color-scheme = "prefer-dark";
+      gtk-theme = "Adwaita-dark";
+    };
+  };
+
+  gtk = {
+    enable = true;
+    theme = {
+      name = "Adwaita-dark";
+      package = pkgs.gnome-themes-extra;
+    };
+    gtk3.extraConfig = {
+      gtk-application-prefer-dark-theme = 1;
+    };
+    gtk4.extraConfig = {
+      gtk-application-prefer-dark-theme = 1;
+    };
+  };
+
+  qt = {
+    enable = true;
+    platformTheme.name = "gtk3";
+  };
+
   # Applications et outils utilisateur
   home.packages = with pkgs; [
     fastfetch
