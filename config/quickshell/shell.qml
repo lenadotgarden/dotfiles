@@ -19,11 +19,11 @@ PanelWindow {
         right: true
     }
 
-    // MacBook Pro 14" notch height: ~40px logical (scaling 1.6)
+    // MacBook Pro 14" notch height: ~44px logical (scaling 1.6)
     WlrLayershell.layer: WlrLayer.Top
-    WlrLayershell.exclusiveZone: expanded ? 310 : 40
+    WlrLayershell.exclusiveZone: expanded ? 320 : 44
 
-    implicitHeight: expanded ? 310 : 40
+    implicitHeight: expanded ? 320 : 44
     color: "transparent"
 
     property bool expanded: false
@@ -94,96 +94,42 @@ PanelWindow {
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
 
-        width: barWindow.expanded ? 450 : notchContentRow.implicitWidth + 64
-        height: barWindow.expanded ? 300 : 40
+        width: barWindow.expanded ? 450 : notchContentRow.implicitWidth + 80
+        height: barWindow.expanded ? 300 : 44
 
         Behavior on width { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
         Behavior on height { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
 
-        // OLED Black Notch Extension Shape
-        // Top corners: inverse curve outwards. Bottom corners: convex curve outwards forming the capsule bottom.
-        Shape {
+        // OLED Black Notch Extension Capsule Shape using clean Rectangle with radius
+        Rectangle {
             anchors.fill: parent
-            vendorExtensionsEnabled: true
+            radius: barWindow.expanded ? 24 : 20
+            color: barWindow.pywalOledNotch
+            border.color: barWindow.expanded ? barWindow.pywalAccent : "transparent"
+            border.width: barWindow.expanded ? 1.5 : 0
 
-            ShapePath {
-                strokeColor: barWindow.expanded ? barWindow.pywalAccent : "transparent"
-                strokeWidth: barWindow.expanded ? 1.5 : 0
-                fillColor: barWindow.pywalOledNotch
-
-                // Top Left Start at screen edge
-                startX: 0
-                startY: 0
-
-                // Top Left Inverse Curve (Extending out from screen top)
-                PathArc {
-                    x: 12
-                    y: 12
-                    radiusX: 12
-                    radiusY: 12
-                    direction: ShapePath.CounterClockwise
-                }
-
-                // Left vertical edge down to bottom corner
-                PathLine { x: 12; y: notchIslandContainer.height - 16 }
-
-                // Bottom Left Outer Convex Curve
-                PathArc {
-                    x: 28
-                    y: notchIslandContainer.height
-                    radiusX: 16
-                    radiusY: 16
-                    direction: ShapePath.CounterClockwise
-                }
-
-                // Bottom horizontal edge across
-                PathLine { x: notchIslandContainer.width - 28; y: notchIslandContainer.height }
-
-                // Bottom Right Outer Convex Curve
-                PathArc {
-                    x: notchIslandContainer.width - 12
-                    y: notchIslandContainer.height - 16
-                    radiusX: 16
-                    radiusY: 16
-                    direction: ShapePath.CounterClockwise
-                }
-
-                // Right vertical edge up
-                PathLine { x: notchIslandContainer.width - 12; y: 12 }
-
-                // Top Right Inverse Curve (Extending back out to top screen edge)
-                PathArc {
-                    x: notchIslandContainer.width
-                    y: 0
-                    radiusX: 12
-                    radiusY: 12
-                    direction: ShapePath.CounterClockwise
-                }
-
-                // Top edge back to start
-                PathLine { x: 0; y: 0 }
-            }
+            Behavior on radius { NumberAnimation { duration: 250; easing.type: Easing.OutQuint } }
         }
 
         // CONTENT LAYOUT
         ColumnLayout {
             anchors.fill: parent
-            anchors.topMargin: 2
+            anchors.topMargin: 4
             anchors.bottomMargin: 4
-            anchors.leftMargin: 24
-            anchors.rightMargin: 24
+            anchors.leftMargin: 20
+            anchors.rightMargin: 20
             spacing: 6
 
             // TOP COMPACT ROW (Wing items around notch)
             RowLayout {
                 id: notchContentRow
                 Layout.fillWidth: true
-                Layout.preferredHeight: 32
-                spacing: 8
+                Layout.preferredHeight: 34
+                spacing: 12
 
                 // LEFT WING: Workspaces
                 RowLayout {
-                    spacing: 5
+                    spacing: 6
 
                     Repeater {
                         model: [1, 2, 3, 4]
@@ -195,16 +141,16 @@ PanelWindow {
                             property bool isExists: wsObj !== undefined
 
                             implicitWidth: wsRect.implicitWidth
-                            implicitHeight: 24
+                            implicitHeight: 26
                             cursorShape: Qt.PointingHandCursor
 
                             onClicked: Hyprland.dispatch("workspace " + modelData)
 
                             Rectangle {
                                 id: wsRect
-                                implicitWidth: isFocused ? 24 : 16
-                                implicitHeight: 24
-                                radius: 12
+                                implicitWidth: isFocused ? 26 : 18
+                                implicitHeight: 26
+                                radius: 13
                                 color: isFocused ? barWindow.pywalAccent : (isExists ? barWindow.pywalCard : "#1a1a1a")
 
                                 Text {
@@ -221,9 +167,9 @@ PanelWindow {
                     }
                 }
 
-                // PHYSICAL HARDWARE NOTCH CLEARANCE (~270px wide spacer)
+                // PHYSICAL HARDWARE NOTCH CLEARANCE (~320px wide spacer ensuring NO overlaps)
                 MouseArea {
-                    Layout.preferredWidth: barWindow.expanded ? 110 : 270
+                    Layout.preferredWidth: barWindow.expanded ? 110 : 320
                     Layout.fillHeight: true
                     cursorShape: Qt.PointingHandCursor
                     onClicked: barWindow.expanded = !barWindow.expanded
@@ -233,7 +179,7 @@ PanelWindow {
 
                 // RIGHT WING: Volume, Battery, Clock
                 RowLayout {
-                    spacing: 6
+                    spacing: 8
 
                     // Volume Pill
                     MouseArea {
@@ -241,8 +187,8 @@ PanelWindow {
                         property int volVal: 0
                         property bool isMuted: false
 
-                        implicitWidth: volContent.implicitWidth + 12
-                        implicitHeight: 24
+                        implicitWidth: volContent.implicitWidth + 14
+                        implicitHeight: 26
                         cursorShape: Qt.PointingHandCursor
 
                         function updateVol() { volGetProc.running = true }
@@ -283,7 +229,7 @@ PanelWindow {
 
                         Rectangle {
                             anchors.fill: parent
-                            radius: 12
+                            radius: 13
                             color: barWindow.pywalCard
 
                             RowLayout {
@@ -308,10 +254,10 @@ PanelWindow {
 
                     // Battery Pill
                     Rectangle {
-                        implicitWidth: batContent.implicitWidth + 12
-                        implicitHeight: 24
+                        implicitWidth: batContent.implicitWidth + 14
+                        implicitHeight: 26
                         color: barWindow.pywalCard
-                        radius: 12
+                        radius: 13
 
                         RowLayout {
                             id: batContent
@@ -340,10 +286,10 @@ PanelWindow {
 
                     // Clock Pill
                     Rectangle {
-                        implicitWidth: clockText.implicitWidth + 14
-                        implicitHeight: 24
+                        implicitWidth: clockText.implicitWidth + 16
+                        implicitHeight: 26
                         color: barWindow.pywalAccent
-                        radius: 12
+                        radius: 13
 
                         Text {
                             id: clockText
