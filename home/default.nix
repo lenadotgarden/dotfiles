@@ -73,6 +73,7 @@
     brightnessctl
     inputs.helium.packages.${pkgs.system}.default
     inputs.handy.packages.${pkgs.system}.default
+    pkgs.superfile
   ];
 
   # Fichier Desktop personnalisés (.desktop)
@@ -84,4 +85,17 @@
     terminal = false;
     categories = [ "Utility" "AudioVideo" ];
   };
+
+  # Configuration de Superfile (Vim keybindings)
+  xdg.configFile."superfile/hotkeys.toml".text = ''
+    # Navigation list (Vim motions)
+    list_up = ["k", "up"]
+    list_down = ["j", "down"]
+    page_up = ["ctrl+u", "pgup"]
+    page_down = ["ctrl+d", "pgdn"]
+
+    # Panel navigation
+    panel_left = ["h", "left"]
+    panel_right = ["l", "right"]
+  '';
 }
