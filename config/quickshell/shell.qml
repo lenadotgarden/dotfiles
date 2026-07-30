@@ -12,11 +12,12 @@ PanelWindow {
 
     screen: Quickshell.screens[0]
 
-    // Floating Dynamic Island anchored at top center
+    // Floating Dynamic Island anchored at top
     anchors {
         top: true
-        horizontalCenter: true
     }
+    // Center alignment handled via margins / layout
+
 
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.exclusiveZone: 46
