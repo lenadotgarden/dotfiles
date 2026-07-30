@@ -74,13 +74,7 @@ PanelWindow {
                     }
                     if (line.indexOf("color4=") === 0 || line.indexOf("color6=") === 0 || line.indexOf("color1=") === 0) {
                         var accVal = line.split("=")[1].replace(/'/g, "").replace(/"/g, "").trim()
-                        if (accVal !== "" && barWindow.pywalAccent.toString() !== accVal) {
-                            barWindow.pywalAccent = accVal
-                            // Synchronize Hyprland active window border ONLY when theme color actually changes
-                            var cleanHex = accVal.replace("#", "")
-                            hyprBorderProc.command = ["hyprctl", "keyword", "general:col.active_border", "rgba(" + cleanHex + "ee)"]
-                            hyprBorderProc.running = true
-                        }
+                        if (accVal !== "") barWindow.pywalAccent = accVal
                     }
                     if (line.indexOf("color8=") === 0 || line.indexOf("color0=") === 0) {
                         var cardVal = line.split("=")[1].replace(/'/g, "").replace(/"/g, "").trim()
