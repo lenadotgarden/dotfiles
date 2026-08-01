@@ -91,8 +91,21 @@
     playerctl
     inputs.helium.packages.${pkgs.system}.default
     inputs.handy.packages.${pkgs.system}.default
-    pkgs.superfile
+    yazi
   ];
+
+  # Configuration Yazi (Explorateur de fichiers par défaut)
+  programs.yazi = {
+    enable = true;
+    enableFishIntegration = true;
+    enableBashIntegration = true;
+    shellWrapperName = "y";
+  };
+
+  # Définir Yazi / Terminal File Manager comme gestionnaire par défaut
+  home.sessionVariables = {
+    FILEMANAGER = "yazi";
+  };
 
   # Fichier Desktop personnalisés (.desktop)
   xdg.desktopEntries.handy = {
@@ -103,19 +116,6 @@
     terminal = false;
     categories = [ "Utility" "AudioVideo" ];
   };
-
-  # Configuration de Superfile (Vim keybindings)
-  xdg.configFile."superfile/hotkeys.toml".text = ''
-    # Navigation list (Vim motions)
-    list_up = ["k", "up"]
-    list_down = ["j", "down"]
-    page_up = ["ctrl+u", "pgup"]
-    page_down = ["ctrl+d", "pgdn"]
-
-    # Panel navigation
-    panel_left = ["h", "left"]
-    panel_right = ["l", "right"]
-  '';
 
   # Layout Rofi pour wallselect
   xdg.configFile."rofi/wallselect.rasi".source = ../config/rofi/wallselect.rasi;
