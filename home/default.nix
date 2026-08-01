@@ -51,6 +51,7 @@
 
   # Configuration du thème de curseur style macOS
   home.pointerCursor = {
+    enable = true;
     name = "macOS";
     package = pkgs.apple-cursor;
     size = 24;
