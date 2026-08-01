@@ -49,6 +49,16 @@
     };
   };
 
+  # Configuration du thème de curseur style macOS
+  home.pointerCursor = {
+    name = "macOS";
+    package = pkgs.apple-cursor;
+    size = 24;
+    gtk.enable = true;
+    hyprcursor.enable = true;
+    x11.enable = true;
+  };
+
   gtk = {
     enable = true;
     theme = {
