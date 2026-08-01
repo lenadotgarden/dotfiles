@@ -52,5 +52,7 @@ else
     fi
 fi
 
-# reload quickshell systemd user service
-systemctl --user restart quickshell || (pkill quickshell; nohup quickshell >/dev/null 2>&1 & disown)
+# reload quickshell cleanly without duplication
+pkill -9 quickshell 2>/dev/null
+sleep 0.2
+systemctl --user restart quickshell || (nohup quickshell >/dev/null 2>&1 & disown)
