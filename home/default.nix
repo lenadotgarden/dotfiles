@@ -106,8 +106,8 @@
     yazi
     telegram-desktop
     signal-desktop
-    karere
-    hypridle
+    karere     # Whatsapp Linux Client
+    hypridle   # Sleep mode
   ];
 
   # Gestionnaire de mise en veille Hypridle
