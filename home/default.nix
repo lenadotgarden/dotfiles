@@ -145,7 +145,7 @@
         prepend_keymap = [
           {
             on = [ "<C-g>" ];
-            run = "shell 'ripdrag -x \"$@\"' --confirm";
+            run = "shell 'ripdrag -a -x \"$@\"'";
             desc = "Drag and Drop (Glisser-Déposer)";
           }
         ];
