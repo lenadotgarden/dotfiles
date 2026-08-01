@@ -108,7 +108,6 @@
     signal-desktop
     karere     # Whatsapp Linux Client
     hypridle   # Sleep mode
-    ripdrag    # Drag and Drop pour Yazi
   ];
 
   # Gestionnaire de mise en veille Hypridle
@@ -140,17 +139,6 @@
     enableFishIntegration = true;
     enableBashIntegration = true;
     shellWrapperName = "y";
-    keymap = {
-      manager = {
-        prepend_keymap = [
-          {
-            on = [ "<C-g>" ];
-            run = "shell 'ripdrag \"$@\"' --orphan";
-            desc = "Drag and Drop (Glisser-Déposer)";
-          }
-        ];
-      };
-    };
     settings = {
       opener = {
         edit = [
