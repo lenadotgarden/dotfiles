@@ -26,6 +26,13 @@
     pulse.enable = true;
   };
 
+  # Gestion de la fermeture du clapet (Lid switch / Sleep mode)
+  services.logind = {
+    lidSwitch = "suspend";
+    lidSwitchExternalPower = "suspend";
+    lidSwitchDocked = "ignore";
+  };
+
   # Enable Fish shell system-wide
   programs.fish = {
     enable = true;
