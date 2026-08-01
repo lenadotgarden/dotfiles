@@ -19,6 +19,7 @@
   # Raccourcis shell globaux
   home.shellAliases = {
     fsel = "quicklauncher";
+    sleep = "systemctl suspend";
   };
 
   # Service systemd permanent pour Quickshell
