@@ -27,10 +27,10 @@
   };
 
   # Gestion de la fermeture du clapet (Lid switch / Sleep mode)
-  services.logind = {
-    lidSwitch = "suspend";
-    lidSwitchExternalPower = "suspend";
-    lidSwitchDocked = "ignore";
+  services.logind.settings.Login = {
+    HandleLidSwitch = "suspend";
+    HandleLidSwitchExternalPower = "suspend";
+    HandleLidSwitchDocked = "ignore";
   };
 
   # Enable Fish shell system-wide
