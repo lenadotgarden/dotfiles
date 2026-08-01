@@ -14,6 +14,7 @@
     antigravity-nix.url = "github:jacopone/antigravity-nix";
     fsel.url = "github:Mjoyufull/fsel";
     handy.url = "github:cjpais/Handy";
+    yazi.url = "github:sxyazi/yazi";
   };
 
   outputs = { self, nixpkgs, home-manager, apple-silicon-support, antigravity-nix, helium, fsel, handy, ... }@inputs:

@@ -103,12 +103,11 @@
     playerctl
     inputs.helium.packages.${pkgs.system}.default
     inputs.handy.packages.${pkgs.system}.default
-    yazi
+    inputs.yazi.packages.${pkgs.system}.default
     telegram-desktop
     signal-desktop
     karere     # Whatsapp Linux Client
     hypridle   # Sleep mode
-    ripdrag
   ];
 
   # Gestionnaire de mise en veille Hypridle
@@ -137,20 +136,10 @@
   # Configuration Yazi (Explorateur de fichiers par défaut)
   programs.yazi = {
     enable = true;
+    package = inputs.yazi.packages.${pkgs.system}.default;
     enableFishIntegration = true;
     enableBashIntegration = true;
     shellWrapperName = "y";
-    keymap = {
-      manager = {
-        prepend_keymap = [
-          {
-            on = [ "<C-n>" ];
-            run = "shell 'ripdrag -x -i %s' --orphan";
-            desc = "Drag and Drop (Glisser-Déposer)";
-          }
-        ];
-      };
-    };
     settings = {
       opener = {
         edit = [
