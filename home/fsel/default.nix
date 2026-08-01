@@ -4,7 +4,7 @@
   home.packages = [
     inputs.fsel.packages.${pkgs.system}.default
     (pkgs.writeShellScriptBin "quicklauncher" ''
-      hyprctl dispatch exec "[float; size 1000 650; center]" "kitty --class quicklauncher --name quicklauncher --title fsel -e fsel -d -r --refresh-cache $@"
+      hyprctl dispatch exec "[float; size 1000 650; center]" "kitty --class quicklauncher --name quicklauncher --title fsel -e fsel -d -r $@"
     '')
   ];
 
