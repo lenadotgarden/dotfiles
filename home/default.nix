@@ -108,6 +108,7 @@
     signal-desktop
     karere     # Whatsapp Linux Client
     hypridle   # Sleep mode
+    ripdrag
   ];
 
   # Gestionnaire de mise en veille Hypridle
@@ -139,6 +140,17 @@
     enableFishIntegration = true;
     enableBashIntegration = true;
     shellWrapperName = "y";
+    keymap = {
+      manager = {
+        prepend_keymap = [
+          {
+            on = [ "<C-n>" ];
+            run = "shell 'ripdrag -x -i -T %h' --orphan";
+            desc = "Drag and Drop (Glisser-Déposer)";
+          }
+        ];
+      };
+    };
     settings = {
       opener = {
         edit = [
