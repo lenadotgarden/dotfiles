@@ -139,11 +139,35 @@
     enableFishIntegration = true;
     enableBashIntegration = true;
     shellWrapperName = "y";
+    settings = {
+      opener = {
+        edit = [
+          { run = "nvim \"$@\""; block = true; for = "unix"; }
+        ];
+      };
+      open = {
+        rules = [
+          { name = "text/*"; use = [ "edit" "open" ]; }
+          { name = "*.txt"; use = [ "edit" "open" ]; }
+          { name = "*.md"; use = [ "edit" "open" ]; }
+          { name = "*.nix"; use = [ "edit" "open" ]; }
+          { name = "*.json"; use = [ "edit" "open" ]; }
+          { name = "*.toml"; use = [ "edit" "open" ]; }
+          { name = "*.yaml"; use = [ "edit" "open" ]; }
+          { name = "*.yml"; use = [ "edit" "open" ]; }
+          { name = "*.sh"; use = [ "edit" "open" ]; }
+          { name = "*.fish"; use = [ "edit" "open" ]; }
+          { name = "*.conf"; use = [ "edit" "open" ]; }
+        ];
+      };
+    };
   };
 
-  # Définir Yazi / Terminal File Manager comme gestionnaire par défaut
+  # Définir Yazi & Neovim comme éditeur et gestionnaire par défaut
   home.sessionVariables = {
     FILEMANAGER = "yazi";
+    EDITOR = "nvim";
+    VISUAL = "nvim";
   };
 
   # Fichier Desktop personnalisés (.desktop)
