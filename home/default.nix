@@ -144,7 +144,7 @@
       manager = {
         prepend_keymap = [
           {
-            on = [ "<C-a>" ];
+            on = [ "<C-g>" ];
             run = "shell 'ripdrag -a -x \"$@\"' --orphan";
             desc = "Drag and Drop (Glisser-Déposer)";
           }
