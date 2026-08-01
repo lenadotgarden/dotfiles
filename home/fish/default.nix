@@ -3,6 +3,10 @@
 {
   programs.fish = {
     enable = true;
+    shellAliases = {
+      fsel = "quicklauncher";
+      sleep = "systemctl suspend";
+    };
     interactiveShellInit = ''
       set fish_greeting ""
       fastfetch --logo nixos2
