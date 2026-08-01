@@ -147,17 +147,7 @@
       };
       open = {
         rules = [
-          { name = "text/*"; use = [ "edit" "open" ]; }
-          { name = "*.txt"; use = [ "edit" "open" ]; }
-          { name = "*.md"; use = [ "edit" "open" ]; }
-          { name = "*.nix"; use = [ "edit" "open" ]; }
-          { name = "*.json"; use = [ "edit" "open" ]; }
-          { name = "*.toml"; use = [ "edit" "open" ]; }
-          { name = "*.yaml"; use = [ "edit" "open" ]; }
-          { name = "*.yml"; use = [ "edit" "open" ]; }
-          { name = "*.sh"; use = [ "edit" "open" ]; }
-          { name = "*.fish"; use = [ "edit" "open" ]; }
-          { name = "*.conf"; use = [ "edit" "open" ]; }
+          { name = "*"; use = [ "edit" "open" ]; }
         ];
       };
     };
