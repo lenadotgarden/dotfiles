@@ -103,6 +103,9 @@
     inputs.helium.packages.${pkgs.system}.default
     inputs.handy.packages.${pkgs.system}.default
     yazi
+    telegram-desktop
+    signal-desktop
+    whatsapp-for-linux
   ];
 
   # Configuration Yazi (Explorateur de fichiers par défaut)
@@ -111,6 +114,11 @@
     enableFishIntegration = true;
     enableBashIntegration = true;
     shellWrapperName = "y";
+    theme = {
+      flavor = {
+        use = "catppuccin-mocha";
+      };
+    };
   };
 
   # Définir Yazi / Terminal File Manager comme gestionnaire par défaut
