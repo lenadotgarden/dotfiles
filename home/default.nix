@@ -114,11 +114,6 @@
     enableFishIntegration = true;
     enableBashIntegration = true;
     shellWrapperName = "y";
-    theme = {
-      flavor = {
-        use = "catppuccin-mocha";
-      };
-    };
   };
 
   # Définir Yazi / Terminal File Manager comme gestionnaire par défaut
