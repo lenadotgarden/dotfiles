@@ -105,7 +105,7 @@
     yazi
     telegram-desktop
     signal-desktop
-    whatsapp-for-linux
+    karere
   ];
 
   # Configuration Yazi (Explorateur de fichiers par défaut)
