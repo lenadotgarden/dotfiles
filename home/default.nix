@@ -147,7 +147,7 @@
       };
       open = {
         rules = [
-          { name = "*"; use = [ "edit" "open" ]; }
+          { mime = "*"; use = [ "edit" "open" ]; }
         ];
       };
     };
