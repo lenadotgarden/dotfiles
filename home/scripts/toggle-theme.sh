@@ -47,8 +47,13 @@ else
         sed -i 's/"colorScheme": *"light"/"colorScheme": "dark"/' "$HOME/.gemini/antigravity-cli/settings.json"
     fi
 
+    # sync neovim open instances & config
+    if command -v nvim > /dev/null; then
+        pkill -USR1 nvim 2>/dev/null || true
+    fi
+
     if command -v notify-send > /dev/null; then
-        notify-send "🌙 Dark Mode" "System, Antigravity & Quickshell updated to dark"
+        notify-send "🌙 Dark Mode" "System, Antigravity, Neovim & Quickshell updated to dark"
     fi
 fi
 

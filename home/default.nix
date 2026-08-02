@@ -18,6 +18,8 @@
 
   # Raccourcis shell globaux
   home.shellAliases = {
+    v = "nvim";
+    gay = "agy";
     fsel = "quicklauncher";
     sleep = "systemctl suspend";
   };
@@ -31,6 +33,43 @@
     };
     Service = {
       ExecStart = "${pkgs.quickshell}/bin/quickshell";
+      Restart = "always";
+      RestartSec = "2s";
+    };
+    Install = {
+      WantedBy = [ "graphical-session.target" ];
+    };
+  };
+
+  # Services systemd permanents pour le presse-papier universel (cliphist + clipse)
+  systemd.user.services.cliphist = {
+    Unit = {
+      Description = "Cliphist Clipboard Watcher Service";
+      After = [ "graphical-session.target" ];
+      PartOf = [ "graphical-session.target" ];
+    };
+    Service = {
+      ExecStart = "${pkgs.wl-clipboard}/bin/wl-paste --watch ${pkgs.cliphist}/bin/cliphist store";
+      Restart = "always";
+      RestartSec = "2s";
+    };
+    Install = {
+      WantedBy = [ "graphical-session.target" ];
+    };
+  };
+
+  systemd.user.services.clipse = {
+    Unit = {
+      Description = "Clipse Listener Service";
+      After = [ "graphical-session.target" ];
+      PartOf = [ "graphical-session.target" ];
+    };
+    Service = {
+      Environment = [
+        "WAYLAND_DISPLAY=wayland-1"
+        "XDG_RUNTIME_DIR=/run/user/1000"
+      ];
+      ExecStart = "${pkgs.clipse}/bin/clipse -listen";
       Restart = "always";
       RestartSec = "2s";
     };
@@ -110,6 +149,9 @@
     hypridle   # Sleep mode
     bluetuith  # TUI Bluetooth Manager
     stremio-linux-shell # Stremio Media Player
+    clipse # clipboard manager
+    cliphist
+    wl-clip-persist
   ];
 
   # Gestionnaire de mise en veille Hypridle
@@ -145,7 +187,7 @@
     settings = {
       opener = {
         edit = [
-          { run = "nvim \"$@\""; block = true; for = "unix"; }
+          { run = ''nvim "%1"''; block = true; for = "unix"; }
         ];
       };
       open = {
@@ -175,4 +217,38 @@
 
   # Layout Rofi pour wallselect
   xdg.configFile."rofi/wallselect.rasi".source = ../config/rofi/wallselect.rasi;
+
+  # Configuration du Thème Dynamique de Clipse
+  xdg.configFile."clipse/config.json".text = builtins.toJSON {
+    useCustom = true;
+  };
+
+  xdg.configFile."clipse/custom_theme.json".text = builtins.toJSON {
+    useCustom = true;
+    TitleFore = "#cdd6f4";
+    TitleBack = "#1e1e2e";
+    TitleInfo = "#89b4fa";
+    NormalTitle = "#cdd6f4";
+    DimmedTitle = "#6c7086";
+    SelectedTitle = "#cba6f7";
+    NormalDesc = "#a6adc8";
+    DimmedDesc = "#6c7086";
+    SelectedDesc = "#cba6f7";
+    StatusMsg = "#a6e3a1";
+    PinIndicatorColor = "#f9e2af";
+    SelectedBorder = "#cba6f7";
+    SelectedDescBorder = "#cba6f7";
+    FilteredMatch = "#fab387";
+    FilterPrompt = "#a6e3a1";
+    FilterInfo = "#89b4fa";
+    FilterText = "#cdd6f4";
+    FilterCursor = "#f9e2af";
+    HelpKey = "#89b4fa";
+    HelpDesc = "#a6adc8";
+    PageActiveDot = "#cba6f7";
+    PageInactiveDot = "#45475a";
+    DividerDot = "#cba6f7";
+    PreviewedText = "#cdd6f4";
+    PreviewBorder = "#cba6f7";
+  };
 }

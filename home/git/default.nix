@@ -5,7 +5,7 @@
     enable = true;
     settings = {
       user.name = "lena";
-      user.email = "lena@example.com";
+      user.email = "lenadotgarden@proton.me";
       init.defaultBranch = "main";
     };
   };
