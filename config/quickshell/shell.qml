@@ -1138,9 +1138,9 @@ PanelWindow {
     Process { id: toggleWlProc; command: ["pkill", "-TOGGLE", "wlsunset"] }
     Process { id: wallSelectProc; command: ["/home/lena/dotfiles/home/scripts/wallselect.sh"] }
     Process { id: wifiToggleProc; command: [] }
-    Process { id: wifiMenuProc; command: ["rofi", "-show", "drun"] }
+    Process { id: wifiMenuProc; command: ["kitty", "--class", "floating-tui", "-e", "nmtui"] }
     Process { id: btToggleProc; command: [] }
-    Process { id: btMenuProc; command: ["rofi", "-show", "drun"] }
+    Process { id: btMenuProc; command: ["kitty", "--class", "floating-tui", "-e", "bluetuith"] }
     Process { id: pavuControlProc; command: ["pavucontrol"] }
     Process { id: dndToggleProc; command: [] }
     Process { id: volSetProc; command: [] }

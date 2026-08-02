@@ -108,6 +108,8 @@
     signal-desktop
     karere     # Whatsapp Linux Client
     hypridle   # Sleep mode
+    bluetuith  # TUI Bluetooth Manager
+    stremio-linux-shell # Stremio Media Player
   ];
 
   # Gestionnaire de mise en veille Hypridle
