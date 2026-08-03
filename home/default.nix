@@ -24,20 +24,24 @@
     sleep = "systemctl suspend";
   };
 
-  # Service systemd permanent pour Quickshell
+  # Service systemd permanent pour Quickshell (Relance automatique garantie)
   systemd.user.services.quickshell = {
     Unit = {
       Description = "Quickshell Desktop Bar Service";
-      After = [ "graphical-session.target" ];
+      After = [ "graphical-session.target" "hyprland-session.target" ];
       PartOf = [ "graphical-session.target" ];
     };
     Service = {
+      Environment = [
+        "WAYLAND_DISPLAY=wayland-1"
+        "XDG_RUNTIME_DIR=/run/user/1000"
+      ];
       ExecStart = "${pkgs.quickshell}/bin/quickshell";
       Restart = "always";
-      RestartSec = "2s";
+      RestartSec = "1s";
     };
     Install = {
-      WantedBy = [ "graphical-session.target" ];
+      WantedBy = [ "default.target" "graphical-session.target" ];
     };
   };
 
