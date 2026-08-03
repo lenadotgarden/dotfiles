@@ -4,6 +4,12 @@
   # Nix command & Flakes enable
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
+  # LocalSend avec ouverture du pare-feu
+  programs.localsend = {
+    enable = true;
+    openFirewall = true;
+  };
+
   # Asahi / Apple Silicon support
   hardware.asahi.enable = true;
   hardware.asahi.extractPeripheralFirmware = true;
