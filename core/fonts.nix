@@ -12,7 +12,7 @@
       noto-fonts-color-emoji
       liberation_ttf
       roboto
-      ubuntu_font_family
+      ubuntu-classic
     ];
   };
 }
