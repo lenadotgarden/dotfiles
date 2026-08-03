@@ -156,6 +156,7 @@
     clipse # clipboard manager
     cliphist
     wl-clip-persist
+    localsend
   ];
 
   # Gestionnaire de mise en veille Hypridle avec économie d'énergie écran
