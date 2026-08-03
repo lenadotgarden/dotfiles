@@ -31,7 +31,7 @@
           require("catppuccin").setup({
             flavour = "auto",
             background = { light = "latte", dark = "mocha" },
-            transparent_background = false,
+            transparent_background = true,
             integrations = {
               cmp = true,
               gitsigns = true,
@@ -157,6 +157,30 @@
       harpoon
       lazygit-nvim
       render-markdown-nvim
+      {
+        plugin = zen-mode-nvim;
+        type = "lua";
+        config = ''
+          require("zen-mode").setup({
+            window = {
+              backdrop = 0.95,
+              width = 95,
+              height = 1,
+              options = {
+                signcolumn = "no",
+                number = false,
+                relativenumber = false,
+                cursorline = false,
+              },
+            },
+            plugins = {
+              gitsigns = { enabled = false },
+              tmux = { enabled = true },
+            },
+          })
+          vim.keymap.set("n", "<leader>z", ":ZenMode<CR>", { silent = true })
+        '';
+      }
     ];
 
     initLua = ''
