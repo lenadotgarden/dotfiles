@@ -302,7 +302,7 @@ PanelWindow {
         }
 
         Timer {
-            interval: 500
+            interval: 10000 // 10s pour préserver les réveils CPU sur batterie
             running: true
             repeat: true
             onTriggered: {
@@ -478,7 +478,7 @@ PanelWindow {
                         font.bold: true
 
                         Timer {
-                            interval: 1000
+                            interval: 30000 // 30s au lieu d'une boucle chaque seconde
                             running: true
                             repeat: true
                             onTriggered: clockText.text = Qt.formatDateTime(new Date(), "HH:mm")

@@ -11,12 +11,12 @@
 
   # Bluetooth enable
   hardware.bluetooth.enable = true;
-  hardware.bluetooth.powerOnBoot = true;
+  hardware.bluetooth.powerOnBoot = false;
 
   # Time Zone & Locale
   time.timeZone = "Europe/Paris";
 
-  # Audio (Pipewire)
+  # Audio (Pipewire) & Power Management for Audio
   security.rtkit.enable = true;
   services.upower.enable = true;
   services.pipewire = {
@@ -24,7 +24,26 @@
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
+    wireplumber.extraConfig = {
+      "10-disable-idle-timeout" = {
+        "wireplumber.settings" = {
+          "session.suspend-timeout-seconds" = 5; # Mettre en veille le DAC audio après 5s de silence
+        };
+      };
+    };
   };
+
+  # Gestion d'énergie bas niveau (TLP & Powertop)
+  services.tlp = {
+    enable = true;
+    settings = {
+      CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
+      CPU_SCALING_GOVERNOR_ON_AC = "performance";
+      RUNTIME_PM_ON_BAT = "auto";
+    };
+  };
+
+  powerManagement.powertop.enable = true;
 
   # Gestion de la fermeture du clapet (Lid switch / Sleep mode)
   services.logind.settings.Login = {

@@ -158,7 +158,7 @@
     wl-clip-persist
   ];
 
-  # Gestionnaire de mise en veille Hypridle
+  # Gestionnaire de mise en veille Hypridle avec économie d'énergie écran
   services.hypridle = {
     enable = true;
     settings = {
@@ -168,6 +168,11 @@
         after_sleep_cmd = "hyprctl dispatch dpms on";
       };
       listener = [
+        {
+          timeout = 150;
+          on-timeout = "brightnessctl -s set 10%";
+          on-resume = "brightnessctl -r";
+        }
         {
           timeout = 300;
           on-timeout = "hyprctl dispatch dpms off";
