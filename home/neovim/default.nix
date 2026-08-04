@@ -154,7 +154,22 @@
       telescope-ui-select-nvim
       vim-tmux-navigator
       gitsigns-nvim
-      harpoon
+      {
+        plugin = harpoon;
+        type = "lua";
+        config = ''
+          local mark = require("harpoon.mark")
+          local ui = require("harpoon.ui")
+
+          vim.keymap.set("n", "<leader>a", mark.add_file, { desc = "Ajouter le fichier à Harpoon" })
+          vim.keymap.set("n", "<leader>h", ui.toggle_quick_menu, { desc = "Ouvrir le menu Harpoon" })
+
+          vim.keymap.set("n", "<leader>1", function() ui.nav_file(1) end, { desc = "Sauter au fichier Harpoon 1" })
+          vim.keymap.set("n", "<leader>2", function() ui.nav_file(2) end, { desc = "Sauter au fichier Harpoon 2" })
+          vim.keymap.set("n", "<leader>3", function() ui.nav_file(3) end, { desc = "Sauter au fichier Harpoon 3" })
+          vim.keymap.set("n", "<leader>4", function() ui.nav_file(4) end, { desc = "Sauter au fichier Harpoon 4" })
+        '';
+      }
       lazygit-nvim
       render-markdown-nvim
       {
