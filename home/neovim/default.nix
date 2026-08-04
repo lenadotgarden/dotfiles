@@ -179,13 +179,10 @@
             },
             ui = {
               enable = true,
-              checkboxes = {
-                [" "] = { char = "󰄱", hl_group = "ObsidianTodo" },
-                ["x"] = { char = "", hl_group = "ObsidianDone" },
-              },
             },
-            checkbox = {
-              order = { " ", "x" },
+            checkboxes = {
+              [" "] = { char = "󰄱", hl_group = "ObsidianTodo" },
+              ["x"] = { char = "", hl_group = "ObsidianDone" },
             },
           })
 
