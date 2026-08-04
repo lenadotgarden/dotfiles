@@ -158,6 +158,29 @@
       lazygit-nvim
       render-markdown-nvim
       {
+        plugin = obsidian-nvim;
+        type = "lua";
+        config = ''
+          require("obsidian").setup({
+            legacy_commands = false,
+            picker = {
+              name = "telescope.nvim",
+            },
+            workspaces = {
+              {
+                name = "Garden",
+                path = "~/Garden",
+              },
+            },
+            daily_notes = {
+              folder = "1 Journal",
+              date_format = "%Y/%m/%Y-%m-%d %a",
+              alias_format = "%B %d, %Y",
+            },
+          })
+        '';
+      }
+      {
         plugin = zen-mode-nvim;
         type = "lua";
         config = ''

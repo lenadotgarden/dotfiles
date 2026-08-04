@@ -10,6 +10,11 @@
     openFirewall = true;
   };
 
+  # KDE Connect avec ouverture du pare-feu
+  programs.kdeconnect = {
+    enable = true;
+  };
+
   # Asahi / Apple Silicon support
   hardware.asahi.enable = true;
   hardware.asahi.extractPeripheralFirmware = true;
