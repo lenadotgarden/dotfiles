@@ -177,7 +177,30 @@
               date_format = "%Y/%m/%Y-%m-%d %a",
               alias_format = "%B %d, %Y",
             },
+            ui = {
+              enable = true,
+              checkboxes = {
+                [" "] = { char = "󰄱", hl_group = "ObsidianTodo" },
+                ["x"] = { char = "", hl_group = "ObsidianDone" },
+              },
+            },
           })
+
+          -- Keymaps Obsidian Tasks & Daily Notes
+          vim.keymap.set("n", "<leader>ch", ":Obsidian toggle_checkbox<CR>", { silent = true, desc = "Cocher/Décocher Tâche Obsidian" })
+          vim.keymap.set("n", "<leader>nd", ":Obsidian today<CR>", { silent = true, desc = "Ouvrir la Daily Note d'aujourd'hui" })
+        '';
+      }
+      {
+        plugin = todo-comments-nvim;
+        type = "lua";
+        config = ''
+          require("todo-comments").setup({
+            keywords = {
+              TODO = { icon = "☑ ", color = "info" },
+            },
+          })
+          vim.keymap.set("n", "<leader>st", ":TodoTelescope<CR>", { silent = true, desc = "Rechercher toutes les tâches (TODO)" })
         '';
       }
       {
