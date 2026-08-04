@@ -7,6 +7,7 @@
       pbcopy = "wl-copy";
       pbpaste = "wl-paste";
       v = "nvim";
+      o = "nvim ~/Garden";
       gay = "agy";
       fsel = "quicklauncher";
       sleep = "systemctl suspend";
