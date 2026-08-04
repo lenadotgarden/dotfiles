@@ -184,6 +184,9 @@
                 ["x"] = { char = "", hl_group = "ObsidianDone" },
               },
             },
+            checkbox = {
+              order = { " ", "x" },
+            },
           })
 
           -- Keymaps Obsidian Tasks & Daily Notes
