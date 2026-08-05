@@ -157,6 +157,7 @@
     cliphist
     wl-clip-persist
     anki
+    btop
   ];
 
   # Gestionnaire de mise en veille Hypridle avec économie d'énergie écran

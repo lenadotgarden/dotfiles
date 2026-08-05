@@ -27,6 +27,9 @@
   # Time Zone & Locale
   time.timeZone = "Europe/Paris";
 
+  # Dynamic RAM compression (zram swap)
+  zramSwap.enable = true;
+
   # Audio (Pipewire) & Power Management for Audio
   security.rtkit.enable = true;
   services.upower.enable = true;
@@ -44,13 +47,17 @@
     };
   };
 
-  # Gestion d'énergie bas niveau (TLP & Powertop)
+  # Gestion d'énergie (TLP & Powertop)
   services.tlp = {
     enable = true;
     settings = {
-      CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
+      CPU_SCALING_GOVERNOR_ON_BAT = "performance";
       CPU_SCALING_GOVERNOR_ON_AC = "performance";
-      RUNTIME_PM_ON_BAT = "auto";
+      ENERGY_PERF_POLICY_ON_BAT = "performance";
+      ENERGY_PERF_POLICY_ON_AC = "performance";
+      CPU_MIN_PERF_ON_BAT = 100;
+      CPU_MAX_PERF_ON_BAT = 100;
+      RUNTIME_PM_ON_BAT = "on";
     };
   };
 

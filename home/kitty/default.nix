@@ -14,7 +14,6 @@
       window_padding_width = 14;
       background_opacity = "0.94";
       dynamic_background_opacity = true;
-      bold_is_bright = true;
 
       # Curseur & Style
       cursor_shape = "beam";
