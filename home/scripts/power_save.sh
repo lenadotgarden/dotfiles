@@ -86,7 +86,7 @@ apply_ultra_eco() {
     fi
 
     # Couper les processus gourmands d'arrière-plan optionnels
-    pkill -f syncthing 2>/dev/null || true
+    # pkill -f syncthing 2>/dev/null || true
 
     # Notify user
     if command -v notify-send > /dev/null; then
