@@ -385,7 +385,7 @@ PanelWindow {
                     Behavior on opacity { NumberAnimation { duration: 180 } }
 
                     Repeater {
-                        model: [1, 2, 3, 4]
+                        model: [1, 2, 3, 4, 5]
 
                         MouseArea {
                             required property int modelData
