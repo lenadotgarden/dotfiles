@@ -168,6 +168,7 @@
           vim.keymap.set("n", "<leader>2", function() ui.nav_file(2) end, { desc = "Sauter au fichier Harpoon 2" })
           vim.keymap.set("n", "<leader>3", function() ui.nav_file(3) end, { desc = "Sauter au fichier Harpoon 3" })
           vim.keymap.set("n", "<leader>4", function() ui.nav_file(4) end, { desc = "Sauter au fichier Harpoon 4" })
+          vim.keymap.set("n", "<leader>5", function() ui.nav_file(5) end, { desc = "Sauter au fichier Harpoon 5" })
         '';
       }
       lazygit-nvim
