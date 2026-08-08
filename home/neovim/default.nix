@@ -91,6 +91,7 @@
             sources = cmp.config.sources({
               { name = 'nvim_lsp' },
               { name = 'luasnip' },
+              { name = 'orgmode' },
             }, {
               { name = 'buffer' },
               { name = 'path' },
@@ -174,6 +175,50 @@
       lazygit-nvim
       render-markdown-nvim
       {
+        plugin = orgmode;
+        type = "lua";
+        config = ''
+          local garden_path = vim.fn.expand('~/Garden')
+          require('orgmode').setup({
+            org_agenda_files = {
+              garden_path .. '/*.org',
+              garden_path .. '/**/*.org',
+            },
+            org_default_notes_file = garden_path .. '/refile.org',
+            org_todo_keywords = { 'TODO(t)', 'IN_PROGRESS(i)', '|', 'DONE(d)', 'CANCELED(c)' },
+            org_todo_keyword_faces = {
+              IN_PROGRESS = ':foreground yellow :weight bold',
+              CANCELED = ':foreground gray',
+            },
+            mappings = {
+              org = {
+                org_toggle_checkbox = '<C-space>',
+              },
+            },
+          })
+
+          vim.api.nvim_create_autocmd("FileType", {
+            pattern = "org",
+            callback = function()
+              -- Keymap de secours pour basculer les checkboxes avec <leader>ch ou <C-space>
+              vim.keymap.set("n", "<leader>ch", function()
+                require('orgmode').instance().org_mappings:toggle_checkbox()
+              end, { buffer = true, desc = "Toggle Checkbox Org" })
+
+              -- Suivre un lien Orgmode avec Entrée (<CR>)
+              vim.keymap.set("n", "<CR>", function()
+                require('orgmode').instance().org_mappings:open_at_point()
+              end, { buffer = true, desc = "Ouvrir Lien Org" })
+            end,
+          })
+
+          -- Keymaps Globaux Orgmode
+          vim.keymap.set("n", "<leader>oa", ":OrgAgenda<CR>", { silent = true, desc = "Ouvrir Org Agenda (Toutes les vues)" })
+          vim.keymap.set("n", "<leader>os", ":OrgAgenda t<CR>", { silent = true, desc = "Ouvrir la liste TODOs de l'Agenda" })
+          vim.keymap.set("n", "<leader>oc", ":OrgCapture<CR>", { silent = true, desc = "Org Capture Note" })
+        '';
+      }
+      {
         plugin = obsidian-nvim;
         type = "lua";
         config = ''
@@ -202,8 +247,13 @@
             },
           })
 
-          -- Keymaps Obsidian Tasks & Daily Notes
-          vim.keymap.set("n", "<leader>ch", ":Obsidian toggle_checkbox<CR>", { silent = true, desc = "Cocher/Décocher Tâche Obsidian" })
+          -- Keymaps Obsidian Tasks & Daily Notes (uniquement sur fichiers markdown)
+          vim.api.nvim_create_autocmd("FileType", {
+            pattern = "markdown",
+            callback = function()
+              vim.keymap.set("n", "<leader>ch", ":Obsidian toggle_checkbox<CR>", { buffer = true, silent = true, desc = "Cocher/Décocher Tâche Obsidian" })
+            end,
+          })
           vim.keymap.set("n", "<leader>nd", ":Obsidian today<CR>", { silent = true, desc = "Ouvrir la Daily Note d'aujourd'hui" })
         '';
       }
@@ -217,6 +267,46 @@
             },
           })
           vim.keymap.set("n", "<leader>st", ":TodoTelescope<CR>", { silent = true, desc = "Rechercher toutes les tâches (TODO)" })
+        '';
+      }
+      {
+        plugin = neorg;
+        type = "lua";
+        config = ''
+          require("neorg").setup({
+            load = {
+              ["core.defaults"] = {},
+              ["core.dirman"] = {
+                config = {
+                  workspaces = {
+                    garden = "~/Garden",
+                  },
+                  default_workspace = "garden",
+                },
+              },
+              ["core.completion"] = {
+                config = {
+                  engine = "nvim-cmp",
+                },
+              },
+              ["core.journal"] = {
+                config = {
+                  workspace = "garden",
+                },
+              },
+              ["core.summary"] = {},
+            },
+          })
+
+          -- Keymaps Neorg
+          local map = vim.keymap.set
+          map("n", "<leader>nn", ":Neorg workspace garden<CR>", { silent = true, desc = "Ouvrir le workspace Neorg (Garden)" })
+          map("n", "<leader>nj", ":Neorg journal today<CR>", { silent = true, desc = "Ouvrir le Journal Neorg d'aujourd'hui" })
+          map("n", "<leader>ni", ":Neorg index<CR>", { silent = true, desc = "Ouvrir l'index du workspace Neorg" })
+          map("n", "<leader>nt", ":Neorg toc<CR>", { silent = true, desc = "Table des matières Neorg" })
+          map("n", "<leader>nc", function()
+            vim.opt.conceallevel = vim.opt.conceallevel:get() == 0 and 2 or 0
+          end, { silent = true, desc = "Basculer le masquage des symboles (conceallevel)" })
         '';
       }
       {
