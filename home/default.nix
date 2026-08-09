@@ -158,6 +158,9 @@
     wl-clip-persist
     anki
     btop
+    flameshot
+    grim
+    slurp
   ];
 
   # Gestionnaire de mise en veille Hypridle avec économie d'énergie écran
@@ -214,6 +217,8 @@
     FILEMANAGER = "yazi";
     EDITOR = "nvim";
     VISUAL = "nvim";
+    XDG_CURRENT_DESKTOP = "Hyprland";
+    XDG_SESSION_TYPE = "wayland";
   };
 
   # Fichier Desktop personnalisés (.desktop)
