@@ -173,7 +173,53 @@
         '';
       }
       lazygit-nvim
-      render-markdown-nvim
+      {
+        plugin = render-markdown-nvim;
+        type = "lua";
+        config = ''
+          require('render-markdown').setup()
+        '';
+      }
+
+      {
+        plugin = pkgs.vimUtils.buildVimPlugin {
+          name = "org-bullets.nvim";
+          src = pkgs.fetchFromGitHub {
+            owner = "akinsho";
+            repo = "org-bullets.nvim";
+            rev = "main";
+            sha256 = "0f7fch2sbzpgh1qz79b75amrk5jbhrsy2rx9bmbi5mjxyspsl1sf";
+          };
+          dontBuild = true;
+          installPhase = ''
+            mkdir -p $out
+            cp -r * $out/
+          '';
+        };
+        type = "lua";
+        config = ''
+          require('org-bullets').setup()
+        '';
+      }
+      {
+        plugin = org-roam-nvim;
+        type = "lua";
+        config = ''
+          local garden_path = vim.fn.expand('~/Garden')
+          local org_roam = require("org-roam")
+          org_roam.setup({
+            directory = garden_path,
+          })
+
+          -- Keymaps Org-Roam
+          vim.keymap.set("n", "<leader>nf", function() org_roam.api.find_node() end, { desc = "Org-Roam Find Node" })
+          vim.keymap.set("n", "<leader>ni", function() org_roam.api.insert_node() end, { desc = "Org-Roam Insert Node" })
+          vim.keymap.set("n", "<leader>nc", function() org_roam.api.capture() end, { desc = "Org-Roam Capture" })
+          vim.keymap.set("n", "<leader>nl", function() org_roam.api.toggle_roam_buffer() end, { desc = "Org-Roam Toggle Backlinks Buffer" })
+          vim.keymap.set("n", "<leader>nm", function() org_roam.api.insert_node_immediate() end, { desc = "Org-Roam Insert Node Immediate" })
+        '';
+      }
+
       {
         plugin = orgmode;
         type = "lua";
@@ -185,14 +231,21 @@
               garden_path .. '/**/*.org',
             },
             org_default_notes_file = garden_path .. '/refile.org',
-            org_todo_keywords = { 'TODO(t)', 'IN_PROGRESS(i)', '|', 'DONE(d)', 'CANCELED(c)' },
+            org_todo_keywords = { 'IDEA(i)', 'TODO(t)', 'NEXT(n)', 'WAITING(w)', 'PROJ(p)', '|', 'DONE(d)', 'CANCELLED(c)' },
             org_todo_keyword_faces = {
-              IN_PROGRESS = ':foreground yellow :weight bold',
-              CANCELED = ':foreground gray',
+              IDEA = ':foreground yellow :weight bold',
+              NEXT = ':foreground blue :weight bold',
+              WAITING = ':foreground orange :weight bold',
+              PROJ = ':foreground purple :weight bold',
+              CANCELLED = ':foreground gray',
             },
             mappings = {
+              global = {
+                org_agenda = false,
+              },
               org = {
-                org_toggle_checkbox = '<C-space>',
+                org_toggle_checkbox = '<leader>x',
+                org_todo = '<leader>ct',
               },
             },
           })
@@ -200,22 +253,88 @@
           vim.api.nvim_create_autocmd("FileType", {
             pattern = "org",
             callback = function()
-              -- Keymap de secours pour basculer les checkboxes avec <leader>ch ou <C-space>
-              vim.keymap.set("n", "<leader>ch", function()
-                require('orgmode').instance().org_mappings:toggle_checkbox()
-              end, { buffer = true, desc = "Toggle Checkbox Org" })
+              -- Mappings additionnels pour cocher/décocher les cases (- [ ])
+              local toggle_cb = function() require('orgmode').action('org_toggle_checkbox') end
+              vim.keymap.set({ "n", "v" }, "<leader>cx", toggle_cb, { buffer = true, desc = "Toggle Checkbox (- [ ])" })
+              vim.keymap.set({ "n", "v" }, "<leader>ch", toggle_cb, { buffer = true, desc = "Toggle Checkbox (- [ ])" })
 
               -- Suivre un lien Orgmode avec Entrée (<CR>)
               vim.keymap.set("n", "<CR>", function()
-                require('orgmode').instance().org_mappings:open_at_point()
+                require('orgmode').action('org_open_at_point')
               end, { buffer = true, desc = "Ouvrir Lien Org" })
+              
+              -- Forcer le raccourci dans les buffers org pour écraser tout conflit
+              vim.keymap.set("n", "<leader>oa", "<cmd>OrgSuperAgenda<CR>", { buffer = true, silent = true, desc = "Ouvrir Org Super Agenda" })
             end,
           })
 
           -- Keymaps Globaux Orgmode
-          vim.keymap.set("n", "<leader>oa", ":OrgAgenda<CR>", { silent = true, desc = "Ouvrir Org Agenda (Toutes les vues)" })
-          vim.keymap.set("n", "<leader>os", ":OrgAgenda t<CR>", { silent = true, desc = "Ouvrir la liste TODOs de l'Agenda" })
+          vim.keymap.set("n", "<leader>oa", "<cmd>OrgSuperAgenda<CR>", { silent = true, desc = "Ouvrir Org Super Agenda" })
+          vim.keymap.set("n", "<leader>oA", function() require('orgmode').action('agenda.prompt') end, { silent = true, desc = "Ouvrir Org Agenda standard (Toutes les vues)" })
+          vim.keymap.set("n", "<leader>os", function() require('orgmode').action('agenda.prompt') end, { silent = true, desc = "Ouvrir le menu Agenda standard" })
           vim.keymap.set("n", "<leader>oc", ":OrgCapture<CR>", { silent = true, desc = "Org Capture Note" })
+        '';
+      }
+      {
+        plugin = pkgs.vimUtils.buildVimPlugin {
+          name = "org-super-agenda.nvim";
+          src = pkgs.fetchFromGitHub {
+            owner = "hamidi-dev";
+            repo = "org-super-agenda.nvim";
+            rev = "main";
+            sha256 = "03mz520aybxxm4n9a2lipz55sacj7bawpn7lif5x25hqzb4g1vp0";
+          };
+          dontBuild = true;
+          installPhase = ''
+            mkdir -p $out
+            cp -r * $out/
+          '';
+        };
+        type = "lua";
+        config = ''
+          local garden_path = vim.fn.expand('~/Garden')
+          require("org-super-agenda").setup({
+            org_directories = { garden_path },
+            todo_states = {
+              { name='IDEA',     keymap='oi', color='#F1FA8C', strike_through=false, fields={'filename','todo','headline','priority','date','tags'} },
+              { name='TODO',     keymap='ot', color='#FF5555', strike_through=false, fields={'filename','todo','headline','priority','date','tags'} },
+              { name='NEXT',     keymap='on', color='#8BE9FD', strike_through=false, fields={'filename','todo','headline','priority','date','tags'} },
+              { name='WAITING',  keymap='ow', color='#FFB86C', strike_through=false, fields={'filename','todo','headline','priority','date','tags'} },
+              { name='PROJ',     keymap='op', color='#BD93F9', strike_through=false, fields={'filename','todo','headline','priority','date','tags'} },
+              { name='DONE',     keymap='od', color='#50FA7B', strike_through=true,  fields={'filename','todo','headline','priority','date','tags'} },
+              { name='CANCELLED',keymap='oc', color='#6272A4', strike_through=true,  fields={'filename','todo','headline','priority','date','tags'} },
+            },
+            keymaps = {
+              filter_reset      = 'oa', toggle_other      = 'oo', filter            = 'of',
+              filter_fuzzy      = 'oz', filter_query      = 'oq', undo              = 'u',
+              reschedule        = 'cs', set_deadline      = 'cd', cycle_todo        = 't',
+              set_state         = 's',  reload            = 'r',  refile            = 'R',
+              hide_item         = 'x',  preview           = 'K',  clock_in          = 'I',
+              clock_out         = 'O',  clock_cancel      = 'X',  clock_goto        = 'gI',
+              reset_hidden      = 'gX', fold_all          = 'zM', unfold_all        = 'zR',
+              toggle_duplicates = 'D',  cycle_view        = 'ov', bulk_mark         = 'm',
+              bulk_unmark_all   = 'M',  bulk_reselect     = 'gv', bulk_action       = 'B',
+              open_view         = 'V',
+            },
+            window = {
+              width = 0.8, height = 0.7, border = 'rounded', title = 'Org Super Agenda',
+              title_pos = 'center', margin_left = 0, margin_right = 0, fullscreen_border = 'none',
+            },
+            groups = {
+              { name = '📥 Inbox',     matcher = function(i) return not i.scheduled and not i.deadline and not i:has_tag('someday') and i.todo_state ~= 'DONE' and i.todo_state ~= 'CANCELLED' end, sort={ by='date_nearest', order='asc' } },
+              { name = '⭐ Today',      matcher = function(i) return i.scheduled and i.scheduled:is_today() end, sort={ by='scheduled_time', order='asc' } },
+              { name = '🗓️ Upcoming',   matcher = function(i)
+                  local days = 10
+                  local d1 = i.deadline  and i.deadline:days_from_today()
+                  local d2 = i.scheduled and i.scheduled:days_from_today()
+                  return (d1 and d1 > 0 and d1 <= days) or (d2 and d2 > 0 and d2 <= days)
+                end, sort={ by='date_nearest', order='asc' } },
+              { name = '⏳ Overdue',    matcher = function(i) return i.todo_state ~= 'DONE' and i.todo_state ~= 'CANCELLED' and ((i.deadline and i.deadline:is_past()) or (i.scheduled and i.scheduled:is_past())) end, sort={ by='date_nearest', order='asc' } },
+              { name = '☁️ Someday',    matcher = function(i) return i:has_tag('someday') end },
+            },
+            hide_empty_groups  = true,
+            view_mode          = 'classic',
+          })
         '';
       }
       {
