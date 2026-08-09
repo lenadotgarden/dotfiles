@@ -322,7 +322,7 @@
             },
             groups = {
               { name = '📥 Inbox',     matcher = function(i) return not i.scheduled and not i.deadline and not i:has_tag('someday') and i.todo_state ~= 'DONE' and i.todo_state ~= 'CANCELLED' end, sort={ by='date_nearest', order='asc' } },
-              { name = '⭐ Today',      matcher = function(i) return i.scheduled and i.scheduled:is_today() end, sort={ by='scheduled_time', order='asc' } },
+              { name = '⭐ Today',      matcher = function(i) return ((i.scheduled and i.scheduled:is_today()) or (i.deadline and i.deadline:is_today())) end, sort={ by='scheduled_time', order='asc' } },
               { name = '🗓️ Upcoming',   matcher = function(i)
                   local days = 10
                   local d1 = i.deadline  and i.deadline:days_from_today()
@@ -333,6 +333,7 @@
               { name = '☁️ Someday',    matcher = function(i) return i:has_tag('someday') end },
             },
             hide_empty_groups  = true,
+            allow_duplicates   = true,
             view_mode          = 'classic',
           })
         '';
