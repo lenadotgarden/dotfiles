@@ -84,8 +84,8 @@ PanelWindow {
                         if (bgVal !== "") barWindow.pywalBg = bgVal
                     }
                     if (line.indexOf("foreground=") === 0) {
-                        var fgVal = line.split("=")[1].replace(/'/g, "").replace(/"/g, "").trim()
-                        if (fgVal !== "") barWindow.pywalFg = fgVal
+                        // Keep text always white for consistent dark notch bar UI
+                        barWindow.pywalFg = "#ffffff"
                     }
                     if (line.indexOf("color6=") === 0 || line.indexOf("color4=") === 0) {
                         var accVal = line.split("=")[1].replace(/'/g, "").replace(/"/g, "").trim()

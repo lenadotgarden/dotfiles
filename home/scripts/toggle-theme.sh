@@ -17,9 +17,14 @@ if [ "$current_scheme" = "'prefer-dark'" ]; then
         wal -i "$last_wall" -n -q -l
     fi
 
-    # hyprland light active border
+    # hyprland light active border & UI Design Best Practice: Soft warm-slate ambient shadow
     hyprctl keyword general:col.active_border "rgba(1e66f5ff)"
-    hyprctl keyword general:col.inactive_border "rgba(bcc0ccaa)"
+    hyprctl keyword general:col.inactive_border "rgba(00000015)"
+    # Warm cool-slate tint (rgba 24, 32, 54 at ~12% & 5% alpha) for a soft natural lift (macOS / iOS / Tailwind UI standard)
+    hyprctl keyword decoration:shadow:color "rgba(18203620)"
+    hyprctl keyword decoration:shadow:color_inactive "rgba(1820360d)"
+    hyprctl keyword decoration:shadow:range 28
+    hyprctl keyword decoration:shadow:render_power 2
 
     # sync antigravity cli settings.json
     if [ -f "$HOME/.gemini/antigravity-cli/settings.json" ]; then
@@ -38,9 +43,11 @@ else
         wal -i "$last_wall" -n -q -b 11111b
     fi
 
-    # hyprland dark active border
+    # hyprland dark active border & dark shadow
     hyprctl keyword general:col.active_border "rgba(89b4faee)"
     hyprctl keyword general:col.inactive_border "rgba(1e1e2eaa)"
+    hyprctl keyword decoration:shadow:color "rgba(11111b66)"
+    hyprctl keyword decoration:shadow:color_inactive "rgba(11111b44)"
 
     # sync antigravity cli settings.json
     if [ -f "$HOME/.gemini/antigravity-cli/settings.json" ]; then
