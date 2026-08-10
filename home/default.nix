@@ -10,6 +10,7 @@
     ./git
     ./tmux
     ./fsel
+    ./librewolf
   ];
 
   home.username = "lena";
