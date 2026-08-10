@@ -19,6 +19,11 @@
     interactiveShellInit = ''
       set fish_greeting ""
       fastfetch --logo nixos2
+      
+      # La clé d'API est lue depuis un fichier local non versionné
+      if test -f ~/.deepseek_api_key
+        set -gx DEEPSEEK_API_KEY (cat ~/.deepseek_api_key)
+      end
 
       # Auto-start Hyprland on TTY1 if not already inside a graphical session
       if test (tty) = "/dev/tty1"; and test -z "$WAYLAND_DISPLAY"

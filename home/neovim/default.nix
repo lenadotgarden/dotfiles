@@ -471,6 +471,91 @@
           vim.keymap.set("n", "<leader>z", ":ZenMode<CR>", { silent = true })
         '';
       }
+      fzf-lua
+      {
+        plugin = dressing-nvim;
+        type = "lua";
+        config = ''
+          require('dressing').setup()
+        '';
+      }
+      {
+        plugin = parrot-nvim;
+        type = "lua";
+        config = ''
+          require("parrot").setup({
+            providers = {
+              openai = {
+                name = "openai",
+                endpoint = "https://api.deepseek.com/v1/chat/completions",
+                api_key = os.getenv("DEEPSEEK_API_KEY") or "",
+                models = { "deepseek-chat" },
+                topic = {
+                  model = "deepseek-chat",
+                  params = { max_tokens = 64 },
+                },
+                params = {
+                  chat = { model = "deepseek-chat", temperature = 0.2, top_p = 0.9 },
+                  command = { model = "deepseek-chat", temperature = 0.2, top_p = 0.9 },
+                },
+              },
+            },
+
+            prompts = {
+              Correction = [[
+Tu es mon éditeur. Ton rôle est d'appliquer STRICTEMENT la modification ou correction demandée par l'utilisateur sur le texte fourni.
+
+Demande de l'utilisateur : {{command}}
+
+Règles à suivre :
+- Applique uniquement la demande ci-dessus.
+- Préserve impérativement le style "Trash" (cru, direct, gonzo), le ton, et les noms propres.
+- Préserve strictement les balises Markdown ou Org Mode (liens, titres, listes, gras, etc.).
+
+Ne rajoute aucune formule de politesse, ni aucune explication. Réponds uniquement avec le texte final modifié.
+              ]],
+
+              Fluidification = [[
+Réécris la sélection en français naturel et fluide, dans un style de reportage.
+Corrige les erreurs, mais ne modifie pas les faits, les citations ou le niveau de langue.
+Préserve strictement la syntaxe Markdown ou Org Mode.
+
+Instructions spécifiques pour cette réécriture : {{command}}
+
+Réponds uniquement avec le texte final.
+              ]],
+            },
+
+            enable_preview_mode = false,
+            preview_auto_apply = false,
+            toggle_target = "vsplit",
+          })
+
+          vim.keymap.set("v", "<leader>ac", function()
+            vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "x", false)
+            vim.schedule(function()
+              vim.ui.input({ prompt = "Instructions pour Correction (vide=auto): " }, function(input)
+                if input == nil then return end
+                local cmd = "PrtRewrite Correction"
+                if input ~= "" then cmd = cmd .. " " .. input end
+                vim.cmd("'<,'>" .. cmd)
+              end)
+            end)
+          end, { desc = "Corriger la sélection avec l'IA" })
+
+          vim.keymap.set("v", "<leader>af", function()
+            vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "x", false)
+            vim.schedule(function()
+              vim.ui.input({ prompt = "Instructions pour Fluidification (vide=auto): " }, function(input)
+                if input == nil then return end
+                local cmd = "PrtRewrite Fluidification"
+                if input ~= "" then cmd = cmd .. " " .. input end
+                vim.cmd("'<,'>" .. cmd)
+              end)
+            end)
+          end, { desc = "Fluidifier la sélection avec l'IA" })
+        '';
+      }
     ];
 
     initLua = ''
