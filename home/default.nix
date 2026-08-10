@@ -240,32 +240,34 @@
     useCustom = true;
   };
 
-  xdg.configFile."clipse/custom_theme.json".text = builtins.toJSON {
+  xdg.configFile."wal/templates/clipse-theme.json".text = builtins.toJSON {
     useCustom = true;
-    TitleFore = "#cdd6f4";
-    TitleBack = "#1e1e2e";
-    TitleInfo = "#89b4fa";
-    NormalTitle = "#cdd6f4";
-    DimmedTitle = "#6c7086";
-    SelectedTitle = "#cba6f7";
-    NormalDesc = "#a6adc8";
-    DimmedDesc = "#6c7086";
-    SelectedDesc = "#cba6f7";
-    StatusMsg = "#a6e3a1";
-    PinIndicatorColor = "#f9e2af";
-    SelectedBorder = "#cba6f7";
-    SelectedDescBorder = "#cba6f7";
-    FilteredMatch = "#fab387";
-    FilterPrompt = "#a6e3a1";
-    FilterInfo = "#89b4fa";
-    FilterText = "#cdd6f4";
-    FilterCursor = "#f9e2af";
-    HelpKey = "#89b4fa";
-    HelpDesc = "#a6adc8";
-    PageActiveDot = "#cba6f7";
-    PageInactiveDot = "#45475a";
-    DividerDot = "#cba6f7";
-    PreviewedText = "#cdd6f4";
-    PreviewBorder = "#cba6f7";
+    TitleFore = "{color15}";
+    TitleBack = "{background}";
+    TitleInfo = "{color4}";
+    NormalTitle = "{color15}";
+    DimmedTitle = "{color8}";
+    SelectedTitle = "{color6}";
+    NormalDesc = "{color7}";
+    DimmedDesc = "{color8}";
+    SelectedDesc = "{color6}";
+    StatusMsg = "{color2}";
+    PinIndicatorColor = "{color3}";
+    SelectedBorder = "{color6}";
+    SelectedDescBorder = "{color6}";
+    FilteredMatch = "{color1}";
+    FilterPrompt = "{color2}";
+    FilterInfo = "{color4}";
+    FilterText = "{color15}";
+    FilterCursor = "{color3}";
+    HelpKey = "{color4}";
+    HelpDesc = "{color7}";
+    PageActiveDot = "{color6}";
+    PageInactiveDot = "{color8}";
+    DividerDot = "{color6}";
+    PreviewedText = "{color15}";
+    PreviewBorder = "{color6}";
   };
+
+  xdg.configFile."clipse/custom_theme.json".source = config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.cache/wal/clipse-theme.json";
 }
