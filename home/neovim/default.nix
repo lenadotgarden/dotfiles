@@ -321,7 +321,10 @@
               title_pos = 'center', margin_left = 0, margin_right = 0, fullscreen_border = 'none',
             },
             groups = {
-              { name = '📥 Inbox',     matcher = function(i) return not i.scheduled and not i.deadline and not i:has_tag('someday') and i.todo_state ~= 'DONE' and i.todo_state ~= 'CANCELLED' end, sort={ by='date_nearest', order='asc' } },
+              { name = '📥 Inbox',     matcher = function(i)
+                  local f = (i.file or ""):lower()
+                  return (f:match("refile") or f:match("inbox")) and i.todo_state ~= "DONE" and i.todo_state ~= "CANCELLED"
+                end, sort={ by='date_nearest', order='asc' } },
               { name = '⭐ Today',      matcher = function(i) return ((i.scheduled and i.scheduled:is_today()) or (i.deadline and i.deadline:is_today())) end, sort={ by='scheduled_time', order='asc' } },
               { name = '🗓️ Upcoming',   matcher = function(i)
                   local days = 10
@@ -329,12 +332,27 @@
                   local d2 = i.scheduled and i.scheduled:days_from_today()
                   return (d1 and d1 > 0 and d1 <= days) or (d2 and d2 > 0 and d2 <= days)
                 end, sort={ by='date_nearest', order='asc' } },
-              { name = '⏳ Overdue',    matcher = function(i) return i.todo_state ~= 'DONE' and i.todo_state ~= 'CANCELLED' and ((i.deadline and i.deadline:is_past()) or (i.scheduled and i.scheduled:is_past())) end, sort={ by='date_nearest', order='asc' } },
-              { name = '☁️ Someday',    matcher = function(i) return i:has_tag('someday') end },
+              { name = '⏳ Overdue',    matcher = function(i) return i.todo_state ~= "DONE" and i.todo_state ~= "CANCELLED" and ((i.deadline and i.deadline:is_past()) or (i.scheduled and i.scheduled:is_past())) end, sort={ by='date_nearest', order='asc' } },
+              { name = '⚡ Anytime',    matcher = function(i)
+                  local f = (i.file or ""):lower()
+                  local is_inbox = f:match("refile") or f:match("inbox")
+                  local is_someday = i:has_tag("someday")
+                  local is_future = i.scheduled and i.scheduled:days_from_today() > 0
+                  local is_done = (i.todo_state == "DONE" or i.todo_state == "CANCELLED")
+                  local has_todo = i.todo_state and i.todo_state ~= ""
+                  return has_todo and not is_done and not is_inbox and not is_someday and not is_future
+                end, sort={ by='date_nearest', order='asc' } },
+              { name = '☁️ Someday',    matcher = function(i) return i:has_tag("someday") end },
             },
             hide_empty_groups  = true,
             allow_duplicates   = true,
             view_mode          = 'classic',
+            custom_views       = {
+              anytime = {
+                name = '⚡ Anytime',
+                filter = '-file:refile -file:inbox -tag:someday -is:done sched<=0 has:todo',
+              },
+            },
           })
         '';
       }
