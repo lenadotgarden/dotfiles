@@ -56,7 +56,20 @@
           padding: 0 !important;
         }
 
-        /* 4. Révéler l'en-tête (onglets + nav-bar) quand le focus est à l'intérieur */
+        /* Zone de détection de 8px en haut de l'écran pour le survol de la souris */
+        #navigator-toolbox::before {
+          content: "";
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100vw;
+          height: 8px;
+          z-index: 10000;
+          pointer-events: auto !important; /* Indispensable car le parent est en none */
+        }
+
+        /* 4. Révéler l'en-tête (onglets + nav-bar) quand le focus ou le hover est actif */
+        #navigator-toolbox:hover,
         #navigator-toolbox:focus-within,
         #navigator-toolbox:has(#urlbar[focused="true"]) {
           margin-top: 0 !important;

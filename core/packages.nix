@@ -15,6 +15,9 @@
     enable = true;
   };
 
+  # Tailscale (Client pour Headscale)
+  services.tailscale.enable = true;
+
   # Asahi / Apple Silicon support
   hardware.asahi.enable = true;
   hardware.asahi.extractPeripheralFirmware = true;
