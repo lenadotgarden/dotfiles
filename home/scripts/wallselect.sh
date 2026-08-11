@@ -79,8 +79,12 @@ if [ -n "$acc_color" ]; then
     hyprctl keyword general:col.active_border "rgba(${acc_color}ee)"
 fi
 
-# reload quickshell cleanly via systemd without aggressive pkill duplication
-systemctl --user is-active --quiet quickshell.service && systemctl --user reload-or-restart quickshell.service || (systemctl --user start quickshell.service 2>/dev/null || nohup quickshell >/dev/null 2>&1 & disown)
+# reload quickshell cleanly via systemd without duplicating processes
+systemctl --user restart quickshell.service 2>/dev/null || systemctl --user start quickshell.service 2>/dev/null
+
+# reload kitty & nvim
+pkill -USR1 kitty 2>/dev/null || true
+pkill -USR1 nvim 2>/dev/null || true
 
 if command -v notify-send > /dev/null; then
     notify-send "🎨 Wallpaper" "$(basename "$selected_wall")"

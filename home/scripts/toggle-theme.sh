@@ -26,10 +26,13 @@ if [ "$current_scheme" = "'prefer-dark'" ]; then
     hyprctl keyword decoration:shadow:range 28
     hyprctl keyword decoration:shadow:render_power 2
 
-    # sync antigravity cli settings.json
-    if [ -f "$HOME/.gemini/antigravity-cli/settings.json" ]; then
-        sed -i 's/"colorScheme": *"dark"/"colorScheme": "light"/' "$HOME/.gemini/antigravity-cli/settings.json"
+    # sync neovim open instances
+    if command -v nvim > /dev/null; then
+        pkill -USR1 nvim 2>/dev/null || true
     fi
+
+    # reload kitty colors
+    pkill -USR1 kitty 2>/dev/null || true
 
     if command -v notify-send > /dev/null; then
         notify-send "☀️ Light Mode" "System, Antigravity & Quickshell updated to light"
@@ -59,10 +62,13 @@ else
         pkill -USR1 nvim 2>/dev/null || true
     fi
 
+    # reload kitty colors
+    pkill -USR1 kitty 2>/dev/null || true
+
     if command -v notify-send > /dev/null; then
         notify-send "🌙 Dark Mode" "System, Antigravity, Neovim & Quickshell updated to dark"
     fi
 fi
 
-# reload quickshell cleanly via systemd without aggressive pkill duplication
-systemctl --user is-active --quiet quickshell.service && systemctl --user reload-or-restart quickshell.service || (systemctl --user start quickshell.service 2>/dev/null || nohup quickshell >/dev/null 2>&1 & disown)
+# reload quickshell cleanly via systemd without duplicating processes
+systemctl --user restart quickshell.service 2>/dev/null || systemctl --user start quickshell.service 2>/dev/null

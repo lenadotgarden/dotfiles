@@ -16,7 +16,7 @@
       dynamic_background_opacity = true;
 
       # Curseur & Style
-      cursor_shape = "beam";
+      cursor_shape = "block";
       cursor_blink_interval = 0.5;
       hide_window_decorations = "yes";
 
@@ -51,6 +51,7 @@
     };
     extraConfig = ''
       include ~/.cache/wal/colors-kitty.conf
+      cursor none
     '';
   };
 }

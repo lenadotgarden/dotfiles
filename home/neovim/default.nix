@@ -562,7 +562,10 @@ Réponds uniquement avec le texte final.
       -- Options de base
       vim.g.mapleader = " "
       vim.opt.termguicolors = true
-      vim.opt.guicursor = "n-v-c-sm:block-Cursor,i-ci-ve:ver25-Cursor,r-cr-o:hor20-Cursor"
+
+      -- Curseur en bloc (carré) en mode Normal et ligne en mode Insertion
+      vim.opt.guicursor = "n-v-c:block,i-ci-ve:ver25,r-cr:hor20,o:hor50"
+
       vim.opt.tabstop = 2
       vim.opt.softtabstop = 2
       vim.opt.shiftwidth = 2
