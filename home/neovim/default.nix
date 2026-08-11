@@ -595,6 +595,104 @@ Réponds uniquement avec le texte final.
         vim.lsp.enable(server)
       end
 
+      -- Synchronisation intégrale du thème et de la syntaxe du Desktop (Pywal) avec Neovim
+      local function sync_desktop_colors()
+        local json_path = vim.fn.expand("~/.cache/wal/colors.json")
+        if vim.fn.filereadable(json_path) == 1 then
+          local file = io.open(json_path, "r")
+          if file then
+            local content = file:read("*a")
+            file:close()
+            local ok, wal = pcall(vim.json.decode, content)
+            if ok and wal and wal.colors then
+              local c = wal.colors
+              local fg = wal.special and wal.special.foreground or c.color7
+              local bg = wal.special and wal.special.background or c.color0
+              local accent = c.color6 or c.color4
+
+              -- Interface & UI
+              vim.api.nvim_set_hl(0, "Normal", { fg = fg, bg = "NONE" })
+              vim.api.nvim_set_hl(0, "NormalFloat", { fg = fg, bg = "NONE" })
+              vim.api.nvim_set_hl(0, "CursorLine", { bg = c.color0 })
+              vim.api.nvim_set_hl(0, "CursorLineNr", { fg = accent, bold = true })
+              vim.api.nvim_set_hl(0, "LineNr", { fg = c.color8 })
+              vim.api.nvim_set_hl(0, "Visual", { bg = accent, fg = bg })
+              vim.api.nvim_set_hl(0, "Search", { bg = c.color4, fg = bg })
+              vim.api.nvim_set_hl(0, "IncSearch", { bg = accent, fg = bg })
+              vim.api.nvim_set_hl(0, "MatchParen", { fg = accent, bold = true, underline = true })
+              vim.api.nvim_set_hl(0, "FloatBorder", { fg = accent })
+              vim.api.nvim_set_hl(0, "TelescopeBorder", { fg = accent })
+              vim.api.nvim_set_hl(0, "TelescopePromptBorder", { fg = accent })
+              vim.api.nvim_set_hl(0, "TelescopeTitle", { fg = accent, bold = true })
+
+              -- Coloration Syntaxique Complète (Pywal Desktop Palette)
+              vim.api.nvim_set_hl(0, "Comment", { fg = c.color8, italic = true })
+              vim.api.nvim_set_hl(0, "Constant", { fg = c.color3 })
+              vim.api.nvim_set_hl(0, "String", { fg = c.color2 })
+              vim.api.nvim_set_hl(0, "Character", { fg = c.color2 })
+              vim.api.nvim_set_hl(0, "Number", { fg = c.color3 })
+              vim.api.nvim_set_hl(0, "Boolean", { fg = c.color3, bold = true })
+              vim.api.nvim_set_hl(0, "Identifier", { fg = c.color4 })
+              vim.api.nvim_set_hl(0, "Function", { fg = c.color4, bold = true })
+              vim.api.nvim_set_hl(0, "Statement", { fg = c.color5, bold = true })
+              vim.api.nvim_set_hl(0, "Conditional", { fg = c.color5, bold = true })
+              vim.api.nvim_set_hl(0, "Repeat", { fg = c.color5, bold = true })
+              vim.api.nvim_set_hl(0, "Operator", { fg = c.color6 })
+              vim.api.nvim_set_hl(0, "Keyword", { fg = c.color5, bold = true })
+              vim.api.nvim_set_hl(0, "PreProc", { fg = c.color1 })
+              vim.api.nvim_set_hl(0, "Include", { fg = c.color1 })
+              vim.api.nvim_set_hl(0, "Type", { fg = c.color3, bold = true })
+              vim.api.nvim_set_hl(0, "Special", { fg = c.color6 })
+              vim.api.nvim_set_hl(0, "Directory", { fg = c.color4, bold = true })
+
+              -- Support Treesitter
+              vim.api.nvim_set_hl(0, "@keyword", { fg = c.color5, bold = true })
+              vim.api.nvim_set_hl(0, "@function", { fg = c.color4, bold = true })
+              vim.api.nvim_set_hl(0, "@string", { fg = c.color2 })
+              vim.api.nvim_set_hl(0, "@comment", { fg = c.color8, italic = true })
+              vim.api.nvim_set_hl(0, "@variable", { fg = fg })
+              vim.api.nvim_set_hl(0, "@type", { fg = c.color3 })
+              vim.api.nvim_set_hl(0, "@operator", { fg = c.color6 })
+
+              -- Neo-Tree (Filetree) Palette Desktop Pywal
+              vim.api.nvim_set_hl(0, "NeoTreeNormal", { fg = fg, bg = "NONE" })
+              vim.api.nvim_set_hl(0, "NeoTreeNormalNC", { fg = fg, bg = "NONE" })
+              vim.api.nvim_set_hl(0, "NeoTreeRootName", { fg = accent, bold = true })
+              vim.api.nvim_set_hl(0, "NeoTreeDirectoryName", { fg = c.color4, bold = true })
+              vim.api.nvim_set_hl(0, "NeoTreeDirectoryIcon", { fg = c.color4 })
+              vim.api.nvim_set_hl(0, "NeoTreeFileName", { fg = fg })
+              vim.api.nvim_set_hl(0, "NeoTreeGitAdded", { fg = c.color2 })
+              vim.api.nvim_set_hl(0, "NeoTreeGitModified", { fg = c.color3 })
+              vim.api.nvim_set_hl(0, "NeoTreeGitDeleted", { fg = c.color1 })
+              vim.api.nvim_set_hl(0, "NeoTreeIndentMarker", { fg = c.color8 })
+
+              -- Markdown & Render-Markdown (Titres H1-H6 100% distincts & Fort Contraste)
+              local h_colors = {
+                c.color1, -- H1: Rouge / Coral
+                c.color4, -- H2: Bleu / Sky
+                c.color2, -- H3: Vert / Émeraude
+                c.color3, -- H4: Jaune / Amber
+                c.color5, -- H5: Violet / Magenta
+                c.color6, -- H6: Cyan / Turquoise
+              }
+
+              for lvl, color in ipairs(h_colors) do
+                local c_hl = color or fg
+                vim.api.nvim_set_hl(0, "RenderMarkdownH" .. lvl, { fg = c_hl, bold = true })
+                vim.api.nvim_set_hl(0, "RenderMarkdownH" .. lvl .. "Bg", { bg = c_hl, fg = bg })
+                vim.api.nvim_set_hl(0, "@markup.heading." .. lvl .. ".markdown", { fg = c_hl, bold = true })
+                vim.api.nvim_set_hl(0, "markdownH" .. lvl, { fg = c_hl, bold = true })
+                vim.api.nvim_set_hl(0, "htmlH" .. lvl, { fg = c_hl, bold = true })
+              end
+
+              vim.api.nvim_set_hl(0, "RenderMarkdownCode", { bg = c.color0 })
+              vim.api.nvim_set_hl(0, "RenderMarkdownBullet", { fg = accent, bold = true })
+              vim.api.nvim_set_hl(0, "RenderMarkdownLink", { fg = c.color4, underline = true, bold = true })
+            end
+          end
+        end
+      end
+
       -- Auto Dark Mode setup
       local status_adm, auto_dark_mode = pcall(require, "auto-dark-mode")
       if status_adm then
@@ -603,13 +701,30 @@ Réponds uniquement avec le texte final.
           set_dark_mode = function()
             vim.api.nvim_set_option_value("background", "dark", {})
             vim.cmd("colorscheme catppuccin-mocha")
+            sync_desktop_colors()
           end,
           set_light_mode = function()
             vim.api.nvim_set_option_value("background", "light", {})
             vim.cmd("colorscheme catppuccin-latte")
+            sync_desktop_colors()
           end,
         })
       end
+
+      -- Appliquer au démarrage et après chaque changement de thème (y compris au chargement initial de Catppuccin)
+      vim.api.nvim_create_autocmd("ColorScheme", {
+        pattern = "*",
+        callback = function()
+          sync_desktop_colors()
+        end,
+      })
+      sync_desktop_colors()
+
+      -- Écouter le signal SIGUSR1 pour recharger instantanément les couleurs du desktop lors d'un changement de wallpaper/thème
+      local sig = vim.uv and vim.uv.new_signal() or vim.loop.new_signal()
+      sig:start("sigusr1", vim.schedule_wrap(function()
+        sync_desktop_colors()
+      end))
     '';
   };
 }
