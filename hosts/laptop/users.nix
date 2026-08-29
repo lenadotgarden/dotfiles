@@ -3,7 +3,7 @@
 {
   users.users.lena = {
     isNormalUser = true;
-    shell = pkgs.fish;
+    shell = pkgs.zsh;
     extraGroups = [ "wheel" "networkmanager" ];
     initialPassword = "3141";
   };

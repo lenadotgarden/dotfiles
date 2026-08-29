@@ -6,7 +6,7 @@
     ./quickshell
     ./neovim
     ./kitty
-    ./fish
+    ./zsh
     ./git
     ./tmux
     ./fsel
@@ -29,20 +29,16 @@
   systemd.user.services.quickshell = {
     Unit = {
       Description = "Quickshell Desktop Bar Service";
-      After = [ "graphical-session.target" "hyprland-session.target" ];
+      After = [ "graphical-session.target" ];
       PartOf = [ "graphical-session.target" ];
     };
     Service = {
-      Environment = [
-        "WAYLAND_DISPLAY=wayland-1"
-        "XDG_RUNTIME_DIR=/run/user/1000"
-      ];
       ExecStart = "${pkgs.quickshell}/bin/quickshell";
       Restart = "always";
       RestartSec = "1s";
     };
     Install = {
-      WantedBy = [ "default.target" "graphical-session.target" ];
+      WantedBy = [ "graphical-session.target" ];
     };
   };
 
@@ -196,7 +192,7 @@
   programs.yazi = {
     enable = true;
     package = inputs.yazi.packages.${pkgs.system}.default;
-    enableFishIntegration = true;
+    enableZshIntegration = true;
     enableBashIntegration = true;
     shellWrapperName = "y";
     settings = {
@@ -230,6 +226,15 @@
     icon = "handy";
     terminal = false;
     categories = [ "Utility" "AudioVideo" ];
+  };
+
+  xdg.desktopEntries.btop = {
+    name = "btop";
+    comment = "Resource Monitor";
+    exec = "kitty -e btop";
+    icon = "btop";
+    terminal = false;
+    categories = [ "System" "Monitor" ];
   };
 
   # Layout Rofi pour wallselect

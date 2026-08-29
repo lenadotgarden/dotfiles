@@ -720,11 +720,13 @@ Réponds uniquement avec le texte final.
       })
       sync_desktop_colors()
 
-      -- Écouter le signal SIGUSR1 pour recharger instantanément les couleurs du desktop lors d'un changement de wallpaper/thème
-      local sig = vim.uv and vim.uv.new_signal() or vim.loop.new_signal()
-      sig:start("sigusr1", vim.schedule_wrap(function()
-        sync_desktop_colors()
-      end))
+      -- Auto-sync Garden on save in Neovim
+      vim.api.nvim_create_autocmd("BufWritePost", {
+        pattern = vim.fn.expand("~/Garden") .. "/*",
+        callback = function()
+          vim.fn.jobstart({ vim.fn.expand("~/.local/bin/sync-garden.sh") }, { detach = true })
+        end,
+      })
     '';
   };
 }

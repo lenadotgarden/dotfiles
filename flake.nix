@@ -22,10 +22,10 @@
     system = "aarch64-linux";
   in {
     nixosConfigurations.macbook = nixpkgs.lib.nixosSystem {
-      inherit system;
       specialArgs = { inherit inputs; };
 
       modules = [
+        { nixpkgs.hostPlatform = "aarch64-linux"; }
         apple-silicon-support.nixosModules.apple-silicon-support
         ./hosts/laptop/default.nix
 

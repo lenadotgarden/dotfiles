@@ -7,6 +7,7 @@
       user.name = "lena";
       user.email = "lenadotgarden@proton.me";
       init.defaultBranch = "main";
+      credential.helper = "store";
     };
   };
 }

@@ -73,11 +73,8 @@
     HandleLidSwitchDocked = "ignore";
   };
 
-  # Enable Fish shell system-wide
-  programs.fish = {
-    enable = true;
-    useBabelfish = true;
-  };
+  # Enable Zsh shell system-wide
+  programs.zsh.enable = true;
 
   # Allow Unfree & Insecure Packages
   nixpkgs.config.allowUnfree = true;
