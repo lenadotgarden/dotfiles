@@ -142,7 +142,7 @@
     brightnessctl
     playerctl
     inputs.helium.packages.${pkgs.system}.default
-    inputs.handy.packages.${pkgs.system}.default
+    inputs.handy.packages.${pkgs.stdenv.hostPlatform.system}.default
     inputs.yazi.packages.${pkgs.system}.default
     telegram-desktop
     signal-desktop
@@ -222,7 +222,7 @@
   xdg.desktopEntries.handy = {
     name = "Handy";
     comment = "Offline Speech-to-Text Application";
-    exec = "${inputs.handy.packages.${pkgs.system}.default}/bin/handy";
+    exec = "${inputs.handy.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/handy";
     icon = "handy";
     terminal = false;
     categories = [ "Utility" "AudioVideo" ];

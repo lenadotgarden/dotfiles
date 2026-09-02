@@ -76,8 +76,9 @@
   # Enable Zsh shell system-wide
   programs.zsh.enable = true;
 
-  # Allow Unfree & Insecure Packages
+  # Allow Unfree, Unsupported Systems & Insecure Packages
   nixpkgs.config.allowUnfree = true;
+  nixpkgs.config.allowUnsupportedSystem = true;
   nixpkgs.config.permittedInsecurePackages = [
     "electron-40.10.5"
   ];
