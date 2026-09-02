@@ -610,10 +610,11 @@ Réponds uniquement avec le texte final.
               local bg = wal.special and wal.special.background or c.color0
               local accent = c.color6 or c.color4
 
-              -- Interface & UI
+              -- Interface & UI (Contraste amélioré & CursorLine subtile)
               vim.api.nvim_set_hl(0, "Normal", { fg = fg, bg = "NONE" })
               vim.api.nvim_set_hl(0, "NormalFloat", { fg = fg, bg = "NONE" })
-              vim.api.nvim_set_hl(0, "CursorLine", { bg = c.color0 })
+              -- Curseur / CursorLine subtil avec un fond légèrement teinté ou discret au lieu du rectangle opaque c.color0
+              vim.api.nvim_set_hl(0, "CursorLine", { bg = "#1e1e2e", blend = 15 })
               vim.api.nvim_set_hl(0, "CursorLineNr", { fg = accent, bold = true })
               vim.api.nvim_set_hl(0, "LineNr", { fg = c.color8 })
               vim.api.nvim_set_hl(0, "Visual", { bg = accent, fg = bg })
@@ -625,8 +626,9 @@ Réponds uniquement avec le texte final.
               vim.api.nvim_set_hl(0, "TelescopePromptBorder", { fg = accent })
               vim.api.nvim_set_hl(0, "TelescopeTitle", { fg = accent, bold = true })
 
-              -- Coloration Syntaxique Complète (Pywal Desktop Palette)
-              vim.api.nvim_set_hl(0, "Comment", { fg = c.color8, italic = true })
+              -- Coloration Syntaxique Complète (Pywal Desktop Palette avec Contraste Amélioré)
+              local bright_fg = c.color15 or fg
+              vim.api.nvim_set_hl(0, "Comment", { fg = c.color8 or "#808080", italic = true })
               vim.api.nvim_set_hl(0, "Constant", { fg = c.color3 })
               vim.api.nvim_set_hl(0, "String", { fg = c.color2 })
               vim.api.nvim_set_hl(0, "Character", { fg = c.color2 })
@@ -645,12 +647,12 @@ Réponds uniquement avec le texte final.
               vim.api.nvim_set_hl(0, "Special", { fg = c.color6 })
               vim.api.nvim_set_hl(0, "Directory", { fg = c.color4, bold = true })
 
-              -- Support Treesitter
+              -- Support Treesitter (Texte principal bien visible)
               vim.api.nvim_set_hl(0, "@keyword", { fg = c.color5, bold = true })
               vim.api.nvim_set_hl(0, "@function", { fg = c.color4, bold = true })
               vim.api.nvim_set_hl(0, "@string", { fg = c.color2 })
               vim.api.nvim_set_hl(0, "@comment", { fg = c.color8, italic = true })
-              vim.api.nvim_set_hl(0, "@variable", { fg = fg })
+              vim.api.nvim_set_hl(0, "@variable", { fg = bright_fg })
               vim.api.nvim_set_hl(0, "@type", { fg = c.color3 })
               vim.api.nvim_set_hl(0, "@operator", { fg = c.color6 })
 

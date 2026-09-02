@@ -124,10 +124,13 @@
     configDir = "/home/lena/.config/syncthing";
   };
 
+  # XWayland pour exécuter XMonad/apps X11 dans Hyprland
+  programs.xwayland.enable = true;
+
   # Hyprland Compositor system-level enablement
   programs.hyprland.enable = true;
 
-  # XDG Desktop Portals pour Wayland (Requis pour Flameshot / Screen sharing)
+  # XDG Desktop Portals (Requis pour Flameshot / Screen sharing)
   xdg.portal = {
     enable = true;
     extraPortals = [
