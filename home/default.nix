@@ -2,8 +2,12 @@
 
 {
   imports = [
-    ./hyprland
-    ./quickshell
+    # --- Desktop Environment ---
+    ./desktops/hyprland
+    # ./desktops/niri
+    # ./desktops/sway
+    # ---------------------------
+
     ./neovim
     ./kitty
     ./zsh
@@ -214,8 +218,6 @@
     FILEMANAGER = "yazi";
     EDITOR = "nvim";
     VISUAL = "nvim";
-    XDG_CURRENT_DESKTOP = "Hyprland";
-    XDG_SESSION_TYPE = "wayland";
   };
 
   # Fichier Desktop personnalisés (.desktop)

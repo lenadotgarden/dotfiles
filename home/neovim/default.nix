@@ -385,11 +385,17 @@
             },
           })
 
-          -- Keymaps Obsidian Tasks & Daily Notes (uniquement sur fichiers markdown)
+          -- Keymaps Obsidian Tasks & Daily Notes + Auto-bullet continuation (uniquement sur fichiers markdown)
           vim.api.nvim_create_autocmd("FileType", {
             pattern = "markdown",
             callback = function()
               vim.keymap.set("n", "<leader>ch", ":Obsidian toggle_checkbox<CR>", { buffer = true, silent = true, desc = "Cocher/Décocher Tâche Obsidian" })
+              vim.opt_local.formatoptions:append("r")
+              vim.opt_local.formatoptions:append("o")
+              vim.opt_local.comments:append("b:-")
+              vim.opt_local.comments:append("b:*")
+              vim.opt_local.comments:append("b:+")
+              vim.opt_local.comments:append("b:1.")
             end,
           })
           vim.keymap.set("n", "<leader>nd", ":Obsidian today<CR>", { silent = true, desc = "Ouvrir la Daily Note d'aujourd'hui" })

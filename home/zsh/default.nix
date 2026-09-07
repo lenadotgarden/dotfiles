@@ -78,9 +78,9 @@
         export DEEPSEEK_API_KEY="$(cat ~/.deepseek_api_key)"
       fi
 
-      # Auto-start Hyprland on TTY1 if not already inside a graphical session
+      # Auto-start WM on TTY1 if not already inside a graphical session
       if [[ "$(tty)" == "/dev/tty1" ]] && [[ -z "$WAYLAND_DISPLAY" ]]; then
-        exec Hyprland
+        exec ''${DEFAULT_WM:-Hyprland}
       fi
     '';
   };
