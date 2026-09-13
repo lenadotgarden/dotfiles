@@ -79,8 +79,13 @@ if [ -n "$acc_color" ]; then
     hyprctl keyword general:col.active_border "rgba(${acc_color}ee)"
 fi
 
-# reload quickshell cleanly via systemd without duplicating processes
-systemctl --user restart quickshell.service 2>/dev/null || systemctl --user start quickshell.service 2>/dev/null
+# reload quickshell/noctalia cleanly
+if pgrep -x "quickshell" > /dev/null; then
+    systemctl --user restart quickshell.service 2>/dev/null || systemctl --user start quickshell.service 2>/dev/null
+elif command -v noctalia-shell > /dev/null; then
+    # Tell Noctalia to update the wallpaper and colors!
+    noctalia-shell ipc call state set-wallpaper "eDP-1" "$selected_wall"
+fi
 
 # reload kitty & nvim
 pkill -USR1 kitty 2>/dev/null || true

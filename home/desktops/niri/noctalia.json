@@ -4,21 +4,21 @@
     "barType": "simple",
     "position": "top",
     "monitors": [],
-    "density": "default",
+    "density": "comfortable",
     "showOutline": false,
     "showCapsule": true,
     "capsuleOpacity": 1,
     "capsuleColorKey": "none",
-    "widgetSpacing": 6,
-    "contentPadding": 2,
-    "fontScale": 1,
+    "widgetSpacing": 8,
+    "contentPadding": 22,
+    "fontScale": 1.2,
     "enableExclusionZoneInset": true,
     "backgroundOpacity": 0.93,
     "useSeparateOpacity": false,
-    "marginVertical": 4,
-    "marginHorizontal": 4,
-    "frameThickness": 8,
-    "frameRadius": 12,
+    "marginVertical": 0,
+    "marginHorizontal": 0,
+    "frameThickness": 42,
+    "frameRadius": 0,
     "outerCorners": true,
     "hideOnOverview": false,
     "displayMode": "always_visible",
@@ -66,11 +66,14 @@
         },
         {
           "id": "ControlCenter"
+        },
+        {
+          "id": "plugin:lyrics-fetch"
         }
       ]
     },
     "mouseWheelAction": "none",
-    "reverseScroll": false,
+    "reverseScroll": true,
     "mouseWheelWrap": true,
     "middleClickAction": "none",
     "middleClickFollowMouse": false,
@@ -141,12 +144,12 @@
         "Del"
       ]
     },
-    "reverseScroll": false,
+    "reverseScroll": true,
     "smoothScrollEnabled": true
   },
   "ui": {
-    "fontDefault": "",
-    "fontFixed": "",
+    "fontDefault": "Iosevka",
+    "fontFixed": "Iosevka Fixed",
     "fontDefaultScale": 1,
     "fontFixedScale": 1,
     "tooltipsEnabled": true,
@@ -193,7 +196,7 @@
   "wallpaper": {
     "enabled": true,
     "overviewEnabled": false,
-    "directory": "",
+    "directory": "/home/lena/Pictures/Wallpapers",
     "monitorDirectories": [],
     "enableMultiMonitorDirectories": false,
     "showHiddenFiles": false,
@@ -252,7 +255,7 @@
     "terminalCommand": "alacritty -e",
     "customLaunchPrefixEnabled": false,
     "customLaunchPrefix": "",
-    "viewMode": "list",
+    "viewMode": "grid",
     "showCategories": true,
     "iconMode": "tabler",
     "showIconBackground": false,
@@ -500,19 +503,21 @@
     "backlightDeviceMappings": []
   },
   "colorSchemes": {
-    "useWallpaperColors": false,
+    "useWallpaperColors": true,
     "predefinedScheme": "Noctalia (default)",
     "darkMode": true,
     "schedulingMode": "off",
     "manualSunrise": "06:30",
     "manualSunset": "18:30",
-    "generationMethod": "tonal-spot",
+    "generationMethod": "faithful",
     "monitorForColors": "",
     "syncGsettings": true
   },
   "templates": {
-    "activeTemplates": [],
-    "enableUserTheming": false
+    "activeTemplates": [
+      "kitty"
+    ],
+    "enableUserTheming": true
   },
   "nightLight": {
     "enabled": false,
@@ -524,8 +529,8 @@
     "manualSunset": "18:30"
   },
   "hooks": {
-    "enabled": false,
-    "wallpaperChange": "",
+    "enabled": true,
+    "wallpaperChange": "wal -i \"$1\" -n -q; pkill -USR1 kitty",
     "darkModeChange": "",
     "screenLock": "",
     "screenUnlock": "",
@@ -533,7 +538,7 @@
     "performanceModeDisabled": "",
     "startup": "",
     "session": "",
-    "colorGeneration": ""
+    "colorGeneration": "wal -i \"$1\" -n -q; pkill -USR1 kitty"
   },
   "plugins": {
     "autoUpdate": false,

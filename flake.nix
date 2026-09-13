@@ -36,15 +36,45 @@
           package = inputs'.niri.packages.niri;
           inherit pkgs;
           settings = {
+            prefer-no-csd = {};
+
             input.keyboard.xkb.layout = "fr"; 
             input.keyboard.xkb.variant = "mac";
 
             input.touchpad.click-method = "clickfinger";
             input.touchpad.natural-scroll = {};
+            input.touchpad.scroll-factor = 0.25;
 
             outputs."eDP-1".scale = 1.5625;
 
-            layout.gaps = 5;
+            layout.gaps = 12;
+
+            layout.border.off = {};
+            layout.focus-ring.off = {};
+
+            layout.shadow = {
+              on = {};
+              softness = 20.0;
+              spread = 2.0;
+              color = "#00000070";
+            };
+
+            window-rules = [
+              {
+                geometry-corner-radius = let r = 18.0; in [ r r r r ];
+                clip-to-geometry = true;
+              }
+              {
+                matches = [ { is-focused = false; } ];
+                opacity = 0.65;
+              }
+              {
+                matches = [ { is-focused = true; } ];
+                opacity = 0.95;
+              }
+            ];
+
+            xwayland-satellite.path = lib.getExe pkgs.xwayland-satellite;
 
             spawn-at-startup = [
               (lib.getExe self'.packages.myNoctalia)
@@ -52,7 +82,64 @@
             binds = {
               "Mod+Return".spawn-sh = lib.getExe pkgs.kitty;
               "Mod+Q".close-window = {};
-              "Mod+S".spawn-sh = "${lib.getExe self'.packages.myNoctalia} ipc call launcher toggle";
+              "Mod+Space".spawn-sh = "${lib.getExe self'.packages.myNoctalia} ipc call launcher toggle";
+
+              "Alt+H".focus-column-left = {};
+              "Alt+L".focus-column-right = {};
+              "Alt+K".focus-window-up = {};
+              "Alt+J".focus-window-down = {};
+              
+              "Alt+Shift+H".move-column-left = {};
+              "Alt+Shift+L".move-column-right = {};
+              "Alt+Shift+K".move-window-up = {};
+              "Alt+Shift+J".move-window-down = {};
+
+              "Alt+1".focus-workspace = 1;
+              "Alt+2".focus-workspace = 2;
+              "Alt+3".focus-workspace = 3;
+              "Alt+4".focus-workspace = 4;
+              "Alt+5".focus-workspace = 5;
+
+              "Alt+ampersand".focus-workspace = 1;
+              "Alt+eacute".focus-workspace = 2;
+              "Alt+quotedbl".focus-workspace = 3;
+              "Alt+apostrophe".focus-workspace = 4;
+              "Alt+parenleft".focus-workspace = 5;
+
+              "Alt+Shift+1".move-column-to-workspace = 1;
+              "Alt+Shift+2".move-column-to-workspace = 2;
+              "Alt+Shift+3".move-column-to-workspace = 3;
+              "Alt+Shift+4".move-column-to-workspace = 4;
+              "Alt+Shift+5".move-column-to-workspace = 5;
+
+              "Alt+Shift+ampersand".move-column-to-workspace = 1;
+              "Alt+Shift+eacute".move-column-to-workspace = 2;
+              "Alt+Shift+quotedbl".move-column-to-workspace = 3;
+              "Alt+Shift+apostrophe".move-column-to-workspace = 4;
+              "Alt+Shift+parenleft".move-column-to-workspace = 5;
+
+              "Alt+F".fullscreen-window = {};
+              "Alt+M".maximize-column = {};
+              "Alt+C".center-column = {};
+              
+              "Alt+Comma".consume-window-into-column = {};
+              "Alt+Period".expel-window-from-column = {};
+              "Alt+V".consume-or-expel-window-left = {};
+
+              "Alt+R".switch-preset-column-width = {};
+              "Alt+Minus".set-column-width = "-10%";
+              "Alt+Equal".set-column-width = "+10%";
+              "Alt+Shift+Minus".set-window-height = "-10%";
+              "Alt+Shift+Equal".set-window-height = "+10%";
+
+              "Mod+Shift+E".quit = {};
+
+              "XF86AudioRaiseVolume".spawn-sh = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+";
+              "XF86AudioLowerVolume".spawn-sh = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-";
+              "XF86AudioMute".spawn-sh = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
+
+              "XF86MonBrightnessUp".spawn-sh = "brightnessctl set 5%+";
+              "XF86MonBrightnessDown".spawn-sh = "brightnessctl set 5%-";
             };
           };
         };

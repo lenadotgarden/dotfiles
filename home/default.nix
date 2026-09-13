@@ -3,8 +3,8 @@
 {
   imports = [
     # --- Desktop Environment ---
-    ./desktops/hyprland
-    # ./desktops/niri
+    # ./desktops/hyprland
+    ./desktops/niri
     # ./desktops/sway
     # ---------------------------
 

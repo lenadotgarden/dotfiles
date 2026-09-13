@@ -91,7 +91,6 @@
             sources = cmp.config.sources({
               { name = 'nvim_lsp' },
               { name = 'luasnip' },
-              { name = 'orgmode' },
             }, {
               { name = 'buffer' },
               { name = 'path' },
@@ -181,181 +180,11 @@
         '';
       }
 
-      {
-        plugin = pkgs.vimUtils.buildVimPlugin {
-          name = "org-bullets.nvim";
-          src = pkgs.fetchFromGitHub {
-            owner = "akinsho";
-            repo = "org-bullets.nvim";
-            rev = "main";
-            sha256 = "0f7fch2sbzpgh1qz79b75amrk5jbhrsy2rx9bmbi5mjxyspsl1sf";
-          };
-          dontBuild = true;
-          installPhase = ''
-            mkdir -p $out
-            cp -r * $out/
-          '';
-        };
-        type = "lua";
-        config = ''
-          require('org-bullets').setup()
-        '';
-      }
-      {
-        plugin = org-roam-nvim;
-        type = "lua";
-        config = ''
-          local garden_path = vim.fn.expand('~/Garden')
-          local org_roam = require("org-roam")
-          org_roam.setup({
-            directory = garden_path,
-          })
 
-          -- Keymaps Org-Roam
-          vim.keymap.set("n", "<leader>nf", function() org_roam.api.find_node() end, { desc = "Org-Roam Find Node" })
-          vim.keymap.set("n", "<leader>ni", function() org_roam.api.insert_node() end, { desc = "Org-Roam Insert Node" })
-          vim.keymap.set("n", "<leader>nc", function() org_roam.api.capture() end, { desc = "Org-Roam Capture" })
-          vim.keymap.set("n", "<leader>nl", function() org_roam.api.toggle_roam_buffer() end, { desc = "Org-Roam Toggle Backlinks Buffer" })
-          vim.keymap.set("n", "<leader>nm", function() org_roam.api.insert_node_immediate() end, { desc = "Org-Roam Insert Node Immediate" })
-        '';
-      }
 
-      {
-        plugin = orgmode;
-        type = "lua";
-        config = ''
-          local garden_path = vim.fn.expand('~/Garden')
-          require('orgmode').setup({
-            org_agenda_files = {
-              garden_path .. '/*.org',
-              garden_path .. '/**/*.org',
-            },
-            org_default_notes_file = garden_path .. '/refile.org',
-            org_todo_keywords = { 'IDEA(i)', 'TODO(t)', 'NEXT(n)', 'WAITING(w)', 'PROJ(p)', '|', 'DONE(d)', 'CANCELLED(c)' },
-            org_todo_keyword_faces = {
-              IDEA = ':foreground yellow :weight bold',
-              NEXT = ':foreground blue :weight bold',
-              WAITING = ':foreground orange :weight bold',
-              PROJ = ':foreground purple :weight bold',
-              CANCELLED = ':foreground gray',
-            },
-            mappings = {
-              global = {
-                org_agenda = false,
-              },
-              org = {
-                org_toggle_checkbox = '<leader>x',
-                org_todo = '<leader>ct',
-              },
-            },
-          })
 
-          vim.api.nvim_create_autocmd("FileType", {
-            pattern = "org",
-            callback = function()
-              -- Mappings additionnels pour cocher/décocher les cases (- [ ])
-              local toggle_cb = function() require('orgmode').action('org_toggle_checkbox') end
-              vim.keymap.set({ "n", "v" }, "<leader>cx", toggle_cb, { buffer = true, desc = "Toggle Checkbox (- [ ])" })
-              vim.keymap.set({ "n", "v" }, "<leader>ch", toggle_cb, { buffer = true, desc = "Toggle Checkbox (- [ ])" })
 
-              -- Suivre un lien Orgmode avec Entrée (<CR>)
-              vim.keymap.set("n", "<CR>", function()
-                require('orgmode').action('org_open_at_point')
-              end, { buffer = true, desc = "Ouvrir Lien Org" })
-              
-              -- Forcer le raccourci dans les buffers org pour écraser tout conflit
-              vim.keymap.set("n", "<leader>oa", "<cmd>OrgSuperAgenda<CR>", { buffer = true, silent = true, desc = "Ouvrir Org Super Agenda" })
-            end,
-          })
 
-          -- Keymaps Globaux Orgmode
-          vim.keymap.set("n", "<leader>oa", "<cmd>OrgSuperAgenda<CR>", { silent = true, desc = "Ouvrir Org Super Agenda" })
-          vim.keymap.set("n", "<leader>oA", function() require('orgmode').action('agenda.prompt') end, { silent = true, desc = "Ouvrir Org Agenda standard (Toutes les vues)" })
-          vim.keymap.set("n", "<leader>os", function() require('orgmode').action('agenda.prompt') end, { silent = true, desc = "Ouvrir le menu Agenda standard" })
-          vim.keymap.set("n", "<leader>oc", ":OrgCapture<CR>", { silent = true, desc = "Org Capture Note" })
-        '';
-      }
-      {
-        plugin = pkgs.vimUtils.buildVimPlugin {
-          name = "org-super-agenda.nvim";
-          src = pkgs.fetchFromGitHub {
-            owner = "hamidi-dev";
-            repo = "org-super-agenda.nvim";
-            rev = "main";
-            sha256 = "03mz520aybxxm4n9a2lipz55sacj7bawpn7lif5x25hqzb4g1vp0";
-          };
-          dontBuild = true;
-          installPhase = ''
-            mkdir -p $out
-            cp -r * $out/
-          '';
-        };
-        type = "lua";
-        config = ''
-          local garden_path = vim.fn.expand('~/Garden')
-          require("org-super-agenda").setup({
-            org_directories = { garden_path },
-            todo_states = {
-              { name='IDEA',     keymap='oi', color='#F1FA8C', strike_through=false, fields={'filename','todo','headline','priority','date','tags'} },
-              { name='TODO',     keymap='ot', color='#FF5555', strike_through=false, fields={'filename','todo','headline','priority','date','tags'} },
-              { name='NEXT',     keymap='on', color='#8BE9FD', strike_through=false, fields={'filename','todo','headline','priority','date','tags'} },
-              { name='WAITING',  keymap='ow', color='#FFB86C', strike_through=false, fields={'filename','todo','headline','priority','date','tags'} },
-              { name='PROJ',     keymap='op', color='#BD93F9', strike_through=false, fields={'filename','todo','headline','priority','date','tags'} },
-              { name='DONE',     keymap='od', color='#50FA7B', strike_through=true,  fields={'filename','todo','headline','priority','date','tags'} },
-              { name='CANCELLED',keymap='oc', color='#6272A4', strike_through=true,  fields={'filename','todo','headline','priority','date','tags'} },
-            },
-            keymaps = {
-              filter_reset      = 'oa', toggle_other      = 'oo', filter            = 'of',
-              filter_fuzzy      = 'oz', filter_query      = 'oq', undo              = 'u',
-              reschedule        = 'cs', set_deadline      = 'cd', cycle_todo        = 't',
-              set_state         = 's',  reload            = 'r',  refile            = 'R',
-              hide_item         = 'x',  preview           = 'K',  clock_in          = 'I',
-              clock_out         = 'O',  clock_cancel      = 'X',  clock_goto        = 'gI',
-              reset_hidden      = 'gX', fold_all          = 'zM', unfold_all        = 'zR',
-              toggle_duplicates = 'D',  cycle_view        = 'ov', bulk_mark         = 'm',
-              bulk_unmark_all   = 'M',  bulk_reselect     = 'gv', bulk_action       = 'B',
-              open_view         = 'V',
-            },
-            window = {
-              width = 0.8, height = 0.7, border = 'rounded', title = 'Org Super Agenda',
-              title_pos = 'center', margin_left = 0, margin_right = 0, fullscreen_border = 'none',
-            },
-            groups = {
-              { name = '📥 Inbox',     matcher = function(i)
-                  local f = (i.file or ""):lower()
-                  return (f:match("refile") or f:match("inbox")) and i.todo_state ~= "DONE" and i.todo_state ~= "CANCELLED"
-                end, sort={ by='date_nearest', order='asc' } },
-              { name = '⭐ Today',      matcher = function(i) return ((i.scheduled and i.scheduled:is_today()) or (i.deadline and i.deadline:is_today())) end, sort={ by='scheduled_time', order='asc' } },
-              { name = '🗓️ Upcoming',   matcher = function(i)
-                  local days = 10
-                  local d1 = i.deadline  and i.deadline:days_from_today()
-                  local d2 = i.scheduled and i.scheduled:days_from_today()
-                  return (d1 and d1 > 0 and d1 <= days) or (d2 and d2 > 0 and d2 <= days)
-                end, sort={ by='date_nearest', order='asc' } },
-              { name = '⏳ Overdue',    matcher = function(i) return i.todo_state ~= "DONE" and i.todo_state ~= "CANCELLED" and ((i.deadline and i.deadline:is_past()) or (i.scheduled and i.scheduled:is_past())) end, sort={ by='date_nearest', order='asc' } },
-              { name = '⚡ Anytime',    matcher = function(i)
-                  local f = (i.file or ""):lower()
-                  local is_inbox = f:match("refile") or f:match("inbox")
-                  local is_someday = i:has_tag("someday")
-                  local is_future = i.scheduled and i.scheduled:days_from_today() > 0
-                  local is_done = (i.todo_state == "DONE" or i.todo_state == "CANCELLED")
-                  local has_todo = i.todo_state and i.todo_state ~= ""
-                  return has_todo and not is_done and not is_inbox and not is_someday and not is_future
-                end, sort={ by='date_nearest', order='asc' } },
-              { name = '☁️ Someday',    matcher = function(i) return i:has_tag("someday") end },
-            },
-            hide_empty_groups  = true,
-            allow_duplicates   = true,
-            view_mode          = 'classic',
-            custom_views       = {
-              anytime = {
-                name = '⚡ Anytime',
-                filter = '-file:refile -file:inbox -tag:someday -is:done sched<=0 has:todo',
-              },
-            },
-          })
-        '';
-      }
       {
         plugin = obsidian-nvim;
         type = "lua";
@@ -485,89 +314,27 @@
           require('dressing').setup()
         '';
       }
-      {
-        plugin = parrot-nvim;
-        type = "lua";
+      (pkgs.vimUtils.buildVimPlugin {
+        name = "overview";
+        doCheck = false;
+        src = pkgs.fetchFromGitHub {
+          owner = "adigitoleo";
+          repo = "overview.nvim";
+          rev = "master";
+          hash = "sha256-Qpqd+6/HJrLcduExFSp8CZtIxHGNNqQkztO1GNzaKak=";
+        };
         config = ''
-          require("parrot").setup({
-            providers = {
-              openai = {
-                name = "openai",
-                endpoint = "https://api.deepseek.com/v1/chat/completions",
-                api_key = os.getenv("DEEPSEEK_API_KEY") or "",
-                models = { "deepseek-chat" },
-                topic = {
-                  model = "deepseek-chat",
-                  params = { max_tokens = 64 },
-                },
-                params = {
-                  chat = { model = "deepseek-chat", temperature = 0.2, top_p = 0.9 },
-                  command = { model = "deepseek-chat", temperature = 0.2, top_p = 0.9 },
-                },
-              },
-            },
-
-            prompts = {
-              Correction = [[
-Tu es mon éditeur. Ton rôle est d'appliquer STRICTEMENT la modification ou correction demandée par l'utilisateur sur le texte fourni.
-
-Demande de l'utilisateur : {{command}}
-
-Règles à suivre :
-- Applique uniquement la demande ci-dessus.
-- Préserve impérativement le style "Trash" (cru, direct, gonzo), le ton, et les noms propres.
-- Préserve strictement les balises Markdown ou Org Mode (liens, titres, listes, gras, etc.).
-
-Ne rajoute aucune formule de politesse, ni aucune explication. Réponds uniquement avec le texte final modifié.
-              ]],
-
-              Fluidification = [[
-Réécris la sélection en français naturel et fluide, dans un style de reportage.
-Corrige les erreurs, mais ne modifie pas les faits, les citations ou le niveau de langue.
-Préserve strictement la syntaxe Markdown ou Org Mode.
-
-Instructions spécifiques pour cette réécriture : {{command}}
-
-Réponds uniquement avec le texte final.
-              ]],
-            },
-
-            enable_preview_mode = false,
-            preview_auto_apply = false,
-            toggle_target = "vsplit",
-          })
-
-          vim.keymap.set("v", "<leader>ac", function()
-            vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "x", false)
-            vim.schedule(function()
-              vim.ui.input({ prompt = "Instructions pour Correction (vide=auto): " }, function(input)
-                if input == nil then return end
-                local cmd = "PrtRewrite Correction"
-                if input ~= "" then cmd = cmd .. " " .. input end
-                vim.cmd("'<,'>" .. cmd)
-              end)
-            end)
-          end, { desc = "Corriger la sélection avec l'IA" })
-
-          vim.keymap.set("v", "<leader>af", function()
-            vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "x", false)
-            vim.schedule(function()
-              vim.ui.input({ prompt = "Instructions pour Fluidification (vide=auto): " }, function(input)
-                if input == nil then return end
-                local cmd = "PrtRewrite Fluidification"
-                if input ~= "" then cmd = cmd .. " " .. input end
-                vim.cmd("'<,'>" .. cmd)
-              end)
-            end)
-          end, { desc = "Fluidifier la sélection avec l'IA" })
+           vim.keymap.set("n", "gO", overview.toggle, { desc = "Toggle Overview sidebar for current buffer" })
+           vim.keymap.set("n", "go", overview.focus, { desc = "Toggle focus between Overview sidebar and source buffer" })
         '';
-      }
+      })
     ];
 
     initLua = ''
       -- Options de base
       vim.g.mapleader = " "
       vim.opt.termguicolors = true
+      vim.opt.background = "dark"
 
       -- Curseur en bloc (carré) en mode Normal et ligne en mode Insertion
       vim.opt.guicursor = "n-v-c:block,i-ci-ve:ver25,r-cr:hor20,o:hor50"
@@ -583,6 +350,8 @@ Réponds uniquement avec le texte final.
       vim.opt.cursorline = true
       vim.opt.conceallevel = 2
       vim.opt.clipboard = "unnamedplus"
+
+
 
       -- Navigation entre Fenêtres / Panneaux (Ctrl + h/j/k/l) & Tmux
       vim.keymap.set("n", "<C-h>", "<C-w>h", { silent = true })
@@ -601,106 +370,6 @@ Réponds uniquement avec le texte final.
         vim.lsp.enable(server)
       end
 
-      -- Synchronisation intégrale du thème et de la syntaxe du Desktop (Pywal) avec Neovim
-      local function sync_desktop_colors()
-        local json_path = vim.fn.expand("~/.cache/wal/colors.json")
-        if vim.fn.filereadable(json_path) == 1 then
-          local file = io.open(json_path, "r")
-          if file then
-            local content = file:read("*a")
-            file:close()
-            local ok, wal = pcall(vim.json.decode, content)
-            if ok and wal and wal.colors then
-              local c = wal.colors
-              local fg = wal.special and wal.special.foreground or c.color7
-              local bg = wal.special and wal.special.background or c.color0
-              local accent = c.color6 or c.color4
-
-              -- Interface & UI (Contraste amélioré & CursorLine subtile)
-              vim.api.nvim_set_hl(0, "Normal", { fg = fg, bg = "NONE" })
-              vim.api.nvim_set_hl(0, "NormalFloat", { fg = fg, bg = "NONE" })
-              -- Curseur / CursorLine subtil avec un fond légèrement teinté ou discret au lieu du rectangle opaque c.color0
-              vim.api.nvim_set_hl(0, "CursorLine", { bg = "#1e1e2e", blend = 15 })
-              vim.api.nvim_set_hl(0, "CursorLineNr", { fg = accent, bold = true })
-              vim.api.nvim_set_hl(0, "LineNr", { fg = c.color8 })
-              vim.api.nvim_set_hl(0, "Visual", { bg = accent, fg = bg })
-              vim.api.nvim_set_hl(0, "Search", { bg = c.color4, fg = bg })
-              vim.api.nvim_set_hl(0, "IncSearch", { bg = accent, fg = bg })
-              vim.api.nvim_set_hl(0, "MatchParen", { fg = accent, bold = true, underline = true })
-              vim.api.nvim_set_hl(0, "FloatBorder", { fg = accent })
-              vim.api.nvim_set_hl(0, "TelescopeBorder", { fg = accent })
-              vim.api.nvim_set_hl(0, "TelescopePromptBorder", { fg = accent })
-              vim.api.nvim_set_hl(0, "TelescopeTitle", { fg = accent, bold = true })
-
-              -- Coloration Syntaxique Complète (Pywal Desktop Palette avec Contraste Amélioré)
-              local bright_fg = c.color15 or fg
-              vim.api.nvim_set_hl(0, "Comment", { fg = c.color8 or "#808080", italic = true })
-              vim.api.nvim_set_hl(0, "Constant", { fg = c.color3 })
-              vim.api.nvim_set_hl(0, "String", { fg = c.color2 })
-              vim.api.nvim_set_hl(0, "Character", { fg = c.color2 })
-              vim.api.nvim_set_hl(0, "Number", { fg = c.color3 })
-              vim.api.nvim_set_hl(0, "Boolean", { fg = c.color3, bold = true })
-              vim.api.nvim_set_hl(0, "Identifier", { fg = c.color4 })
-              vim.api.nvim_set_hl(0, "Function", { fg = c.color4, bold = true })
-              vim.api.nvim_set_hl(0, "Statement", { fg = c.color5, bold = true })
-              vim.api.nvim_set_hl(0, "Conditional", { fg = c.color5, bold = true })
-              vim.api.nvim_set_hl(0, "Repeat", { fg = c.color5, bold = true })
-              vim.api.nvim_set_hl(0, "Operator", { fg = c.color6 })
-              vim.api.nvim_set_hl(0, "Keyword", { fg = c.color5, bold = true })
-              vim.api.nvim_set_hl(0, "PreProc", { fg = c.color1 })
-              vim.api.nvim_set_hl(0, "Include", { fg = c.color1 })
-              vim.api.nvim_set_hl(0, "Type", { fg = c.color3, bold = true })
-              vim.api.nvim_set_hl(0, "Special", { fg = c.color6 })
-              vim.api.nvim_set_hl(0, "Directory", { fg = c.color4, bold = true })
-
-              -- Support Treesitter (Texte principal bien visible)
-              vim.api.nvim_set_hl(0, "@keyword", { fg = c.color5, bold = true })
-              vim.api.nvim_set_hl(0, "@function", { fg = c.color4, bold = true })
-              vim.api.nvim_set_hl(0, "@string", { fg = c.color2 })
-              vim.api.nvim_set_hl(0, "@comment", { fg = c.color8, italic = true })
-              vim.api.nvim_set_hl(0, "@variable", { fg = bright_fg })
-              vim.api.nvim_set_hl(0, "@type", { fg = c.color3 })
-              vim.api.nvim_set_hl(0, "@operator", { fg = c.color6 })
-
-              -- Neo-Tree (Filetree) Palette Desktop Pywal
-              vim.api.nvim_set_hl(0, "NeoTreeNormal", { fg = fg, bg = "NONE" })
-              vim.api.nvim_set_hl(0, "NeoTreeNormalNC", { fg = fg, bg = "NONE" })
-              vim.api.nvim_set_hl(0, "NeoTreeRootName", { fg = accent, bold = true })
-              vim.api.nvim_set_hl(0, "NeoTreeDirectoryName", { fg = c.color4, bold = true })
-              vim.api.nvim_set_hl(0, "NeoTreeDirectoryIcon", { fg = c.color4 })
-              vim.api.nvim_set_hl(0, "NeoTreeFileName", { fg = fg })
-              vim.api.nvim_set_hl(0, "NeoTreeGitAdded", { fg = c.color2 })
-              vim.api.nvim_set_hl(0, "NeoTreeGitModified", { fg = c.color3 })
-              vim.api.nvim_set_hl(0, "NeoTreeGitDeleted", { fg = c.color1 })
-              vim.api.nvim_set_hl(0, "NeoTreeIndentMarker", { fg = c.color8 })
-
-              -- Markdown & Render-Markdown (Titres H1-H6 100% distincts & Fort Contraste)
-              local h_colors = {
-                c.color1, -- H1: Rouge / Coral
-                c.color4, -- H2: Bleu / Sky
-                c.color2, -- H3: Vert / Émeraude
-                c.color3, -- H4: Jaune / Amber
-                c.color5, -- H5: Violet / Magenta
-                c.color6, -- H6: Cyan / Turquoise
-              }
-
-              for lvl, color in ipairs(h_colors) do
-                local c_hl = color or fg
-                vim.api.nvim_set_hl(0, "RenderMarkdownH" .. lvl, { fg = c_hl, bold = true })
-                vim.api.nvim_set_hl(0, "RenderMarkdownH" .. lvl .. "Bg", { bg = c_hl, fg = bg })
-                vim.api.nvim_set_hl(0, "@markup.heading." .. lvl .. ".markdown", { fg = c_hl, bold = true })
-                vim.api.nvim_set_hl(0, "markdownH" .. lvl, { fg = c_hl, bold = true })
-                vim.api.nvim_set_hl(0, "htmlH" .. lvl, { fg = c_hl, bold = true })
-              end
-
-              vim.api.nvim_set_hl(0, "RenderMarkdownCode", { bg = c.color0 })
-              vim.api.nvim_set_hl(0, "RenderMarkdownBullet", { fg = accent, bold = true })
-              vim.api.nvim_set_hl(0, "RenderMarkdownLink", { fg = c.color4, underline = true, bold = true })
-            end
-          end
-        end
-      end
-
       -- Auto Dark Mode setup
       local status_adm, auto_dark_mode = pcall(require, "auto-dark-mode")
       if status_adm then
@@ -709,24 +378,13 @@ Réponds uniquement avec le texte final.
           set_dark_mode = function()
             vim.api.nvim_set_option_value("background", "dark", {})
             vim.cmd("colorscheme catppuccin-mocha")
-            sync_desktop_colors()
           end,
           set_light_mode = function()
             vim.api.nvim_set_option_value("background", "light", {})
             vim.cmd("colorscheme catppuccin-latte")
-            sync_desktop_colors()
           end,
         })
       end
-
-      -- Appliquer au démarrage et après chaque changement de thème (y compris au chargement initial de Catppuccin)
-      vim.api.nvim_create_autocmd("ColorScheme", {
-        pattern = "*",
-        callback = function()
-          sync_desktop_colors()
-        end,
-      })
-      sync_desktop_colors()
 
       -- Auto-sync Garden on save in Neovim
       vim.api.nvim_create_autocmd("BufWritePost", {
