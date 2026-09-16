@@ -163,11 +163,10 @@
     flameshot
     grim
     slurp
-    (element-desktop.override { commandLineArgs = ''--password-store="basic"''; })
-    emote
+    element-desktop
+    thunderbird
+    qutebrowser
   ];
-
-
 
   # Gestionnaire de mise en veille Hypridle avec économie d'énergie écran
   services.hypridle = {

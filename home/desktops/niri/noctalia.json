@@ -505,7 +505,7 @@
   "colorSchemes": {
     "useWallpaperColors": true,
     "predefinedScheme": "Noctalia (default)",
-    "darkMode": true,
+    "darkMode": false,
     "schedulingMode": "off",
     "manualSunrise": "06:30",
     "manualSunset": "18:30",
