@@ -6,6 +6,7 @@
     # ./desktops/hyprland
     ./desktops/niri
     # ./desktops/sway
+    # ./desktops/xmonad
     # ---------------------------
 
     ./neovim
@@ -162,7 +163,11 @@
     flameshot
     grim
     slurp
+    (element-desktop.override { commandLineArgs = ''--password-store="basic"''; })
+    emote
   ];
+
+
 
   # Gestionnaire de mise en veille Hypridle avec économie d'énergie écran
   services.hypridle = {

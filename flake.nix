@@ -78,11 +78,15 @@
 
             spawn-at-startup = [
               (lib.getExe self'.packages.myNoctalia)
+              [ "sh" "-c" "sleep 1 && ${lib.getExe pkgs.hyprlock}" ]
             ];
             binds = {
               "Mod+Return".spawn-sh = lib.getExe pkgs.kitty;
+              "Mod+O".spawn-sh = "kitty -d ~/Garden -e nvim";
               "Mod+Q".close-window = {};
               "Mod+Space".spawn-sh = "${lib.getExe self'.packages.myNoctalia} ipc call launcher toggle";
+              "Ctrl+Mod+Space".spawn-sh = "${lib.getExe pkgs.rofimoji} --action type";
+              "Ctrl+Shift+S".spawn-sh = "grim -g \"$(slurp)\" - | swappy -f -";
 
               "Alt+H".focus-column-left = {};
               "Alt+L".focus-column-right = {};

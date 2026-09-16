@@ -8,6 +8,10 @@
     swaylock
     swayidle
     kdePackages.dolphin
+    swappy
+    rofimoji
+    rofi
+    wtype
   ];
 
   services.network-manager-applet.enable = true;
