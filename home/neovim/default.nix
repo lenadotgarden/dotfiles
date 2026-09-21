@@ -18,6 +18,7 @@
       ripgrep
       fd
       nodejs
+    ] ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
       wl-clipboard
       xclip
     ];

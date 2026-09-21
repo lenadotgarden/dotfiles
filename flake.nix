@@ -150,6 +150,12 @@
       };
 
       flake = {
+        homeConfigurations."MacOS" = inputs.home-manager.lib.homeManagerConfiguration {
+          pkgs = import nixpkgs { system = "aarch64-darwin"; };
+          extraSpecialArgs = { inherit inputs; };
+          modules = [ ./home/macos.nix ];
+        };
+
         nixosConfigurations.macbook = nixpkgs.lib.nixosSystem {
           specialArgs = { inherit inputs; };
 
