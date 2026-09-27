@@ -7,11 +7,15 @@
     ./zsh
     ./git
     ./tmux
+    ./tmux/macos.nix
+    ./iterm2
   ];
 
   home.username = "alex";
   home.homeDirectory = "/Users/alex";
   home.stateVersion = "24.05";
+
+  programs.home-manager.enable = true;
 
 
 

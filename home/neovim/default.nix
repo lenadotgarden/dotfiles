@@ -391,7 +391,10 @@
       vim.api.nvim_create_autocmd("BufWritePost", {
         pattern = vim.fn.expand("~/Garden") .. "/*",
         callback = function()
-          vim.fn.jobstart({ vim.fn.expand("~/.local/bin/sync-garden.sh") }, { detach = true })
+          local script = vim.fn.expand("~/.local/bin/sync-garden.sh")
+          if vim.fn.executable(script) == 1 then
+            vim.fn.jobstart({ script }, { detach = true })
+          end
         end,
       })
     '';
