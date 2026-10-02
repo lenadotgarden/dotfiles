@@ -36,6 +36,10 @@
       grep = "grep --color=auto";
     };
     initContent = ''
+      # Charger nvm (gère les versions de Node, et expose les binaires npm globaux comme `claude`)
+      export NVM_DIR="$HOME/.nvm"
+      [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
       # Activer l'évaluation dynamique des variables dans le prompt (PROMPT_SUBST)
       setopt prompt_subst
 
@@ -58,18 +62,17 @@
       zstyle ':completion:*' list-colors ''${(s.:.)LS_COLORS}
       zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*'
 
-      # Prompt épuré & élégant aux couleurs du thème : User (Light/Color 7) @ Host (Brightest White/Color 15) | Path (Blue/Color 4) | Git (Yellow/Color 3) | > (Green/Color 2)
-      PROMPT='%F{7}%n%f%F{8}@%f%F{15}%m%f %F{4}%~%f%F{3}''${vcs_info_msg_0_}%f %F{2}>%f '
+      # Prompt épuré & élégant aux couleurs du thème : User @ Host (couleur de texte par défaut du terminal, s'adapte aux thèmes clair/sombre) | Path (Blue/Color 4) | Git (Yellow/Color 3) | > (Green/Color 2)
+      PROMPT='%n%F{8}@%f%m %F{4}%~%f%F{3}''${vcs_info_msg_0_}%f %F{2}>%f '
 
-      # Personnalisation des couleurs de saisie (Commandes écrites en blanc très clair / le plus lumineux possible)
+      # Personnalisation des couleurs de saisie (gras, sans forcer de couleur : suit la couleur de texte par défaut du terminal donc s'adapte aux thèmes clair/sombre)
       typeset -A ZSH_HIGHLIGHT_STYLES
-      ZSH_HIGHLIGHT_STYLES[command]='fg=15,bold'
-      ZSH_HIGHLIGHT_STYLES[command-kw]='fg=15,bold'
-      ZSH_HIGHLIGHT_STYLES[builtin]='fg=15,bold'
-      ZSH_HIGHLIGHT_STYLES[alias]='fg=15,bold'
-      ZSH_HIGHLIGHT_STYLES[function]='fg=15,bold'
-      ZSH_HIGHLIGHT_STYLES[default]='fg=15'
-      ZSH_HIGHLIGHT_STYLES[arg0]='fg=15,bold'
+      ZSH_HIGHLIGHT_STYLES[command]='bold'
+      ZSH_HIGHLIGHT_STYLES[command-kw]='bold'
+      ZSH_HIGHLIGHT_STYLES[builtin]='bold'
+      ZSH_HIGHLIGHT_STYLES[alias]='bold'
+      ZSH_HIGHLIGHT_STYLES[function]='bold'
+      ZSH_HIGHLIGHT_STYLES[arg0]='bold'
 
       fastfetch --logo nixos2
 
