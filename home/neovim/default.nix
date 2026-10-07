@@ -56,7 +56,7 @@
           if status_ts then
             ts_configs.setup({
               highlight = { enable = true },
-              indent = { enable = true },
+              indent = { enable = true, disable = { "markdown" } },
             })
           end
         '';
@@ -220,12 +220,59 @@
             pattern = "markdown",
             callback = function()
               vim.keymap.set("n", "<leader>ch", ":Obsidian toggle_checkbox<CR>", { buffer = true, silent = true, desc = "Cocher/Décocher Tâche Obsidian" })
-              vim.opt_local.formatoptions:append("r")
-              vim.opt_local.formatoptions:append("o")
-              vim.opt_local.comments:append("b:-")
-              vim.opt_local.comments:append("b:*")
-              vim.opt_local.comments:append("b:+")
-              vim.opt_local.comments:append("b:1.")
+              -- Continuation des listes gérée par le mapping <CR> ci-dessous
+              vim.opt_local.formatoptions:remove({ "r", "o" })
+              vim.opt_local.indentexpr = ""
+              vim.opt_local.smartindent = false
+
+              local function list_prefix(line)
+                -- puces : - * +  (avec checkbox optionnelle)
+                local indent, marker, box, rest = line:match("^(%s*)([-*+])%s+(%[.%])%s+(.*)$")
+                if indent then return indent, marker .. " [ ] ", rest end
+                indent, marker, rest = line:match("^(%s*)([-*+])%s+(.*)$")
+                if indent then return indent, marker .. " ", rest end
+                -- listes numérotées (avec checkbox optionnelle)
+                local num, delim
+                indent, num, delim, box, rest = line:match("^(%s*)(%d+)([.)])%s+(%[.%])%s+(.*)$")
+                if indent then return indent, (tonumber(num) + 1) .. delim .. " [ ] ", rest end
+                indent, num, delim, rest = line:match("^(%s*)(%d+)([.)])%s+(.*)$")
+                if indent then return indent, (tonumber(num) + 1) .. delim .. " ", rest end
+                return nil
+              end
+
+              local function continue_list()
+                local ok, cmp = pcall(require, "cmp")
+                if ok and cmp.visible() then
+                  cmp.confirm({ select = true })
+                  return
+                end
+                local row, col = unpack(vim.api.nvim_win_get_cursor(0))
+                local line = vim.api.nvim_get_current_line()
+                local indent, prefix, content = list_prefix(line)
+                if not indent or col < #indent then
+                  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<CR>", true, false, true), "n", false)
+                  return
+                end
+                -- item vide : on termine la liste
+                if content:match("^%s*$") then
+                  vim.api.nvim_set_current_line("")
+                  vim.api.nvim_win_set_cursor(0, { row, 0 })
+                  return
+                end
+                local before, after = line:sub(1, col), line:sub(col + 1)
+                local new_line = indent .. prefix .. after
+                vim.api.nvim_buf_set_lines(0, row - 1, row, false, { before, new_line })
+                vim.api.nvim_win_set_cursor(0, { row + 1, #indent + #prefix })
+              end
+
+              vim.keymap.set("i", "<CR>", continue_list, { buffer = true, silent = true, desc = "Continuer la liste" })
+              vim.keymap.set("n", "o", function()
+                if list_prefix(vim.api.nvim_get_current_line()) then
+                  vim.api.nvim_feedkeys("A" .. vim.api.nvim_replace_termcodes("<CR>", true, false, true), "m", false)
+                else
+                  vim.api.nvim_feedkeys("o", "n", false)
+                end
+              end, { buffer = true, silent = true, desc = "Nouvelle ligne (continue la liste)" })
             end,
           })
           vim.keymap.set("n", "<leader>nd", ":Obsidian today<CR>", { silent = true, desc = "Ouvrir la Daily Note d'aujourd'hui" })
