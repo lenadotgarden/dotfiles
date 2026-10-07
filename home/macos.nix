@@ -17,6 +17,9 @@
 
   programs.home-manager.enable = true;
 
+  home.sessionPath = [
+    "$HOME/.local/bin"
+  ];
 
 
   # On ne peut pas importer systemd.user.services sur macOS
