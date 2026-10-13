@@ -1,4 +1,4 @@
-{ config, pkgs, inputs, ... }:
+{ config, lib, pkgs, inputs, withHandy, ... }:
 
 {
   imports = [
@@ -128,7 +128,6 @@
     brightnessctl
     playerctl
     inputs.helium.packages.${pkgs.system}.default
-    inputs.handy.packages.${pkgs.stdenv.hostPlatform.system}.default
     inputs.yazi.packages.${pkgs.system}.default
     telegram-desktop
     signal-desktop
@@ -147,7 +146,9 @@
     element-desktop
     thunderbird
     qutebrowser
-  ];
+  ]
+  # Handy (speech-to-text) is heavy to build: thousands of Rust/npm derivations
+  ++ lib.optional withHandy inputs.handy.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
   # Gestionnaire de mise en veille Hypridle avec économie d'énergie écran
   services.hypridle = {
@@ -206,22 +207,24 @@
   };
 
   # Fichier Desktop personnalisés (.desktop)
-  xdg.desktopEntries.handy = {
-    name = "Handy";
-    comment = "Offline Speech-to-Text Application";
-    exec = "${inputs.handy.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/handy";
-    icon = "handy";
-    terminal = false;
-    categories = [ "Utility" "AudioVideo" ];
-  };
-
-  xdg.desktopEntries.btop = {
-    name = "btop";
-    comment = "Resource Monitor";
-    exec = "kitty -e btop";
-    icon = "btop";
-    terminal = false;
-    categories = [ "System" "Monitor" ];
+  xdg.desktopEntries = {
+    btop = {
+      name = "btop";
+      comment = "Resource Monitor";
+      exec = "kitty -e btop";
+      icon = "btop";
+      terminal = false;
+      categories = [ "System" "Monitor" ];
+    };
+  } // lib.optionalAttrs withHandy {
+    handy = {
+      name = "Handy";
+      comment = "Offline Speech-to-Text Application";
+      exec = "${inputs.handy.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/handy";
+      icon = "handy";
+      terminal = false;
+      categories = [ "Utility" "AudioVideo" ];
+    };
   };
 
   # Layout Rofi pour wallselect
