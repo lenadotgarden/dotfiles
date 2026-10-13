@@ -23,6 +23,11 @@
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
+  # Disk swap on top of the zram swap from core/: big builds (Rust flake inputs
+  # like niri, yazi, handy) otherwise get nix OOM-killed. The file lives on the
+  # LUKS volume, so it is encrypted.
+  swapDevices = [ { device = "/var/lib/swapfile"; size = 16 * 1024; } ];
+
   hardware.enableRedistributableFirmware = true; # amdgpu + Wi-Fi firmware
   services.fwupd.enable = true;                  # BIOS/firmware updates from Linux
 
