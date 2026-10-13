@@ -2,14 +2,13 @@
   "currentThemeName": "dynamic",
   "currentThemeCategory": "dynamic",
   "cornerRadius": 12,
+  "touchpadAccelSpeed": -0.3,
+  "touchpadScrollFactor": 0.1,
   "firstDayOfWeek": 1,
   "showWeekNumber": true,
   "clockFormat": "24h",
-  "nightModeEnabled": false,
-  "batteryPillPercentSign": false,
   "controlCenterShowMicPercent": true,
   "appIdSubstitutions": [],
-  "launcherStyle": "spotlight",
   "cursorSettings": {
     "theme": "System Default",
     "size": 24,
@@ -26,10 +25,12 @@
       "cursorHideTimeout": 0
     }
   },
+  "launcherLogoMode": "os",
   "monoFontFamily": "Iosevka",
   "soundLogin": true,
-  "gtkThemingEnabled": false,
-  "qtThemingEnabled": false,
+  "acProfileName": "1",
+  "batteryProfileName": "0",
+  "batteryAutoPowerSaver": true,
   "osdPowerProfileEnabled": true,
   "barConfigs": [
     {
@@ -107,14 +108,45 @@
       "hoverPopoutDelay": 150
     }
   ],
+  "desktopClockCustomColor": {
+    "r": 1,
+    "g": 1,
+    "b": 1,
+    "a": 1,
+    "hsvHue": -1,
+    "hsvSaturation": 0,
+    "hsvValue": 1,
+    "hslHue": -1,
+    "hslSaturation": 0,
+    "hslLightness": 1,
+    "valid": true
+  },
+  "systemMonitorCustomColor": {
+    "r": 1,
+    "g": 1,
+    "b": 1,
+    "a": 1,
+    "hsvHue": -1,
+    "hsvSaturation": 0,
+    "hsvValue": 1,
+    "hslHue": -1,
+    "hslSaturation": 0,
+    "hslLightness": 1,
+    "valid": true
+  },
   "builtInPluginSettings": {
     "dms_settings_search": {
       "trigger": "?"
     },
     "dms_clipboard_search": {
       "trigger": "cb"
+    },
+    "dms_power": {
+      "trigger": "pw"
+    },
+    "dms_qr_generator": {
+      "trigger": "qrg"
     }
   },
-  "configVersion": 18,
-  "closeNiriOverviewOnWindowFocus": true
+  "configVersion": 18
 }
