@@ -2,8 +2,8 @@
 
 {
   home.packages = with pkgs; [
-    inputs.self.packages.${pkgs.system}.${niriPackage}
-    inputs.self.packages.${pkgs.system}.myNoctalia
+    inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.${niriPackage}
+    inputs.self.packages.${pkgs.stdenv.hostPlatform.system}.myNoctalia
     xwayland-satellite
     swaylock
     swayidle

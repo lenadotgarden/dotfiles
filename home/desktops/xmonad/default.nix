@@ -3,7 +3,7 @@
 {
   home.packages = with pkgs; [
     xmobar rofi rofimoji xdotool xclip feh xss-lock i3lock
-    xorg.xsetroot xorg.xset xorg.xrdb xorg.xmessage
+    xsetroot xset xrdb xmessage
     kdePackages.dolphin
   ];
 

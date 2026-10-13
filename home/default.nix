@@ -2,7 +2,7 @@
 
 let
   # yazi from its flake (master, compiled from source) or the cached nixpkgs build
-  yaziPkg = if withFlakeYazi then inputs.yazi.packages.${pkgs.system}.default else pkgs.yazi;
+  yaziPkg = if withFlakeYazi then inputs.yazi.packages.${pkgs.stdenv.hostPlatform.system}.default else pkgs.yazi;
 in
 {
   imports = [
@@ -132,7 +132,7 @@ in
     imagemagick
     brightnessctl
     playerctl
-    inputs.helium.packages.${pkgs.system}.default
+    inputs.helium.packages.${pkgs.stdenv.hostPlatform.system}.default
     yaziPkg
     telegram-desktop
     signal-desktop

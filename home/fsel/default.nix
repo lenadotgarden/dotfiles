@@ -2,7 +2,7 @@
 
 {
   home.packages = [
-    inputs.fsel.packages.${pkgs.system}.default
+    inputs.fsel.packages.${pkgs.stdenv.hostPlatform.system}.default
     (pkgs.writeShellScriptBin "quicklauncher" ''
       # Floating by the niri window rule on app-id "quicklauncher" (see flake.nix)
       exec kitty --class quicklauncher --name quicklauncher --title fsel \

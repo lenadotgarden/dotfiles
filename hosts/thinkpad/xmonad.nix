@@ -23,6 +23,10 @@
     };
   };
 
+  # home-manager's dconf.settings needs the dconf D-Bus service at activation
+  # (its absence made home-manager-lena.service fail)
+  programs.dconf.enable = true;
+
   # Screen locker (xss-lock + i3lock) needs its PAM service
   programs.i3lock.enable = true;
 
