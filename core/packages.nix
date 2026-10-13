@@ -18,11 +18,6 @@
   # Tailscale (Client pour Headscale)
   services.tailscale.enable = true;
 
-  # Asahi / Apple Silicon support
-  hardware.asahi.enable = true;
-  hardware.asahi.extractPeripheralFirmware = true;
-  hardware.asahi.peripheralFirmwareDirectory = ../firmware;
-
   # Bluetooth enable
   hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = false;
@@ -50,21 +45,8 @@
     };
   };
 
-  # Gestion d'énergie (TLP & Powertop)
-  services.tlp = {
-    enable = true;
-    settings = {
-      CPU_SCALING_GOVERNOR_ON_BAT = "performance";
-      CPU_SCALING_GOVERNOR_ON_AC = "performance";
-      ENERGY_PERF_POLICY_ON_BAT = "performance";
-      ENERGY_PERF_POLICY_ON_AC = "performance";
-      CPU_MIN_PERF_ON_BAT = 100;
-      CPU_MAX_PERF_ON_BAT = 100;
-      RUNTIME_PM_ON_BAT = "on";
-    };
-  };
-
-  powerManagement.powertop.enable = true;
+  # Power management (TLP) is configured per host
+  # (hosts/macbook/asahi.nix, hosts/thinkpad/power.nix)
 
   # Gestion de la fermeture du clapet (Lid switch / Sleep mode)
   services.logind.settings.Login = {
@@ -90,32 +72,9 @@
     wget
     curl
     brightnessctl
-    kbdlight
-    evtest
-    actkbd
     inputs.antigravity-nix.packages.${pkgs.system}.default
     inputs.antigravity-nix.packages.${pkgs.system}.google-antigravity-cli
   ];
-
-  # Hardware brightness keys (Asahi / MacBook)
-  services.actkbd = {
-    enable = true;
-    bindings =
-      let
-        bctl = "${pkgs.brightnessctl}/bin/brightnessctl";
-      in [
-        {
-          keys = [ 224 ]; # Brightness down
-          events = [ "key" ];
-          command = "${bctl} set 5%-";
-        }
-        {
-          keys = [ 225 ]; # Brightness up
-          events = [ "key" ];
-          command = "${bctl} set 5%+";
-        }
-      ];
-  };
 
   # Syncthing Service
   services.syncthing = {
