@@ -6,14 +6,20 @@ let
     ${builtins.readFile ./wallpaper-search.sh}
   '';
 
+  xbarmod = pkgs.writeShellScriptBin "xbarmod" ''
+    export PATH=${lib.makeBinPath (with pkgs; [ pamixer networkmanager coreutils gnugrep ])}:$PATH
+    ${builtins.readFile ./xbarmod.sh}
+  '';
+
   xtheme = pkgs.writeShellScriptBin "xtheme" ''
-    export PATH=${lib.makeBinPath (with pkgs; [ procps dconf libnotify dunst trayer coreutils gnused ])}:$PATH
-    export XMOBAR_TPL=${./xmobarrc.tpl}
+    export PATH=${lib.makeBinPath (with pkgs; [ procps dconf libnotify dunst polybar coreutils gnused ])}:$PATH
+    export POLYBAR_TPL=${./polybar.tpl}
+    export XBARMOD=${xbarmod}/bin/xbarmod
     ${builtins.readFile ./xtheme.sh}
   '';
 
   xautostart = pkgs.writeShellScriptBin "xautostart" ''
-    export PATH=${lib.makeBinPath (with pkgs; [ picom dunst trayer networkmanagerapplet blueman udiskie dbus procps coreutils ])}:$PATH
+    export PATH=${lib.makeBinPath (with pkgs; [ picom dunst polybar networkmanagerapplet blueman udiskie dbus procps coreutils ])}:$PATH
     export POLKIT_AGENT=${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1
     ${builtins.readFile ./xautostart.sh}
   '';
@@ -32,12 +38,12 @@ let
 in
 {
   home.packages = with pkgs; [
-    xmobar rofi rofimoji xdotool xclip feh xss-lock i3lock picom libnotify
+    polybar rofi rofimoji xdotool xclip feh xss-lock i3lock picom libnotify
     xsetroot xset xrdb xmessage
     kdePackages.dolphin
     wallpaperSearch xtheme xautostart xcalendar
     # "real DE" bits: tray, notifications, applets, automount, polkit prompts
-    trayer dunst networkmanagerapplet blueman udiskie polkit_gnome dbus dconf
+    dunst networkmanagerapplet blueman udiskie polkit_gnome dbus dconf
     gh
   ];
 

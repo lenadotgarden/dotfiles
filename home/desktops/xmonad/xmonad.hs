@@ -1,12 +1,9 @@
-import Control.Exception (SomeException, evaluate, try)
-import System.Environment (getEnv)
 import System.Exit (ExitCode (ExitSuccess), exitWith)
 import XMonad
 import XMonad.Actions.Navigation2D
 import XMonad.Hooks.EwmhDesktops (ewmh, ewmhFullscreen)
 import XMonad.Hooks.ManageHelpers (doRectFloat, isDialog)
-import XMonad.Hooks.StatusBar
-import XMonad.Hooks.StatusBar.PP
+import XMonad.Hooks.ManageDocks (avoidStruts, docks)
 import XMonad.Layout.NoBorders (noBorders, smartBorders)
 import XMonad.Layout.ResizableTile (MirrorResize (..), ResizableTall (..))
 import XMonad.Layout.Spacing (spacingWithEdge)
@@ -26,7 +23,7 @@ wsKeys = [xK_ampersand, xK_eacute, xK_quotedbl, xK_apostrophe, xK_parenleft]
 wsDigits :: [KeySym]
 wsDigits = [xK_1, xK_2, xK_3, xK_4, xK_5]
 
-myLayout = toggleLayouts (noBorders Full) $
+myLayout = avoidStruts $ toggleLayouts (noBorders Full) $
   smartBorders $ spacingWithEdge 6 $ tiled ||| Mirror tiled
   where
     tiled = ResizableTall 1 (3 / 100) (3 / 5) []
@@ -47,36 +44,6 @@ myManageHook = composeAll
   , className =? "Blueman-manager" --> smallFloat
   , className =? "Nm-connection-editor" --> smallFloat
   ]
-
--- "dark" or "light", written by `xtheme`
-readMode :: IO String
-readMode = do
-  r <- try $ do
-    home <- getEnv "HOME"
-    s <- readFile (home ++ "/.cache/theme/mode")
-    _ <- evaluate (length s)
-    return s
-  return $ case (r :: Either SomeException String) of
-    Right s | take 5 s == "light" -> "light"
-    _ -> "dark"
-
--- workspace indicator tiers: current = accent, occupied = ~70%, empty = ~30% (no boxes)
-myPP :: X PP
-myPP = do
-  mode <- io readMode
-  let (cur, occ, none, ttl)
-        | mode == "light" = ("#1e66f5", "#6c6f85", "#bcc0cc", "#9ca0b0")
-        | otherwise = ("#89b4fa", "#a6adc8", "#45475a", "#6c7086")
-  return def
-    { ppCurrent = xmobarColor cur "" . wrap " " " "
-    , ppVisible = xmobarColor occ "" . wrap " " " "
-    , ppHidden = xmobarColor occ "" . wrap " " " "
-    , ppHiddenNoWindows = xmobarColor none "" . wrap " " " "
-    , ppTitle = xmobarColor ttl "" . shorten 50
-    , ppWsSep = ""
-    , ppSep = "   "
-    , ppOrder = \(ws : _ : t : _) -> [ws, t]
-    }
 
 myConfig = def
   { modMask = mod1Mask -- Alt = "Mod" (launch/close/exit), Super = navigation (swapped vs niri)
@@ -151,5 +118,5 @@ main = xmonad
   . ewmhFullscreen
   . ewmh
   . withNavigation2DConfig def
-  . withEasySB (statusBarProp "xmobar $HOME/.cache/theme/xmobarrc" myPP) defToggleStrutsKey
+  . docks
   $ myConfig
