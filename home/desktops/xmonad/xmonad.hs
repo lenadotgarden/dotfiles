@@ -50,7 +50,7 @@ myConfig = def
   , borderWidth = 0
   , normalBorderColor = "#1e1e2e"
   , focusedBorderColor = "#89b4fa"
-  , focusFollowsMouse = False
+  , focusFollowsMouse = True
   , layoutHook = myLayout
   , manageHook = myManageHook <+> manageHook def
   }
@@ -66,6 +66,10 @@ myConfig = def
   , ("M-S-l", spawn "loginctl lock-session")
   , ("M-S-e", io (exitWith ExitSuccess))
   , ("M-S-r", spawn "xmonad --recompile && xmonad --restart")
+  , ("M-j", windows W.focusDown)
+  , ("M-k", windows W.focusUp)
+  , ("M-<Tab>", windows W.focusDown)
+  , ("M1-<Tab>", windows W.focusDown)
   , ("M1-j", windows W.focusDown)
   , ("M1-k", windows W.focusUp)
   , ("M1-h", sendMessage Shrink)
