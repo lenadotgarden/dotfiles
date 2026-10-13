@@ -1,4 +1,4 @@
-{ config, lib, pkgs, inputs, withHandy, ... }:
+{ config, lib, pkgs, inputs, withHandy, withFsel, ... }:
 
 {
   imports = [
@@ -13,9 +13,10 @@
     ./zsh
     ./git
     ./tmux
-    ./fsel
     ./librewolf
-  ];
+  ]
+  # fsel is built with naersk (one derivation per Rust crate): heavy to build
+  ++ lib.optional withFsel ./fsel;
 
   home.username = "lena";
   home.homeDirectory = "/home/lena";
