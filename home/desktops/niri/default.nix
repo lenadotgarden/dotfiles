@@ -30,4 +30,17 @@
     XDG_CURRENT_DESKTOP = "niri";
     XDG_SESSION_TYPE = "wayland";
   };
+
+  # DMS rewrites settings.json itself whenever its settings UI is used, so it can't be a
+  # read-only xdg.configFile symlink. Seed it once from the repo; re-copy the live file
+  # here manually whenever you want to snapshot further tweaks.
+  home.activation = lib.mkIf (niriPackage == "myNiriDms") {
+    seedDmsSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      DMS_SETTINGS="$HOME/.config/DankMaterialShell/settings.json"
+      if [ ! -e "$DMS_SETTINGS" ]; then
+        run mkdir -p "$(dirname "$DMS_SETTINGS")"
+        run install -m 644 "${./dms-settings.json}" "$DMS_SETTINGS"
+      fi
+    '';
+  };
 }
