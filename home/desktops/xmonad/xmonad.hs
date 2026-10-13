@@ -33,12 +33,13 @@ myManageHook = composeAll
 
 myPP :: PP
 myPP = def
-  { ppCurrent = xmobarColor "#89b4fa" "" . wrap "[" "]"
-  , ppVisible = xmobarColor "#cdd6f4" ""
-  , ppHidden = xmobarColor "#a6adc8" ""
-  , ppHiddenNoWindows = xmobarColor "#45475a" ""
-  , ppTitle = xmobarColor "#cdd6f4" "" . shorten 60
-  , ppSep = "  "
+  { ppCurrent = xmobarColor "#11111b" "#89b4fa" . wrap " " " "
+  , ppVisible = xmobarColor "#cdd6f4" "" . wrap " " " "
+  , ppHidden = xmobarColor "#a6adc8" "" . wrap " " " "
+  , ppHiddenNoWindows = xmobarColor "#45475a" "" . wrap " " " "
+  , ppTitle = xmobarColor "#6c7086" "" . shorten 50
+  , ppSep = "   "
+  , ppOrder = \(ws : _ : t : _) -> [ws, t]
   }
 
 myConfig = def
@@ -59,6 +60,8 @@ myConfig = def
   , ("M-<Space>", spawn "rofi -show drun")
   , ("C-M-<Space>", spawn "rofimoji --action type")
   , ("C-S-s", spawn "flameshot gui")
+  , ("M-w", spawn "wallpaper-search")
+  , ("M-S-w", spawn "wallpaper-search --saved")
   , ("M-S-l", spawn "loginctl lock-session")
   , ("M-S-e", io (exitWith ExitSuccess))
   , ("M-S-r", spawn "xmonad --recompile && xmonad --restart")
