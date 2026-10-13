@@ -40,7 +40,9 @@ myManageHook :: ManageHook
 myManageHook = composeAll
   [ isDialog --> bigFloat
   , className =? "flameshot" --> doFloat
-  , className =? "Pavucontrol" --> bigFloat
+  , className =? "Pavucontrol" --> smallFloat
+  , className =? "nmtui" --> smallFloat
+  , className =? "calendar" --> smallFloat
   , className =? "quicklauncher" --> bigFloat
   , className =? "Blueman-manager" --> smallFloat
   , className =? "Nm-connection-editor" --> smallFloat

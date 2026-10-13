@@ -17,13 +17,25 @@ let
     export POLKIT_AGENT=${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1
     ${builtins.readFile ./xautostart.sh}
   '';
+
+  xcalendar = pkgs.writeShellScriptBin "xcalendar" ''
+    exec kitty --class calendar -o font_size=14 -e sh -c '${pkgs.python3}/bin/python3 -c "
+    import calendar, datetime
+    t = datetime.date.today()
+    for off in (-1, 0, 1):
+        m, y = t.month + off, t.year
+        if m == 0: m, y = 12, y - 1
+        if m == 13: m, y = 1, y + 1
+        print(calendar.month(y, m))
+    "; read -r -n1'
+  '';
 in
 {
   home.packages = with pkgs; [
     xmobar rofi rofimoji xdotool xclip feh xss-lock i3lock picom libnotify
     xsetroot xset xrdb xmessage
     kdePackages.dolphin
-    wallpaperSearch xtheme xautostart
+    wallpaperSearch xtheme xautostart xcalendar
     # "real DE" bits: tray, notifications, applets, automount, polkit prompts
     trayer dunst networkmanagerapplet blueman udiskie polkit_gnome dbus dconf
     gh

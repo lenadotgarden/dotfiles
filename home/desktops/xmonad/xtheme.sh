@@ -21,9 +21,9 @@ palette() {
 start_tray() {
   pkill -x trayer 2>/dev/null
   palette "$cur"
-  setsid trayer --edge bottom --align right --widthtype pixel --width 170 \
-    --height 24 --distance 6 --distancefrom bottom --margin 6 \
-    --padding 4 --iconspacing 8 --SetDockType true --SetPartialStrut false \
+  setsid trayer --edge bottom --align right --widthtype request --expand true \
+    --height 36 --distance 0 --distancefrom bottom --margin 0 \
+    --padding 8 --iconspacing 6 --SetDockType true --SetPartialStrut false \
     --transparent true --alpha 0 --tint "0x${BG#\#}" --monitor primary >>"$HOME/.cache/xautostart.log" 2>&1 &
 }
 
