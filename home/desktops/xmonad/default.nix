@@ -35,6 +35,9 @@ in
   xdg.configFile."rofi/launcher.rasi".source = ./rofi/launcher.rasi;
   xdg.configFile."rofi/gallery.rasi".source = ./rofi/gallery.rasi;
 
+  # make sure colors.rasi / bar config / dunstrc exist right after a rebuild
+  home.activation.xtheme = lib.hm.dag.entryAfter [ "writeBoundary" ] ''${xtheme}/bin/xtheme apply || true'';
+
   home.file.".xinitrc" = {
     executable = true;
     text = ''
