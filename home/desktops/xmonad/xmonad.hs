@@ -18,6 +18,10 @@ myWorkspaces = ["1", "2", "3", "4", "5"]
 wsKeys :: [KeySym]
 wsKeys = [xK_ampersand, xK_eacute, xK_quotedbl, xK_apostrophe, xK_parenleft]
 
+-- plain digit keys too (niri binds both)
+wsDigits :: [KeySym]
+wsDigits = [xK_1, xK_2, xK_3, xK_4, xK_5]
+
 myLayout = toggleLayouts (noBorders Full) $
   smartBorders $ spacingWithEdge 10 $ tiled ||| Mirror tiled
   where
@@ -34,17 +38,18 @@ myManageHook = composeAll
 myPP :: PP
 myPP = def
   -- three opacity tiers: current = full accent, occupied = ~70%, empty = ~30% (no boxes)
-  { ppCurrent = xmobarColor "#89b4fa" "" . wrap "  " "  "
-  , ppVisible = xmobarColor "#cdd6f4" "" . wrap "  " "  "
-  , ppHidden = xmobarColor "#a6adc8" "" . wrap "  " "  "
-  , ppHiddenNoWindows = xmobarColor "#45475a" "" . wrap "  " "  "
+  { ppCurrent = xmobarColor "#89b4fa" "" . wrap " " " "
+  , ppVisible = xmobarColor "#cdd6f4" "" . wrap " " " "
+  , ppHidden = xmobarColor "#a6adc8" "" . wrap " " " "
+  , ppHiddenNoWindows = xmobarColor "#45475a" "" . wrap " " " "
   , ppTitle = xmobarColor "#6c7086" "" . shorten 50
+  , ppWsSep = ""
   , ppSep = "   "
   , ppOrder = \(ws : _ : t : _) -> [ws, t]
   }
 
 myConfig = def
-  { modMask = mod4Mask
+  { modMask = mod1Mask -- Alt = "Mod" (launch/close/exit), Super = navigation (swapped vs niri)
   , terminal = "kitty"
   , workspaces = myWorkspaces
   , borderWidth = 0
@@ -55,38 +60,42 @@ myConfig = def
   , manageHook = myManageHook <+> manageHook def
   }
   `additionalKeysP`
-  [ ("M-<Return>", spawn "kitty")
+  [ -- same actions as niri's "Mod+" bindings, but on Alt
+    ("M-<Return>", spawn "kitty")
   , ("M-o", spawn "kitty -d ~/Garden -e nvim")
   , ("M-q", kill)
   , ("M-<Space>", spawn "rofi -show drun")
   , ("C-M-<Space>", spawn "rofimoji --action type")
   , ("C-S-s", spawn "flameshot gui")
-  , ("M-w", spawn "wallpaper-search")            -- gallery (+ random, + search entry)
-  , ("M-S-w", spawn "wallpaper-search --online")  -- search the internet directly
-  , ("M-S-l", spawn "loginctl lock-session")
   , ("M-S-e", io (exitWith ExitSuccess))
   , ("M-S-r", spawn "xmonad --recompile && xmonad --restart")
-  , ("M-j", windows W.focusDown)
-  , ("M-k", windows W.focusUp)
-  , ("M-<Tab>", windows W.focusDown)
-  , ("M1-<Tab>", windows W.focusDown)
-  , ("M1-j", windows W.focusDown)
-  , ("M1-k", windows W.focusUp)
-  , ("M1-h", sendMessage Shrink)
-  , ("M1-l", sendMessage Expand)
-  , ("M1-S-j", windows W.swapDown)
-  , ("M1-S-k", windows W.swapUp)
-  , ("M1-<Return>", windows W.swapMaster)
-  , ("M1-f", sendMessage ToggleLayout)
-  , ("M1-<Space>", sendMessage NextLayout)
-  , ("M1-t", withFocused $ windows . W.sink)
+  , ("M-S-l", spawn "loginctl lock-session")
+  , ("M-w", spawn "wallpaper-search")            -- gallery (+ random, + search entry)
+  , ("M-S-w", spawn "wallpaper-search --online")  -- search the internet directly
+    -- same actions as niri's "Alt+" bindings, but on Super
+  , ("M4-j", windows W.focusDown)
+  , ("M4-k", windows W.focusUp)
+  , ("M4-h", windows W.focusMaster)
+  , ("M4-l", windows W.focusDown)
+  , ("M4-S-j", windows W.swapDown)
+  , ("M4-S-k", windows W.swapUp)
+  , ("M4-S-h", windows W.swapMaster)
+  , ("M4-f", sendMessage ToggleLayout)
+  , ("M4-m", sendMessage ToggleLayout)
+  , ("M4-r", sendMessage NextLayout)
+  , ("M4-t", withFocused $ windows . W.sink)
+  , ("M4-,", sendMessage (IncMasterN 1))
+  , ("M4-.", sendMessage (IncMasterN (-1)))
   ]
   `additionalKeys`
-  ( [ ((m .|. mod1Mask, k), windows $ f i)
-    | (i, k) <- zip myWorkspaces wsKeys
+  ( [ ((m .|. mod4Mask, k), windows $ f i)
+    | (ks, i) <- zip (zip wsKeys wsDigits) myWorkspaces
+    , k <- [fst ks, snd ks]
     , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]
     ] ++
-    [ ((0, xF86XK_AudioRaiseVolume), spawn "wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+")
+    [ ((mod4Mask, xK_minus), sendMessage Shrink)
+    , ((mod4Mask, xK_equal), sendMessage Expand)
+    , ((0, xF86XK_AudioRaiseVolume), spawn "wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+")
     , ((0, xF86XK_AudioLowerVolume), spawn "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-")
     , ((0, xF86XK_AudioMute), spawn "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle")
     , ((0, xF86XK_MonBrightnessUp), spawn "brightnessctl set 5%+")
