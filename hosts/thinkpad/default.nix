@@ -12,6 +12,7 @@
     ./users.nix
     ./power.nix
     ./xmonad.nix
+    ./dms.nix
   ];
 
   networking.hostName = "thinkpad";

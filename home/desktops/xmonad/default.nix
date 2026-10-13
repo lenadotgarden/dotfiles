@@ -47,7 +47,7 @@ in
     gh
   ];
 
-  home.sessionVariables.DEFAULT_WM = lib.mkDefault "xmonad";
+  home.sessionVariables.DEFAULT_WM = "xmonad";
 
   # Recompiled by xmonad itself at login. Drop the cached binary when the source changes.
   home.file.".xmonad/xmonad.hs" = {

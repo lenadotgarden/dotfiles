@@ -30,7 +30,7 @@
       let
         # Niri wrapper shared by every NixOS host. What depends on the machine
         # (keyboard variant, screen scale, touchpad) is passed as arguments.
-        mkNiri = { package, xkbVariant ? null, scale, touchpad }: inputs.wrapper-modules.wrappers.niri.wrap {
+        mkNiri = { package, xkbVariant ? null, scale, touchpad, shell ? "noctalia" }: inputs.wrapper-modules.wrappers.niri.wrap {
           inherit package;
           inherit pkgs;
           settings = {
@@ -76,14 +76,13 @@
             xwayland-satellite.path = lib.getExe pkgs.xwayland-satellite;
 
             spawn-at-startup = [
-              (lib.getExe self'.packages.myNoctalia)
+              (if shell == "dms" then [ "dms" "run" ] else lib.getExe self'.packages.myNoctalia)
               [ "sh" "-c" "sleep 1 && ${lib.getExe pkgs.hyprlock}" ]
             ];
             binds = {
               "Mod+Return".spawn-sh = lib.getExe pkgs.kitty;
               "Mod+O".spawn-sh = "kitty -d ~/Garden -e nvim";
               "Mod+Q".close-window = {};
-              "Mod+Space".spawn-sh = "${lib.getExe self'.packages.myNoctalia} ipc call launcher toggle";
               "Ctrl+Mod+Space".spawn-sh = "${lib.getExe pkgs.rofimoji} --action type";
               "Ctrl+Shift+S".spawn-sh = "grim -g \"$(slurp)\" - | swappy -f -";
 
@@ -143,7 +142,25 @@
 
               "XF86MonBrightnessUp".spawn-sh = "brightnessctl set 5%+";
               "XF86MonBrightnessDown".spawn-sh = "brightnessctl set 5%-";
-            };
+            } // (if shell == "dms" then {
+              # DankMaterialShell (installed system-wide by hosts/thinkpad/dms.nix)
+              "Mod+Space".spawn-sh = "dms ipc call spotlight toggle";
+              "Mod+D".spawn-sh = "dms ipc call theme toggle";            # dark / light
+              "Mod+Comma".spawn-sh = "dms ipc call settings toggle";
+              "Mod+N".spawn-sh = "dms ipc call notifications toggle";
+              "Mod+V".spawn-sh = "dms ipc call clipboard toggle";
+              "Mod+C".spawn-sh = "dms ipc call control-center toggle";
+              "Mod+Shift+P".spawn-sh = "dms ipc call powermenu toggle";
+              "Mod+Shift+L".spawn-sh = "dms ipc call lock lock";
+              "Mod+Escape".spawn-sh = "dms ipc call processlist toggle";
+              "XF86AudioRaiseVolume".spawn-sh = "dms ipc call audio increment 5";
+              "XF86AudioLowerVolume".spawn-sh = "dms ipc call audio decrement 5";
+              "XF86AudioMute".spawn-sh = "dms ipc call audio mute";
+              "XF86MonBrightnessUp".spawn-sh = "dms ipc call brightness increment 10 \"\"";
+              "XF86MonBrightnessDown".spawn-sh = "dms ipc call brightness decrement 10 \"\"";
+            } else {
+              "Mod+Space".spawn-sh = "${lib.getExe self'.packages.myNoctalia} ipc call launcher toggle";
+            });
           };
         };
       in {
@@ -162,6 +179,17 @@
             click-method = "clickfinger";
             natural-scroll = {};
             scroll-factor = 0.25;
+          };
+        };
+
+        # ThinkPad T495s with DankMaterialShell instead of Noctalia
+        packages.myNiriDms = mkNiri {
+          package = inputs'.niri.packages.niri;
+          scale = 1.0;
+          shell = "dms";
+          touchpad = {
+            tap = {};
+            natural-scroll = {};
           };
         };
 
@@ -216,7 +244,7 @@
               home-manager.useUserPackages = true;
               home-manager.backupFileExtension = "backup";
               home-manager.users.lena = import ./home/default.nix;
-              home-manager.extraSpecialArgs = { inherit inputs; niriPackage = "myNiriThinkpad"; withHandy = false; withFsel = false; withFlakeYazi = false; withNiri = false; withXmonad = true; };
+              home-manager.extraSpecialArgs = { inherit inputs; niriPackage = "myNiriDms"; withHandy = false; withFsel = false; withFlakeYazi = false; withNiri = true; withXmonad = true; };
             }
           ];
         };
