@@ -195,7 +195,7 @@
           package = inputs'.niri.packages.niri;
           scale = 1.0;
           shell = "dms";
-          xkbOptions = "altwin:swap_alt_win"; # Win and Alt keys swapped
+          xkbOptions = "altwin:swap_lalt_lwin"; # swap only the left Alt/Win pair; keep right Alt as AltGr
           touchpad = {
             tap = {};
             natural-scroll = {};
