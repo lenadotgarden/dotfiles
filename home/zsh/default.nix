@@ -87,7 +87,10 @@
       dms() {
         if [[ "$1" == "restart" ]]; then
           command dms kill
-          (setsid command dms run >/tmp/dms-run.log 2>&1 < /dev/null &)
+          # setsid execs its argument directly, so it can't be handed the
+          # `command` builtin - resolve the real binary path first.
+          local dms_bin="$(command -v dms)"
+          (setsid "$dms_bin" run >/tmp/dms-run.log 2>&1 < /dev/null &)
         else
           command dms "$@"
         fi
