@@ -136,7 +136,7 @@
     {
       "id": "bar1791930863997",
       "name": "Bar 2",
-      "enabled": true,
+      "enabled": false,
       "position": 0,
       "screenPreferences": [],
       "showOnLastDisplay": false,
