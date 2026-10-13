@@ -197,7 +197,7 @@
               home-manager.useUserPackages = true;
               home-manager.backupFileExtension = "backup";
               home-manager.users.lena = import ./home/default.nix;
-              home-manager.extraSpecialArgs = { inherit inputs; niriPackage = "myNiri"; withHandy = true; withFsel = true; withFlakeYazi = true; };
+              home-manager.extraSpecialArgs = { inherit inputs; niriPackage = "myNiri"; withHandy = true; withFsel = true; withFlakeYazi = true; withNiri = true; withXmonad = false; };
             }
           ];
         };
@@ -216,7 +216,7 @@
               home-manager.useUserPackages = true;
               home-manager.backupFileExtension = "backup";
               home-manager.users.lena = import ./home/default.nix;
-              home-manager.extraSpecialArgs = { inherit inputs; niriPackage = "myNiriThinkpad"; withHandy = false; withFsel = false; withFlakeYazi = false; };
+              home-manager.extraSpecialArgs = { inherit inputs; niriPackage = "myNiriThinkpad"; withHandy = false; withFsel = false; withFlakeYazi = false; withNiri = false; withXmonad = true; };
             }
           ];
         };

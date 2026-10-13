@@ -11,6 +11,7 @@
     ./hardware-configuration.nix
     ./users.nix
     ./power.nix
+    ./xmonad.nix
   ];
 
   networking.hostName = "thinkpad";

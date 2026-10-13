@@ -82,8 +82,12 @@
       fi
 
       # Auto-start WM on TTY1 if not already inside a graphical session
-      if [[ "$(tty)" == "/dev/tty1" ]] && [[ -z "$WAYLAND_DISPLAY" ]]; then
-        exec ''${DEFAULT_WM:-niri}
+      if [[ "$(tty)" == "/dev/tty1" ]] && [[ -z "$WAYLAND_DISPLAY" ]] && [[ -z "$DISPLAY" ]]; then
+        case "''${DEFAULT_WM:-niri}" in
+          # no exec: if X dies you get a shell instead of an autologin respawn loop
+          xmonad) startx ;;
+          *) exec ''${DEFAULT_WM:-niri} ;;
+        esac
       fi
     '';
   };

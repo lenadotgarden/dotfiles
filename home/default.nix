@@ -1,4 +1,4 @@
-{ config, lib, pkgs, inputs, withHandy, withFsel, withFlakeYazi, ... }:
+{ config, lib, pkgs, inputs, withHandy, withFsel, withFlakeYazi, withNiri, withXmonad, ... }:
 
 let
   # yazi from its flake (master, compiled from source) or the cached nixpkgs build
@@ -7,9 +7,7 @@ in
 {
   imports = [
     # --- Desktop Environment ---
-    ./desktops/niri
-    # ./desktops/sway
-    # ./desktops/xmonad
+    # (niri / xmonad are added below, per host)
     # ---------------------------
 
     ./neovim
@@ -20,7 +18,9 @@ in
     ./librewolf
   ]
   # fsel is built with naersk (one derivation per Rust crate): heavy to build
-  ++ lib.optional withFsel ./fsel;
+  ++ lib.optional withFsel ./fsel
+  ++ lib.optional withNiri ./desktops/niri
+  ++ lib.optional withXmonad ./desktops/xmonad;
 
   home.username = "lena";
   home.homeDirectory = "/home/lena";

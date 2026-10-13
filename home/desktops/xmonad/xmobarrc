@@ -1,0 +1,16 @@
+Config
+  { font = "xft:Iosevka:size=11"
+  , bgColor = "#11111b"
+  , fgColor = "#cdd6f4"
+  , position = Top
+  , lowerOnStart = True
+  , commands =
+      [ Run XMonadLog
+      , Run Com "pamixer" ["--get-volume-human"] "vol" 20
+      , Run Battery ["-t", "bat: <left>% <acstatus>", "--", "-O", "AC", "-o", "", "-i", "AC"] 50
+      , Run Date "%a %d %b %H:%M" "date" 100
+      ]
+  , sepChar = "%"
+  , alignSep = "}{"
+  , template = "%XMonadLog% }{ vol: %vol%  %battery%  %date% "
+  }
