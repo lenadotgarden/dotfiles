@@ -157,7 +157,7 @@
               "Mod+N".spawn-sh = "dms ipc call notifications toggle";
               "Mod+V".spawn-sh = "dms ipc call clipboard toggle";
               "Mod+C".spawn-sh = "dms ipc call control-center toggle";
-              "Mod+W".spawn-sh = "dms ipc call wallpaperCarousel toggle";
+              "Mod+W".spawn-sh = "dms ipc call wallhavenCarousel toggle";
               "Mod+Shift+P".spawn-sh = "dms ipc call powermenu toggle";
               "Mod+Shift+L".spawn-sh = "dms ipc call lock lock";
               "Mod+Escape".spawn-sh = "dms ipc call processlist toggle";
