@@ -195,7 +195,6 @@
           scale = 1.0;
           shell = "dms";
           xkbOptions = "altwin:swap_alt_win"; # Win and Alt keys swapped
-          xkbOptions = "altwin:swap_alt_win"; # swap the physical Alt and Win keys
           touchpad = {
             tap = {};
             natural-scroll = {};
