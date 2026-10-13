@@ -1,7 +1,7 @@
 Config
   { font = "xft:Iosevka,Symbols Nerd Font:size=11:antialias=true"
-  , bgColor = "#11111b"
-  , fgColor = "#cdd6f4"
+  , bgColor = "@BG@"
+  , fgColor = "@FG@"
   , alpha = 215
   , position = BottomH 36
   , lowerOnStart = True
@@ -10,10 +10,10 @@ Config
       [ Run XMonadLog
       , Run Com "sh" ["-c", "nmcli -t -f active,ssid dev wifi 2>/dev/null | grep '^yes' | cut -d: -f2 | head -c 14"] "wifi" 50
       , Run Com "pamixer" ["--get-volume-human"] "vol" 10
-      , Run Battery ["-t", "<left>%<acstatus>", "-S", "False", "-L", "20", "-l", "#f38ba8", "--", "-O", " +", "-o", "", "-i", ""] 50
-      , Run Date "%a %d %b  <fc=#89b4fa>%H:%M</fc>" "date" 100
+      , Run Battery ["-t", "<left>%<acstatus>", "-S", "False", "-L", "20", "-l", "@RED@", "--", "-O", " +", "-o", "", "-i", ""] 50
+      , Run Date "%a %d %b  <fc=@BLUE@>%H:%M</fc>" "date" 100
       ]
   , sepChar = "%"
   , alignSep = "}{"
-  , template = " %XMonadLog% }{ <fc=#94e2d5></fc> %wifi%   <fc=#f9e2af></fc> %vol%   <fc=#a6e3a1></fc> %battery%   <fc=#cba6f7></fc> %date% "
+  , template = " %XMonadLog% }{ <fc=@TEAL@></fc> %wifi%   <fc=@YELLOW@></fc> %vol%   <fc=@GREEN@></fc> %battery%   <fc=@MAUVE@></fc> %date%                       "
   }

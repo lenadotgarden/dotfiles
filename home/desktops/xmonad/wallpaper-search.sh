@@ -8,22 +8,15 @@ CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/wallpaper-search"
 STATE="$HOME/.cache/wallpaper"
 mkdir -p "$SAVE" "$CACHE/saved" "$STATE"
 
-THEME='window {width: 82%; background-color: #11111bf2; border: 0; border-radius: 16px; padding: 16px;}
-mainbox {background-color: transparent;}
-inputbar {background-color: #1e1e2e; text-color: #cdd6f4; padding: 10px 14px; border-radius: 12px; margin: 0 0 12px 0;}
-prompt {text-color: #89b4fa; background-color: transparent;} entry {text-color: #cdd6f4; background-color: transparent;}
-listview {columns: 4; lines: 3; spacing: 14px; background-color: transparent;}
-element {orientation: vertical; padding: 10px; border-radius: 12px; background-color: transparent; text-color: #a6adc8;}
-element selected {background-color: #313244; text-color: #89b4fa;}
-element-icon {size: 11em; background-color: transparent;} element-text {horizontal-align: 0.5; background-color: transparent; text-color: inherit;}'
+THEME="$HOME/.config/rofi/gallery.rasi"
 
 note() { notify-send "Wallpapers" "$1" 2>/dev/null; }
 apply() { feh --bg-fill "$1" && printf '%s' "$1" > "$STATE/current"; }
-pick() { rofi -dmenu -i -show-icons -format i -p "$1" -theme-str "$THEME"; }
+pick() { rofi -dmenu -i -show-icons -format i -p "$1" -theme "$THEME"; }
 
 online() {
   local query page=1 json id url res ext dest idx
-  query=$(rofi -dmenu -p "search the internet" -theme-str "$THEME listview {lines: 0;}" < /dev/null) || return 0
+  query=$(rofi -dmenu -p "󰍉" -theme "$HOME/.config/rofi/launcher.rasi" -theme-str 'entry {placeholder: "Search wallpapers";} listview {lines: 0;}' < /dev/null) || return 0
   while :; do
     local sorting=relevance; [ -n "$query" ] || sorting=toplist
     json=$(curl -fsS -G "https://wallhaven.cc/api/v1/search" \
