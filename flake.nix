@@ -50,6 +50,10 @@
             outputs."eDP-1".scale = scale;
 
             layout.gaps = 12;
+            # The island bar already reserves its own strip via its exclusive zone;
+            # niri's gap on top of that is what shows as wallpaper between the bar
+            # and the first window. Cancel just the top gap for the DMS island.
+            layout.struts = lib.optionalAttrs (shell == "dms") { top = -12; };
 
             layout.border.off = {};
             layout.focus-ring.off = {};
