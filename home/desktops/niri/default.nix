@@ -21,11 +21,13 @@
     indicator = true;
   };
 
-  # When X11 (xMonad) is also installed these must not be global: niri sets
-  # XDG_CURRENT_DESKTOP / XDG_SESSION_TYPE itself, and the xmonad module picks DEFAULT_WM.
-  home.sessionVariables = lib.mkIf (!withXmonad) {
+  # niri is the default session on TTY1. When X11 (xMonad) is also installed, only
+  # DEFAULT_WM is global: niri sets XDG_CURRENT_DESKTOP / XDG_SESSION_TYPE itself,
+  # and exporting them would break X11 apps. xMonad: log in on TTY2 and run `startx`.
+  home.sessionVariables = {
+    DEFAULT_WM = "niri";
+  } // lib.optionalAttrs (!withXmonad) {
     XDG_CURRENT_DESKTOP = "niri";
     XDG_SESSION_TYPE = "wayland";
-    DEFAULT_WM = "niri";
   };
 }
