@@ -24,7 +24,7 @@ start_tray() {
   setsid trayer --edge bottom --align right --widthtype pixel --width 170 \
     --height 24 --distance 6 --distancefrom bottom --margin 6 \
     --padding 4 --iconspacing 8 --SetDockType true --SetPartialStrut false \
-    --transparent true --alpha 0 --tint "0x${BG#\#}" --monitor primary >/dev/null 2>&1 &
+    --transparent true --alpha 0 --tint "0x${BG#\#}" --monitor primary >>"$HOME/.cache/xautostart.log" 2>&1 &
 }
 
 case "${1:-toggle}" in

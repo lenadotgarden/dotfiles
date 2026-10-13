@@ -11,13 +11,19 @@ let
     export XMOBAR_TPL=${./xmobarrc.tpl}
     ${builtins.readFile ./xtheme.sh}
   '';
+
+  xautostart = pkgs.writeShellScriptBin "xautostart" ''
+    export PATH=${lib.makeBinPath (with pkgs; [ picom dunst trayer networkmanagerapplet blueman udiskie dbus procps coreutils ])}:$PATH
+    export POLKIT_AGENT=${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1
+    ${builtins.readFile ./xautostart.sh}
+  '';
 in
 {
   home.packages = with pkgs; [
     xmobar rofi rofimoji xdotool xclip feh xss-lock i3lock picom libnotify
     xsetroot xset xrdb xmessage
     kdePackages.dolphin
-    wallpaperSearch xtheme
+    wallpaperSearch xtheme xautostart
     # "real DE" bits: tray, notifications, applets, automount, polkit prompts
     trayer dunst networkmanagerapplet blueman udiskie polkit_gnome dbus dconf
     gh
@@ -43,7 +49,6 @@ in
     text = ''
       #!/bin/sh
       [ -f "$HOME/.Xresources" ] && xrdb -merge "$HOME/.Xresources"
-      dbus-update-activation-environment --systemd DISPLAY XAUTHORITY 2>/dev/null
       xsetroot -cursor_name left_ptr
       # last wallpaper picked with wallpaper-search (Alt+W), else a plain colour
       wp="$(cat "$HOME/.cache/wallpaper/current" 2>/dev/null)"
@@ -54,14 +59,8 @@ in
       fi
       # generate dark/light colours (rofi, dunst, bar, kitty) before anything uses them
       xtheme apply
-      picom -b
-      dunst &
-      xtheme tray
-      nm-applet &
-      blueman-applet &
-      udiskie --tray &
-      ${pkgs.polkit_gnome}/libexec/polkit-gnome-authentication-agent-1 &
-      command -v kdeconnect-indicator >/dev/null && kdeconnect-indicator &
+      # compositor, notifications, tray and applets (re-runnable: `xautostart`)
+      xautostart
       # screen blank after 10 min (5 s warning), DPMS off after 15 min
       xset s 600 5
       xset dpms 0 0 900

@@ -125,6 +125,15 @@ myConfig = def
     ] ++
     [ ((mod4Mask, xK_minus), sendMessage Shrink)
     , ((mod4Mask, xK_equal), sendMessage Expand)
+    -- niri's own bindings (Alt+-/=), and an easier-to-find Super+Ctrl+hjkl
+    , ((mod1Mask, xK_minus), sendMessage Shrink)
+    , ((mod1Mask, xK_equal), sendMessage Expand)
+    , ((mod1Mask .|. shiftMask, xK_minus), sendMessage MirrorShrink)
+    , ((mod1Mask .|. shiftMask, xK_equal), sendMessage MirrorExpand)
+    , ((mod4Mask .|. controlMask, xK_h), sendMessage Shrink)
+    , ((mod4Mask .|. controlMask, xK_l), sendMessage Expand)
+    , ((mod4Mask .|. controlMask, xK_j), sendMessage MirrorShrink)
+    , ((mod4Mask .|. controlMask, xK_k), sendMessage MirrorExpand)
     , ((mod4Mask .|. shiftMask, xK_minus), sendMessage MirrorShrink)  -- window height
     , ((mod4Mask .|. shiftMask, xK_equal), sendMessage MirrorExpand)
     , ((0, xF86XK_AudioRaiseVolume), spawn "wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+")
