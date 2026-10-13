@@ -30,8 +30,8 @@
       let
         # Niri wrapper shared by every NixOS host. What depends on the machine
         # (keyboard variant, screen scale, touchpad) is passed as arguments.
-        mkNiri = { xkbVariant ? null, scale, touchpad }: inputs.wrapper-modules.wrappers.niri.wrap {
-          package = inputs'.niri.packages.niri;
+        mkNiri = { package, xkbVariant ? null, scale, touchpad }: inputs.wrapper-modules.wrappers.niri.wrap {
+          inherit package;
           inherit pkgs;
           settings = {
             prefer-no-csd = {};
@@ -155,6 +155,7 @@
 
         # MacBook: Retina screen, Apple trackpad
         packages.myNiri = mkNiri {
+          package = inputs'.niri.packages.niri; # niri master, built from source
           xkbVariant = "mac";
           scale = 1.5625;
           touchpad = {
@@ -166,6 +167,7 @@
 
         # ThinkPad T495s: 1080p screen, trackpad with physical buttons
         packages.myNiriThinkpad = mkNiri {
+          package = pkgs.niri; # nixpkgs build: cached, no compiling on the laptop
           scale = 1.0;
           touchpad = {
             tap = {};
@@ -195,7 +197,7 @@
               home-manager.useUserPackages = true;
               home-manager.backupFileExtension = "backup";
               home-manager.users.lena = import ./home/default.nix;
-              home-manager.extraSpecialArgs = { inherit inputs; niriPackage = "myNiri"; withHandy = true; withFsel = true; };
+              home-manager.extraSpecialArgs = { inherit inputs; niriPackage = "myNiri"; withHandy = true; withFsel = true; withFlakeYazi = true; };
             }
           ];
         };
@@ -214,7 +216,7 @@
               home-manager.useUserPackages = true;
               home-manager.backupFileExtension = "backup";
               home-manager.users.lena = import ./home/default.nix;
-              home-manager.extraSpecialArgs = { inherit inputs; niriPackage = "myNiriThinkpad"; withHandy = false; withFsel = false; };
+              home-manager.extraSpecialArgs = { inherit inputs; niriPackage = "myNiriThinkpad"; withHandy = false; withFsel = false; withFlakeYazi = false; };
             }
           ];
         };

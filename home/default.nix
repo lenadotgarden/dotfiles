@@ -1,5 +1,9 @@
-{ config, lib, pkgs, inputs, withHandy, withFsel, ... }:
+{ config, lib, pkgs, inputs, withHandy, withFsel, withFlakeYazi, ... }:
 
+let
+  # yazi from its flake (master, compiled from source) or the cached nixpkgs build
+  yaziPkg = if withFlakeYazi then inputs.yazi.packages.${pkgs.system}.default else pkgs.yazi;
+in
 {
   imports = [
     # --- Desktop Environment ---
@@ -129,7 +133,7 @@
     brightnessctl
     playerctl
     inputs.helium.packages.${pkgs.system}.default
-    inputs.yazi.packages.${pkgs.system}.default
+    yaziPkg
     telegram-desktop
     signal-desktop
     karere     # Whatsapp Linux Client
@@ -182,7 +186,7 @@
   # Configuration Yazi (Explorateur de fichiers par défaut)
   programs.yazi = {
     enable = true;
-    package = inputs.yazi.packages.${pkgs.system}.default;
+    package = yaziPkg;
     enableZshIntegration = true;
     enableBashIntegration = true;
     shellWrapperName = "y";
