@@ -15,6 +15,12 @@
 
     apple-silicon-support.url = "github:tpwrules/nixos-apple-silicon";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+
+    # DankMaterialShell from upstream (nixpkgs' copy lags behind)
+    dms = {
+      url = "github:AvengeMedia/DankMaterialShell";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     helium.url = "github:schembriaiden/helium-browser-nix-flake";
     antigravity-nix.url = "github:jacopone/antigravity-nix";
     fsel.url = "github:Mjoyufull/fsel";
@@ -188,6 +194,7 @@
           package = inputs'.niri.packages.niri;
           scale = 1.0;
           shell = "dms";
+          xkbOptions = "altwin:swap_alt_win"; # Win and Alt keys swapped
           xkbOptions = "altwin:swap_alt_win"; # swap the physical Alt and Win keys
           touchpad = {
             tap = {};
