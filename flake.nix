@@ -167,7 +167,7 @@
 
         # ThinkPad T495s: 1080p screen, trackpad with physical buttons
         packages.myNiriThinkpad = mkNiri {
-          package = pkgs.niri; # nixpkgs build: cached, no compiling on the laptop
+          package = inputs'.niri.packages.niri; # nixpkgs' niri 26.04 fails to build at the locked nixpkgs (missing libdisplay-info)
           scale = 1.0;
           touchpad = {
             tap = {};

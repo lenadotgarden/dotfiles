@@ -18,6 +18,6 @@ done | sed 's/\.drv$//' | sort)
 
 echo
 echo "Real builds (not downloads): $(echo "$builds" | grep -c .)"
-echo "$builds" | grep -vE '^(unpack|download)-' | head -45
+echo "$builds" | grep -vE '^(unpack|download|etc|unit)-' | grep -E -- '-[0-9]+\.[0-9]+' | head -45
 echo
 echo "Crate unpack/download steps: $(echo "$builds" | grep -cE '^(unpack|download)-')"
