@@ -1,8 +1,8 @@
-{ config, pkgs, inputs, ... }:
+{ config, pkgs, inputs, niriPackage, ... }:
 
 {
   home.packages = with pkgs; [
-    inputs.self.packages.${pkgs.system}.myNiri
+    inputs.self.packages.${pkgs.system}.${niriPackage}
     inputs.self.packages.${pkgs.system}.myNoctalia
     xwayland-satellite
     swaylock

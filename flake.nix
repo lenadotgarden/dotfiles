@@ -14,6 +14,7 @@
     };
 
     apple-silicon-support.url = "github:tpwrules/nixos-apple-silicon";
+    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
     helium.url = "github:schembriaiden/helium-browser-nix-flake";
     antigravity-nix.url = "github:jacopone/antigravity-nix";
     fsel.url = "github:Mjoyufull/fsel";
@@ -25,27 +26,21 @@
     flake-parts.lib.mkFlake { inherit inputs; } {
       systems = [ "aarch64-linux" "x86_64-linux" ];
 
-      perSystem = { config, self', inputs', pkgs, system, lib, ... }: {
-        # Custom wrapped packages (like Niri from the tutorial) go here
-        packages.myNoctalia = inputs.wrapper-modules.wrappers.noctalia-shell.wrap {
-          inherit pkgs;
-          settings = builtins.fromJSON (builtins.readFile ./home/desktops/niri/noctalia.json);
-        };
-
-        packages.myNiri = inputs.wrapper-modules.wrappers.niri.wrap {
+      perSystem = { config, self', inputs', pkgs, system, lib, ... }:
+      let
+        # Niri wrapper shared by every NixOS host. What depends on the machine
+        # (keyboard variant, screen scale, touchpad) is passed as arguments.
+        mkNiri = { xkbVariant ? null, scale, touchpad }: inputs.wrapper-modules.wrappers.niri.wrap {
           package = inputs'.niri.packages.niri;
           inherit pkgs;
           settings = {
             prefer-no-csd = {};
 
-            input.keyboard.xkb.layout = "fr"; 
-            input.keyboard.xkb.variant = "mac";
+            input.keyboard.xkb = { layout = "fr"; } // lib.optionalAttrs (xkbVariant != null) { variant = xkbVariant; };
 
-            input.touchpad.click-method = "clickfinger";
-            input.touchpad.natural-scroll = {};
-            input.touchpad.scroll-factor = 0.25;
+            input.touchpad = touchpad;
 
-            outputs."eDP-1".scale = 1.5625;
+            outputs."eDP-1".scale = scale;
 
             layout.gaps = 12;
 
@@ -147,6 +142,32 @@
             };
           };
         };
+      in {
+        # Custom wrapped packages (like Niri from the tutorial) go here
+        packages.myNoctalia = inputs.wrapper-modules.wrappers.noctalia-shell.wrap {
+          inherit pkgs;
+          settings = builtins.fromJSON (builtins.readFile ./home/desktops/niri/noctalia.json);
+        };
+
+        # MacBook: Retina screen, Apple trackpad
+        packages.myNiri = mkNiri {
+          xkbVariant = "mac";
+          scale = 1.5625;
+          touchpad = {
+            click-method = "clickfinger";
+            natural-scroll = {};
+            scroll-factor = 0.25;
+          };
+        };
+
+        # ThinkPad T495s: 1080p screen, trackpad with physical buttons
+        packages.myNiriThinkpad = mkNiri {
+          scale = 1.0;
+          touchpad = {
+            tap = {};
+            natural-scroll = {};
+          };
+        };
       };
 
       flake = {
@@ -162,7 +183,7 @@
           modules = [
             { nixpkgs.hostPlatform = "aarch64-linux"; }
             inputs.apple-silicon-support.nixosModules.apple-silicon-support
-            ./hosts/laptop/default.nix
+            ./hosts/macbook/default.nix
 
             inputs.home-manager.nixosModules.home-manager
             {
@@ -170,7 +191,26 @@
               home-manager.useUserPackages = true;
               home-manager.backupFileExtension = "backup";
               home-manager.users.lena = import ./home/default.nix;
-              home-manager.extraSpecialArgs = { inherit inputs; };
+              home-manager.extraSpecialArgs = { inherit inputs; niriPackage = "myNiri"; };
+            }
+          ];
+        };
+
+        nixosConfigurations.thinkpad = nixpkgs.lib.nixosSystem {
+          specialArgs = { inherit inputs; };
+
+          modules = [
+            { nixpkgs.hostPlatform = "x86_64-linux"; }
+            inputs.nixos-hardware.nixosModules.lenovo-thinkpad-t495
+            ./hosts/thinkpad/default.nix
+
+            inputs.home-manager.nixosModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.backupFileExtension = "backup";
+              home-manager.users.lena = import ./home/default.nix;
+              home-manager.extraSpecialArgs = { inherit inputs; niriPackage = "myNiriThinkpad"; };
             }
           ];
         };
