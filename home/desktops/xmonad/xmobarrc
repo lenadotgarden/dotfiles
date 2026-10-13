@@ -3,7 +3,7 @@ Config
   , bgColor = "#11111b"
   , fgColor = "#cdd6f4"
   , alpha = 215
-  , position = BottomSize C 96 36
+  , position = BottomH 36
   , lowerOnStart = True
   , allDesktops = True
   , commands =

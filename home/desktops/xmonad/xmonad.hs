@@ -33,8 +33,8 @@ myManageHook = composeAll
 
 myPP :: PP
 myPP = def
-  -- three opacity tiers: current = solid pill, occupied = ~70%, empty = ~30%
-  { ppCurrent = xmobarColor "#11111b" "#89b4fa" . wrap "  " "  "
+  -- three opacity tiers: current = full accent, occupied = ~70%, empty = ~30% (no boxes)
+  { ppCurrent = xmobarColor "#89b4fa" "" . wrap "  " "  "
   , ppVisible = xmobarColor "#cdd6f4" "" . wrap "  " "  "
   , ppHidden = xmobarColor "#a6adc8" "" . wrap "  " "  "
   , ppHiddenNoWindows = xmobarColor "#45475a" "" . wrap "  " "  "
