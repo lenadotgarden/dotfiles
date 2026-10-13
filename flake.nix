@@ -18,7 +18,7 @@
 
     # DankMaterialShell from upstream (nixpkgs' copy lags behind)
     dms = {
-      url = "github:AvengeMedia/DankMaterialShell";
+      url = "github:AvengeMedia/DankMaterialShell/stable"; # master needs a newer Go than nixpkgs has
       inputs.nixpkgs.follows = "nixpkgs";
     };
     helium.url = "github:schembriaiden/helium-browser-nix-flake";
