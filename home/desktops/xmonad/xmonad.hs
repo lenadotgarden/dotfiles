@@ -19,7 +19,7 @@ wsKeys :: [KeySym]
 wsKeys = [xK_ampersand, xK_eacute, xK_quotedbl, xK_apostrophe, xK_parenleft]
 
 myLayout = toggleLayouts (noBorders Full) $
-  smartBorders $ spacingWithEdge 8 $ tiled ||| Mirror tiled
+  smartBorders $ spacingWithEdge 10 $ tiled ||| Mirror tiled
   where
     tiled = Tall 1 (3 / 100) (1 / 2)
 
@@ -33,10 +33,11 @@ myManageHook = composeAll
 
 myPP :: PP
 myPP = def
-  { ppCurrent = xmobarColor "#11111b" "#89b4fa" . wrap " " " "
-  , ppVisible = xmobarColor "#cdd6f4" "" . wrap " " " "
-  , ppHidden = xmobarColor "#a6adc8" "" . wrap " " " "
-  , ppHiddenNoWindows = xmobarColor "#45475a" "" . wrap " " " "
+  -- three opacity tiers: current = solid pill, occupied = ~70%, empty = ~30%
+  { ppCurrent = xmobarColor "#11111b" "#89b4fa" . wrap "  " "  "
+  , ppVisible = xmobarColor "#cdd6f4" "" . wrap "  " "  "
+  , ppHidden = xmobarColor "#a6adc8" "" . wrap "  " "  "
+  , ppHiddenNoWindows = xmobarColor "#45475a" "" . wrap "  " "  "
   , ppTitle = xmobarColor "#6c7086" "" . shorten 50
   , ppSep = "   "
   , ppOrder = \(ws : _ : t : _) -> [ws, t]
@@ -46,7 +47,7 @@ myConfig = def
   { modMask = mod4Mask
   , terminal = "kitty"
   , workspaces = myWorkspaces
-  , borderWidth = 2
+  , borderWidth = 0
   , normalBorderColor = "#1e1e2e"
   , focusedBorderColor = "#89b4fa"
   , focusFollowsMouse = False
@@ -60,8 +61,8 @@ myConfig = def
   , ("M-<Space>", spawn "rofi -show drun")
   , ("C-M-<Space>", spawn "rofimoji --action type")
   , ("C-S-s", spawn "flameshot gui")
-  , ("M-w", spawn "wallpaper-search")
-  , ("M-S-w", spawn "wallpaper-search --saved")
+  , ("M-w", spawn "wallpaper-search")            -- gallery (+ random, + search entry)
+  , ("M-S-w", spawn "wallpaper-search --online")  -- search the internet directly
   , ("M-S-l", spawn "loginctl lock-session")
   , ("M-S-e", io (exitWith ExitSuccess))
   , ("M-S-r", spawn "xmonad --recompile && xmonad --restart")
