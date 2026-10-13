@@ -10,6 +10,8 @@
     systemd.enable = false; # no systemd graphical session when niri is started from a TTY
   };
 
-  # DMS turns on power-profiles-daemon, which conflicts with TLP (see power.nix)
-  services.power-profiles-daemon.enable = lib.mkForce false;
+  # DMS's power-saver button needs power-profiles-daemon to actually do anything;
+  # TLP (which managed this before) is disabled in power.nix to avoid the two
+  # fighting over the CPU governor.
+  services.power-profiles-daemon.enable = true;
 }
