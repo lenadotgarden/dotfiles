@@ -2,7 +2,7 @@
 
 let
   wallpaperSearch = pkgs.writeShellScriptBin "wallpaper-search" ''
-    export PATH=${lib.makeBinPath (with pkgs; [ curl jq rofi feh libnotify findutils coreutils gnugrep ])}:$PATH
+    export PATH=${lib.makeBinPath (with pkgs; [ curl jq rofi feh imagemagick libnotify findutils coreutils gnugrep ])}:$PATH
     ${builtins.readFile ./wallpaper-search.sh}
   '';
 in
