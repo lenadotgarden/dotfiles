@@ -24,7 +24,6 @@
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
   hardware.enableRedistributableFirmware = true; # amdgpu + Wi-Fi firmware
-  hardware.graphics.enable = true;
   services.fwupd.enable = true;                  # BIOS/firmware updates from Linux
 
   # Set this to the value in your installer-generated /etc/nixos/configuration.nix

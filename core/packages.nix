@@ -84,18 +84,22 @@
     configDir = "/home/lena/.config/syncthing";
   };
 
-  # XWayland pour exécuter XMonad/apps X11 dans Hyprland
+  # XWayland pour exécuter les apps X11 sous Wayland
   programs.xwayland.enable = true;
 
-  # Hyprland Compositor system-level enablement
-  programs.hyprland.enable = true;
+  # Niri is installed per user (home/desktops/niri); the system only provides
+  # what a compositor session needs.
+  security.polkit.enable = true;
+  hardware.graphics.enable = true;
 
   # XDG Desktop Portals (Requis pour Flameshot / Screen sharing)
   xdg.portal = {
     enable = true;
     extraPortals = [
-      pkgs.xdg-desktop-portal-hyprland
+      pkgs.xdg-desktop-portal-gnome
       pkgs.xdg-desktop-portal-gtk
     ];
+    # Niri sessions (XDG_CURRENT_DESKTOP=niri): screencast via the GNOME portal
+    config.niri.default = [ "gnome" "gtk" ];
   };
 }

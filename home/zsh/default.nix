@@ -83,7 +83,7 @@
 
       # Auto-start WM on TTY1 if not already inside a graphical session
       if [[ "$(tty)" == "/dev/tty1" ]] && [[ -z "$WAYLAND_DISPLAY" ]]; then
-        exec ''${DEFAULT_WM:-Hyprland}
+        exec ''${DEFAULT_WM:-niri}
       fi
     '';
   };

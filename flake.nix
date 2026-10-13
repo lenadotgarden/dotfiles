@@ -56,6 +56,10 @@
 
             window-rules = [
               {
+                matches = [ { app-id = "^quicklauncher$"; } ];
+                open-floating = true;
+              }
+              {
                 geometry-corner-radius = let r = 18.0; in [ r r r r ];
                 clip-to-geometry = true;
               }

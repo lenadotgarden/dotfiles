@@ -3,7 +3,6 @@
 {
   imports = [
     # --- Desktop Environment ---
-    # ./desktops/hyprland
     ./desktops/niri
     # ./desktops/sway
     # ./desktops/xmonad
@@ -28,23 +27,6 @@
     gay = "agy";
     fsel = "quicklauncher";
     sleep = "systemctl suspend";
-  };
-
-  # Service systemd permanent pour Quickshell (Relance automatique garantie)
-  systemd.user.services.quickshell = {
-    Unit = {
-      Description = "Quickshell Desktop Bar Service";
-      After = [ "graphical-session.target" ];
-      PartOf = [ "graphical-session.target" ];
-    };
-    Service = {
-      ExecStart = "${pkgs.quickshell}/bin/quickshell";
-      Restart = "always";
-      RestartSec = "1s";
-    };
-    Install = {
-      WantedBy = [ "graphical-session.target" ];
-    };
   };
 
   # Services systemd permanents pour le presse-papier universel (cliphist + clipse)
@@ -102,7 +84,6 @@
     package = pkgs.apple-cursor;
     size = 24;
     gtk.enable = true;
-    hyprcursor.enable = true;
     x11.enable = true;
   };
 
@@ -175,7 +156,7 @@
       general = {
         lock_cmd = "pidof hyprlock || hyprlock";
         before_sleep_cmd = "loginctl lock-session";
-        after_sleep_cmd = "hyprctl dispatch dpms on";
+        after_sleep_cmd = "niri msg action power-on-monitors";
       };
       listener = [
         {
@@ -185,8 +166,8 @@
         }
         {
           timeout = 300;
-          on-timeout = "hyprctl dispatch dpms off";
-          on-resume = "hyprctl dispatch dpms on";
+          on-timeout = "niri msg action power-off-monitors";
+          on-resume = "niri msg action power-on-monitors";
         }
         {
           timeout = 600;
