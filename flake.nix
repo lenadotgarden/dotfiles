@@ -30,13 +30,14 @@
       let
         # Niri wrapper shared by every NixOS host. What depends on the machine
         # (keyboard variant, screen scale, touchpad) is passed as arguments.
-        mkNiri = { package, xkbVariant ? null, scale, touchpad, shell ? "noctalia" }: inputs.wrapper-modules.wrappers.niri.wrap {
+        mkNiri = { package, xkbVariant ? null, xkbOptions ? null, scale, touchpad, shell ? "noctalia" }: inputs.wrapper-modules.wrappers.niri.wrap {
           inherit package;
           inherit pkgs;
           settings = {
             prefer-no-csd = {};
 
-            input.keyboard.xkb = { layout = "fr"; } // lib.optionalAttrs (xkbVariant != null) { variant = xkbVariant; };
+            input.keyboard.xkb = { layout = "fr"; } // lib.optionalAttrs (xkbVariant != null) { variant = xkbVariant; }
+              // lib.optionalAttrs (xkbOptions != null) { options = xkbOptions; };
 
             input.touchpad = touchpad;
 
@@ -187,6 +188,7 @@
           package = inputs'.niri.packages.niri;
           scale = 1.0;
           shell = "dms";
+          xkbOptions = "altwin:swap_alt_win"; # swap the physical Alt and Win keys
           touchpad = {
             tap = {};
             natural-scroll = {};
