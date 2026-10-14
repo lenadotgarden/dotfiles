@@ -26,6 +26,7 @@
     fsel.url = "github:Mjoyufull/fsel";
     handy.url = "github:cjpais/Handy";
     yazi.url = "github:sxyazi/yazi";
+    blip.url = "github:blip-net/nix"; # officially maintained package for https://blip.net
   };
 
   outputs = inputs@{ self, nixpkgs, flake-parts, ... }:
@@ -230,6 +231,7 @@
           modules = [
             { nixpkgs.hostPlatform = "aarch64-linux"; }
             inputs.apple-silicon-support.nixosModules.apple-silicon-support
+            inputs.blip.nixosModules.default
             ./hosts/macbook/default.nix
 
             inputs.home-manager.nixosModules.home-manager
@@ -249,6 +251,7 @@
           modules = [
             { nixpkgs.hostPlatform = "x86_64-linux"; }
             inputs.nixos-hardware.nixosModules.lenovo-thinkpad-t495
+            inputs.blip.nixosModules.default
             ./hosts/thinkpad/default.nix
 
             inputs.home-manager.nixosModules.home-manager

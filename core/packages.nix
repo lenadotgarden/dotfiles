@@ -18,6 +18,11 @@
   # Tailscale (Client pour Headscale)
   services.tailscale.enable = true;
 
+  # NetBird (self-hosted mesh VPN); the `netbird`/`netbird-ui` packages in
+  # home/default.nix are just the CLI/tray - this is the daemon that actually
+  # owns /var/run/netbird/sock, without which `netbird up` can't connect.
+  services.netbird.enable = true;
+
   # Bluetooth enable
   hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = false;
@@ -91,6 +96,9 @@
   # what a compositor session needs.
   security.polkit.enable = true;
   hardware.graphics.enable = true;
+
+  # Blip (P2P file transfer - https://blip.net), packaged by upstream's own flake
+  programs.blip.enable = true;
 
   # XDG Desktop Portals (Requis pour Flameshot / Screen sharing)
   xdg.portal = {
