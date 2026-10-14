@@ -150,8 +150,9 @@ in
     slurp
     element-desktop
     thunderbird
-    qutebrowser
     claude-code
+    netbird-ui
+    netbird
   ]
   # Handy (speech-to-text) is heavy to build: thousands of Rust/npm derivations
   ++ lib.optional withHandy inputs.handy.packages.${pkgs.stdenv.hostPlatform.system}.default;

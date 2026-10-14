@@ -26,6 +26,11 @@
   # and exporting them would break X11 apps. xMonad: log in on TTY2 and run `startx`.
   home.sessionVariables = {
     DEFAULT_WM = "niri";
+    # Electron apps (Vesktop, Signal, Element) default to XWayland via xwayland-satellite,
+    # which has a known caps-lock sync bug (niri#4600, not niri's fault - fixed upstream by
+    # running natively on Wayland instead). nixpkgs' Electron wrapper only adds the Wayland
+    # ozone flags when both this and WAYLAND_DISPLAY are set, so it's a no-op under xMonad/X11.
+    NIXOS_OZONE_WL = "1";
   } // lib.optionalAttrs (!withXmonad) {
     XDG_CURRENT_DESKTOP = "niri";
     XDG_SESSION_TYPE = "wayland";
