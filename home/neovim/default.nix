@@ -47,6 +47,24 @@
       }
       auto-dark-mode-nvim
 
+      # DankMaterialShell integration: renders a `dms` colorscheme (~/.config/nvim/colors/dms.lua)
+      # via matugen once "neovim" is enabled under DMS Settings > Theme > Matugen Templates.
+      # Needs: `dms ipc call settings set matugenTemplateNeovim true`, then a theme regen
+      # (toggle light/dark once) to generate the file. No-ops gracefully on other hosts.
+      (pkgs.vimUtils.buildVimPlugin {
+        name = "base46";
+        doCheck = false;
+        src = pkgs.fetchFromGitHub {
+          owner = "AvengeMedia";
+          repo = "base46";
+          rev = "83522e02c6c3b4ea901c4bffd9e0a5e0371c1fe6"; # v3.0
+          hash = "sha256-kwDMC6rYzJYECmGnwn8JiAbffUq7hAXcUH6gPSkk2uI=";
+        };
+        config = ''
+          require("base46").setup({})
+        '';
+      })
+
       # Treesitter
       {
         plugin = nvim-treesitter.withAllGrammars;
@@ -418,20 +436,24 @@
         vim.lsp.enable(server)
       end
 
-      -- Auto Dark Mode setup
-      local status_adm, auto_dark_mode = pcall(require, "auto-dark-mode")
-      if status_adm then
-        auto_dark_mode.setup({
-          update_interval = 1000,
-          set_dark_mode = function()
-            vim.api.nvim_set_option_value("background", "dark", {})
-            vim.cmd("colorscheme catppuccin-mocha")
-          end,
-          set_light_mode = function()
-            vim.api.nvim_set_option_value("background", "light", {})
-            vim.cmd("colorscheme catppuccin-latte")
-          end,
-        })
+      -- DankMaterialShell theme, hot-reloaded on wallpaper/light-dark changes by its own
+      -- fs watcher. Falls back to catppuccin + GTK dark/light sync when colors/dms.lua
+      -- hasn't been generated yet (other hosts, or before the matugen template is enabled).
+      if not pcall(vim.cmd.colorscheme, "dms") then
+        local status_adm, auto_dark_mode = pcall(require, "auto-dark-mode")
+        if status_adm then
+          auto_dark_mode.setup({
+            update_interval = 1000,
+            set_dark_mode = function()
+              vim.api.nvim_set_option_value("background", "dark", {})
+              vim.cmd("colorscheme catppuccin-mocha")
+            end,
+            set_light_mode = function()
+              vim.api.nvim_set_option_value("background", "light", {})
+              vim.cmd("colorscheme catppuccin-latte")
+            end,
+          })
+        end
       end
 
       -- Auto-sync Garden on save in Neovim

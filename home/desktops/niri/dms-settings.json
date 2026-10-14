@@ -37,6 +37,7 @@
   "acProfileName": "1",
   "batteryProfileName": "0",
   "batteryAutoPowerSaver": true,
+  "matugenTemplateNeovim": true,
   "osdPowerProfileEnabled": true,
   "updaterCheckOnStart": true,
   "barConfigs": [
@@ -119,7 +120,7 @@
       "islandUseOverlayLayer": false,
       "islandReserveThickness": 24,
       "islandCompactThickness": 38,
-      "islandOuterGap": 1,
+      "islandOuterGap": 4,
       "islandAlongOffset": 0,
       "islandHomeCompactTight": true,
       "islandHomeClockDisplay": "both",
