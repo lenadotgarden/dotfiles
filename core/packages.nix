@@ -107,7 +107,13 @@
       pkgs.xdg-desktop-portal-gnome
       pkgs.xdg-desktop-portal-gtk
     ];
-    # Niri sessions (XDG_CURRENT_DESKTOP=niri): screencast via the GNOME portal
-    config.niri.default = [ "gnome" "gtk" ];
+    # Niri sessions (XDG_CURRENT_DESKTOP=niri): screencast via the GNOME portal,
+    # but Settings (color-scheme, read by Chromium/Helium) via GTK — the GNOME
+    # portal's Settings backend needs a real GNOME session to proxy dconf, which
+    # niri doesn't provide, so apps never see prefer-dark without this override.
+    config.niri = {
+      default = [ "gnome" "gtk" ];
+      "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
+    };
   };
 }

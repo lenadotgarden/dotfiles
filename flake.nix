@@ -90,6 +90,13 @@
             spawn-at-startup = [
               (if shell == "dms" then [ "dms" "run" ] else lib.getExe self'.packages.myNoctalia)
               [ "sh" "-c" "sleep 1 && ${lib.getExe pkgs.hyprlock}" ]
+              # niri is exec'd straight from the TTY login shell, not launched via a
+              # session/display manager, so systemd --user (started earlier by PAM)
+              # never learns WAYLAND_DISPLAY on its own. Without this, any
+              # dbus/systemd-activated service that needs the display (e.g.
+              # xdg-desktop-portal-gtk, which Chromium/Helium query for dark/light
+              # mode) fails outright ("cannot open display").
+              [ "sh" "-c" "systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE; dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE" ]
             ];
             binds = {
               "Mod+Return".spawn-sh = lib.getExe pkgs.kitty;
