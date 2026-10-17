@@ -1,5 +1,10 @@
-{ pkgs, ... }:
+{ pkgs, niriPackage ? null, ... }:
 
+let
+  # DankMaterialShell (thinkpad) generates its own kitty colours via matugen;
+  # other hosts run Noctalia, which themes kitty through pywal instead.
+  usesDmsTheme = niriPackage == "myNiriDms";
+in
 {
   programs.kitty = {
     enable = true;
@@ -50,8 +55,14 @@
       "ctrl+shift+v" = "paste_from_clipboard";
     };
     extraConfig = ''
-      include ~/.cache/wal/colors-kitty.conf
       cursor none
-    '';
+    '' + (if usesDmsTheme then ''
+      # DankMaterialShell/matugen theme: regenerated on wallpaper change and on
+      # `dms ipc call theme toggle` (Mod+D), then hot-reloaded via SIGUSR1.
+      include dank-theme.conf
+      include dank-tabs.conf
+    '' else ''
+      include ~/.cache/wal/colors-kitty.conf
+    '');
   };
 }

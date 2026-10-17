@@ -81,9 +81,28 @@
         export DEEPSEEK_API_KEY="$(cat ~/.deepseek_api_key)"
       fi
 
+      # `dms restart` only works when dms.service is systemd-managed; ours isn't
+      # (niri spawns it directly, see hosts/thinkpad/dms.nix), so upstream's
+      # restart just kills it with nothing left to relaunch it. Do it ourselves.
+      dms() {
+        if [[ "$1" == "restart" ]]; then
+          command dms kill
+          # setsid execs its argument directly, so it can't be handed the
+          # `command` builtin - resolve the real binary path first.
+          local dms_bin="$(command -v dms)"
+          (setsid "$dms_bin" run >/tmp/dms-run.log 2>&1 < /dev/null &)
+        else
+          command dms "$@"
+        fi
+      }
+
       # Auto-start WM on TTY1 if not already inside a graphical session
-      if [[ "$(tty)" == "/dev/tty1" ]] && [[ -z "$WAYLAND_DISPLAY" ]]; then
-        exec ''${DEFAULT_WM:-Hyprland}
+      if [[ "$(tty)" == "/dev/tty1" ]] && [[ -z "$WAYLAND_DISPLAY" ]] && [[ -z "$DISPLAY" ]]; then
+        case "''${DEFAULT_WM:-niri}" in
+          # no exec: if X dies you get a shell instead of an autologin respawn loop
+          xmonad) startx ;;
+          *) exec ''${DEFAULT_WM:-niri} ;;
+        esac
       fi
     '';
   };

@@ -1,0 +1,42 @@
+@import "colors.rasi"
+
+configuration {
+  modi: "drun";
+  show-icons: true;
+  drun-display-format: "{name}";
+}
+
+* {
+  font: "Iosevka 13";
+  background-color: transparent;
+  text-color: @fg;
+}
+
+window {
+  location: center;
+  anchor: center;
+  width: 560px;
+  background-color: @bg;
+  border: 0;
+  border-radius: 20px;
+  padding: 20px;
+}
+
+mainbox { children: [ inputbar, listview ]; spacing: 16px; }
+
+inputbar {
+  children: [ prompt, entry ];
+  background-color: @bg-alt;
+  border-radius: 14px;
+  padding: 14px 18px;
+  spacing: 12px;
+}
+prompt { str: "󰍉"; text-color: @accent; }
+entry { placeholder: "Search apps"; placeholder-color: @dim; }
+
+listview { lines: 7; columns: 1; spacing: 4px; scrollbar: false; fixed-height: true; }
+
+element { padding: 10px 14px; border-radius: 14px; spacing: 14px; }
+element selected.normal { background-color: @accent; text-color: @on-accent; }
+element-icon { size: 1.7em; vertical-align: 0.5; }
+element-text { text-color: inherit; vertical-align: 0.5; }

@@ -14,40 +14,47 @@
     };
 
     apple-silicon-support.url = "github:tpwrules/nixos-apple-silicon";
+    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+
+    # DankMaterialShell from upstream (nixpkgs' copy lags behind)
+    dms = {
+      url = "github:AvengeMedia/DankMaterialShell/stable"; # master needs a newer Go than nixpkgs has
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     helium.url = "github:schembriaiden/helium-browser-nix-flake";
     antigravity-nix.url = "github:jacopone/antigravity-nix";
     fsel.url = "github:Mjoyufull/fsel";
     handy.url = "github:cjpais/Handy";
     yazi.url = "github:sxyazi/yazi";
+    blip.url = "github:blip-net/nix"; # officially maintained package for https://blip.net
   };
 
   outputs = inputs@{ self, nixpkgs, flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       systems = [ "aarch64-linux" "x86_64-linux" ];
 
-      perSystem = { config, self', inputs', pkgs, system, lib, ... }: {
-        # Custom wrapped packages (like Niri from the tutorial) go here
-        packages.myNoctalia = inputs.wrapper-modules.wrappers.noctalia-shell.wrap {
-          inherit pkgs;
-          settings = builtins.fromJSON (builtins.readFile ./home/desktops/niri/noctalia.json);
-        };
-
-        packages.myNiri = inputs.wrapper-modules.wrappers.niri.wrap {
-          package = inputs'.niri.packages.niri;
+      perSystem = { config, self', inputs', pkgs, system, lib, ... }:
+      let
+        # Niri wrapper shared by every NixOS host. What depends on the machine
+        # (keyboard variant, screen scale, touchpad) is passed as arguments.
+        mkNiri = { package, xkbVariant ? null, xkbOptions ? null, scale, touchpad, shell ? "noctalia" }: inputs.wrapper-modules.wrappers.niri.wrap {
+          inherit package;
           inherit pkgs;
           settings = {
             prefer-no-csd = {};
 
-            input.keyboard.xkb.layout = "fr"; 
-            input.keyboard.xkb.variant = "mac";
+            input.keyboard.xkb = { layout = "fr"; } // lib.optionalAttrs (xkbVariant != null) { variant = xkbVariant; }
+              // lib.optionalAttrs (xkbOptions != null) { options = xkbOptions; };
 
-            input.touchpad.click-method = "clickfinger";
-            input.touchpad.natural-scroll = {};
-            input.touchpad.scroll-factor = 0.25;
+            input.touchpad = touchpad;
 
-            outputs."eDP-1".scale = 1.5625;
+            outputs."eDP-1".scale = scale;
 
             layout.gaps = 12;
+            # The island bar already reserves its own strip via its exclusive zone;
+            # niri's gap on top of that is what shows as wallpaper between the bar
+            # and the first window. Cancel just the top gap for the DMS island.
+            layout.struts = lib.optionalAttrs (shell == "dms") { top = -12; };
 
             layout.border.off = {};
             layout.focus-ring.off = {};
@@ -60,6 +67,10 @@
             };
 
             window-rules = [
+              {
+                matches = [ { app-id = "^quicklauncher$"; } ];
+                open-floating = true;
+              }
               {
                 geometry-corner-radius = let r = 18.0; in [ r r r r ];
                 clip-to-geometry = true;
@@ -77,14 +88,20 @@
             xwayland-satellite.path = lib.getExe pkgs.xwayland-satellite;
 
             spawn-at-startup = [
-              (lib.getExe self'.packages.myNoctalia)
+              (if shell == "dms" then [ "dms" "run" ] else lib.getExe self'.packages.myNoctalia)
               [ "sh" "-c" "sleep 1 && ${lib.getExe pkgs.hyprlock}" ]
+              # niri is exec'd straight from the TTY login shell, not launched via a
+              # session/display manager, so systemd --user (started earlier by PAM)
+              # never learns WAYLAND_DISPLAY on its own. Without this, any
+              # dbus/systemd-activated service that needs the display (e.g.
+              # xdg-desktop-portal-gtk, which Chromium/Helium query for dark/light
+              # mode) fails outright ("cannot open display").
+              [ "sh" "-c" "systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE; dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE" ]
             ];
             binds = {
               "Mod+Return".spawn-sh = lib.getExe pkgs.kitty;
               "Mod+O".spawn-sh = "kitty -d ~/Garden -e nvim";
               "Mod+Q".close-window = {};
-              "Mod+Space".spawn-sh = "${lib.getExe self'.packages.myNoctalia} ipc call launcher toggle";
               "Ctrl+Mod+Space".spawn-sh = "${lib.getExe pkgs.rofimoji} --action type";
               "Ctrl+Shift+S".spawn-sh = "grim -g \"$(slurp)\" - | swappy -f -";
 
@@ -144,7 +161,66 @@
 
               "XF86MonBrightnessUp".spawn-sh = "brightnessctl set 5%+";
               "XF86MonBrightnessDown".spawn-sh = "brightnessctl set 5%-";
-            };
+            } // (if shell == "dms" then {
+              # DankMaterialShell (installed system-wide by hosts/thinkpad/dms.nix)
+              "Mod+Space".spawn-sh = "dms ipc call spotlight toggle";
+              "Mod+D".spawn-sh = "dms ipc call theme toggle";            # dark / light
+              "Mod+Comma".spawn-sh = "dms ipc call settings toggle";
+              "Mod+N".spawn-sh = "dms ipc call notifications toggle";
+              "Mod+V".spawn-sh = "dms ipc call clipboard toggle";
+              "Mod+C".spawn-sh = "dms ipc call control-center toggle";
+              "Mod+W".spawn-sh = "dms ipc call wallhavenCarousel toggle";
+              "Mod+Shift+P".spawn-sh = "dms ipc call powermenu toggle";
+              "Mod+Shift+L".spawn-sh = "dms ipc call lock lock";
+              "Mod+Escape".spawn-sh = "dms ipc call processlist toggle";
+              "XF86AudioRaiseVolume".spawn-sh = "dms ipc call audio increment 5";
+              "XF86AudioLowerVolume".spawn-sh = "dms ipc call audio decrement 5";
+              "XF86AudioMute".spawn-sh = "dms ipc call audio mute";
+              "XF86MonBrightnessUp".spawn-sh = "dms ipc call brightness increment 10 \"\"";
+              "XF86MonBrightnessDown".spawn-sh = "dms ipc call brightness decrement 10 \"\"";
+            } else {
+              "Mod+Space".spawn-sh = "${lib.getExe self'.packages.myNoctalia} ipc call launcher toggle";
+            });
+          };
+        };
+      in {
+        # Custom wrapped packages (like Niri from the tutorial) go here
+        packages.myNoctalia = inputs.wrapper-modules.wrappers.noctalia-shell.wrap {
+          inherit pkgs;
+          settings = builtins.fromJSON (builtins.readFile ./home/desktops/niri/noctalia.json);
+        };
+
+        # MacBook: Retina screen, Apple trackpad
+        packages.myNiri = mkNiri {
+          package = inputs'.niri.packages.niri; # niri master, built from source
+          xkbVariant = "mac";
+          scale = 1.5625;
+          touchpad = {
+            click-method = "clickfinger";
+            natural-scroll = {};
+            scroll-factor = 0.25;
+          };
+        };
+
+        # ThinkPad T495s with DankMaterialShell instead of Noctalia
+        packages.myNiriDms = mkNiri {
+          package = inputs'.niri.packages.niri;
+          scale = 1.0;
+          shell = "dms";
+          xkbOptions = "altwin:swap_lalt_lwin"; # swap only the left Alt/Win pair; keep right Alt as AltGr
+          touchpad = {
+            tap = {};
+            natural-scroll = {};
+          };
+        };
+
+        # ThinkPad T495s: 1080p screen, trackpad with physical buttons
+        packages.myNiriThinkpad = mkNiri {
+          package = inputs'.niri.packages.niri; # nixpkgs' niri 26.04 fails to build at the locked nixpkgs (missing libdisplay-info)
+          scale = 1.0;
+          touchpad = {
+            tap = {};
+            natural-scroll = {};
           };
         };
       };
@@ -162,7 +238,8 @@
           modules = [
             { nixpkgs.hostPlatform = "aarch64-linux"; }
             inputs.apple-silicon-support.nixosModules.apple-silicon-support
-            ./hosts/laptop/default.nix
+            inputs.blip.nixosModules.default
+            ./hosts/macbook/default.nix
 
             inputs.home-manager.nixosModules.home-manager
             {
@@ -170,7 +247,27 @@
               home-manager.useUserPackages = true;
               home-manager.backupFileExtension = "backup";
               home-manager.users.lena = import ./home/default.nix;
-              home-manager.extraSpecialArgs = { inherit inputs; };
+              home-manager.extraSpecialArgs = { inherit inputs; niriPackage = "myNiri"; withHandy = true; withFsel = true; withFlakeYazi = true; withNiri = true; withXmonad = false; };
+            }
+          ];
+        };
+
+        nixosConfigurations.thinkpad = nixpkgs.lib.nixosSystem {
+          specialArgs = { inherit inputs; };
+
+          modules = [
+            { nixpkgs.hostPlatform = "x86_64-linux"; }
+            inputs.nixos-hardware.nixosModules.lenovo-thinkpad-t495
+            inputs.blip.nixosModules.default
+            ./hosts/thinkpad/default.nix
+
+            inputs.home-manager.nixosModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.backupFileExtension = "backup";
+              home-manager.users.lena = import ./home/default.nix;
+              home-manager.extraSpecialArgs = { inherit inputs; niriPackage = "myNiriDms"; withHandy = false; withFsel = false; withFlakeYazi = false; withNiri = true; withXmonad = true; };
             }
           ];
         };

@@ -1,0 +1,122 @@
+import System.Exit (ExitCode (ExitSuccess), exitWith)
+import XMonad
+import XMonad.Actions.Navigation2D
+import XMonad.Hooks.EwmhDesktops (ewmh, ewmhFullscreen)
+import XMonad.Hooks.ManageHelpers (doRectFloat, isDialog)
+import XMonad.Hooks.ManageDocks (avoidStruts, docks)
+import XMonad.Layout.NoBorders (noBorders, smartBorders)
+import XMonad.Layout.ResizableTile (MirrorResize (..), ResizableTall (..))
+import XMonad.Layout.Spacing (spacingWithEdge)
+import XMonad.Layout.ToggleLayouts (ToggleLayout (..), toggleLayouts)
+import XMonad.Util.EZConfig (additionalKeys, additionalKeysP)
+import Graphics.X11.ExtraTypes.XF86
+import qualified XMonad.StackSet as W
+
+myWorkspaces :: [String]
+myWorkspaces = ["1", "2", "3", "4", "5"]
+
+-- AZERTY number row: & é " ' (
+wsKeys :: [KeySym]
+wsKeys = [xK_ampersand, xK_eacute, xK_quotedbl, xK_apostrophe, xK_parenleft]
+
+-- plain digit keys too (niri binds both)
+wsDigits :: [KeySym]
+wsDigits = [xK_1, xK_2, xK_3, xK_4, xK_5]
+
+myLayout = avoidStruts $ toggleLayouts (noBorders Full) $
+  smartBorders $ spacingWithEdge 6 $ tiled ||| Mirror tiled
+  where
+    tiled = ResizableTall 1 (3 / 100) (3 / 5) []
+
+-- floating windows open large (not fullscreen), centered
+bigFloat, smallFloat :: ManageHook
+bigFloat = doRectFloat (W.RationalRect 0.12 0.1 0.76 0.78)
+smallFloat = doRectFloat (W.RationalRect 0.25 0.2 0.5 0.6)
+
+myManageHook :: ManageHook
+myManageHook = composeAll
+  [ isDialog --> bigFloat
+  , className =? "flameshot" --> doFloat
+  , className =? "Pavucontrol" --> smallFloat
+  , className =? "nmtui" --> smallFloat
+  , className =? "calendar" --> smallFloat
+  , className =? "quicklauncher" --> bigFloat
+  , className =? "Blueman-manager" --> smallFloat
+  , className =? "Nm-connection-editor" --> smallFloat
+  ]
+
+myConfig = def
+  { modMask = mod1Mask -- Alt = "Mod" (launch/close/exit), Super = navigation (swapped vs niri)
+  , terminal = "kitty"
+  , workspaces = myWorkspaces
+  , borderWidth = 0
+  , normalBorderColor = "#1e1e2e"
+  , focusedBorderColor = "#89b4fa"
+  , focusFollowsMouse = True
+  , layoutHook = myLayout
+  , manageHook = myManageHook <+> manageHook def
+  }
+  `additionalKeysP`
+  [ -- same actions as niri's "Mod+" bindings, but on Alt
+    ("M-<Return>", spawn "kitty")
+  , ("M-o", spawn "kitty -d ~/Garden -e nvim")
+  , ("M-q", kill)
+  , ("M-<Space>", spawn "rofi -show drun -theme ~/.config/rofi/launcher.rasi")
+  , ("C-M-<Space>", spawn "rofimoji --action type")
+  , ("C-S-s", spawn "flameshot gui")
+  , ("M-S-e", io (exitWith ExitSuccess))
+  , ("M-S-r", spawn "xmonad --recompile && xmonad --restart")
+  , ("M-S-l", spawn "loginctl lock-session")
+  , ("M-d", spawn "xtheme toggle")               -- dark / light
+  , ("M-w", spawn "wallpaper-search")            -- gallery (+ random, + search entry)
+  , ("M-S-w", spawn "wallpaper-search --online")  -- search the internet directly
+    -- same actions as niri's "Alt+" bindings, but on Super
+  , ("M4-h", windowGo L False)   -- spatial: focus the window on the left, like niri
+  , ("M4-l", windowGo R False)
+  , ("M4-k", windowGo U False)
+  , ("M4-j", windowGo D False)
+  , ("M4-S-h", windowSwap L False)
+  , ("M4-S-l", windowSwap R False)
+  , ("M4-S-k", windowSwap U False)
+  , ("M4-S-j", windowSwap D False)
+  , ("M4-f", sendMessage ToggleLayout)
+  , ("M4-m", sendMessage ToggleLayout)
+  , ("M4-r", sendMessage NextLayout)
+  , ("M4-t", withFocused $ windows . W.sink)
+  , ("M4-,", sendMessage (IncMasterN 1))
+  , ("M4-.", sendMessage (IncMasterN (-1)))
+  ]
+  `additionalKeys`
+  ( [ ((m .|. mod4Mask, k), windows $ f i)
+    | (ks, i) <- zip (zip wsKeys wsDigits) myWorkspaces
+    , k <- [fst ks, snd ks]
+    , (f, m) <- [(W.view, 0), (W.shift, shiftMask)]
+    ] ++
+    [ ((mod4Mask, xK_minus), sendMessage Shrink)
+    , ((mod4Mask, xK_equal), sendMessage Expand)
+    -- niri's own bindings (Alt+-/=), and an easier-to-find Super+Ctrl+hjkl
+    , ((mod1Mask, xK_minus), sendMessage Shrink)
+    , ((mod1Mask, xK_equal), sendMessage Expand)
+    , ((mod1Mask .|. shiftMask, xK_minus), sendMessage MirrorShrink)
+    , ((mod1Mask .|. shiftMask, xK_equal), sendMessage MirrorExpand)
+    , ((mod4Mask .|. controlMask, xK_h), sendMessage Shrink)
+    , ((mod4Mask .|. controlMask, xK_l), sendMessage Expand)
+    , ((mod4Mask .|. controlMask, xK_j), sendMessage MirrorShrink)
+    , ((mod4Mask .|. controlMask, xK_k), sendMessage MirrorExpand)
+    , ((mod4Mask .|. shiftMask, xK_minus), sendMessage MirrorShrink)  -- window height
+    , ((mod4Mask .|. shiftMask, xK_equal), sendMessage MirrorExpand)
+    , ((0, xF86XK_AudioRaiseVolume), spawn "wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+")
+    , ((0, xF86XK_AudioLowerVolume), spawn "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-")
+    , ((0, xF86XK_AudioMute), spawn "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle")
+    , ((0, xF86XK_MonBrightnessUp), spawn "brightnessctl set 5%+")
+    , ((0, xF86XK_MonBrightnessDown), spawn "brightnessctl set 5%-")
+    ]
+  )
+
+main :: IO ()
+main = xmonad
+  . ewmhFullscreen
+  . ewmh
+  . withNavigation2DConfig def
+  . docks
+  $ myConfig

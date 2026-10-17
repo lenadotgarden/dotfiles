@@ -18,10 +18,10 @@
   # Tailscale (Client pour Headscale)
   services.tailscale.enable = true;
 
-  # Asahi / Apple Silicon support
-  hardware.asahi.enable = true;
-  hardware.asahi.extractPeripheralFirmware = true;
-  hardware.asahi.peripheralFirmwareDirectory = ../firmware;
+  # NetBird (self-hosted mesh VPN); the `netbird`/`netbird-ui` packages in
+  # home/default.nix are just the CLI/tray - this is the daemon that actually
+  # owns /var/run/netbird/sock, without which `netbird up` can't connect.
+  services.netbird.enable = true;
 
   # Bluetooth enable
   hardware.bluetooth.enable = true;
@@ -50,21 +50,8 @@
     };
   };
 
-  # Gestion d'énergie (TLP & Powertop)
-  services.tlp = {
-    enable = true;
-    settings = {
-      CPU_SCALING_GOVERNOR_ON_BAT = "performance";
-      CPU_SCALING_GOVERNOR_ON_AC = "performance";
-      ENERGY_PERF_POLICY_ON_BAT = "performance";
-      ENERGY_PERF_POLICY_ON_AC = "performance";
-      CPU_MIN_PERF_ON_BAT = 100;
-      CPU_MAX_PERF_ON_BAT = 100;
-      RUNTIME_PM_ON_BAT = "on";
-    };
-  };
-
-  powerManagement.powertop.enable = true;
+  # Power management (TLP) is configured per host
+  # (hosts/macbook/asahi.nix, hosts/thinkpad/power.nix)
 
   # Gestion de la fermeture du clapet (Lid switch / Sleep mode)
   services.logind.settings.Login = {
@@ -90,32 +77,9 @@
     wget
     curl
     brightnessctl
-    kbdlight
-    evtest
-    actkbd
-    inputs.antigravity-nix.packages.${pkgs.system}.default
-    inputs.antigravity-nix.packages.${pkgs.system}.google-antigravity-cli
+    inputs.antigravity-nix.packages.${pkgs.stdenv.hostPlatform.system}.default
+    inputs.antigravity-nix.packages.${pkgs.stdenv.hostPlatform.system}.google-antigravity-cli
   ];
-
-  # Hardware brightness keys (Asahi / MacBook)
-  services.actkbd = {
-    enable = true;
-    bindings =
-      let
-        bctl = "${pkgs.brightnessctl}/bin/brightnessctl";
-      in [
-        {
-          keys = [ 224 ]; # Brightness down
-          events = [ "key" ];
-          command = "${bctl} set 5%-";
-        }
-        {
-          keys = [ 225 ]; # Brightness up
-          events = [ "key" ];
-          command = "${bctl} set 5%+";
-        }
-      ];
-  };
 
   # Syncthing Service
   services.syncthing = {
@@ -125,18 +89,31 @@
     configDir = "/home/lena/.config/syncthing";
   };
 
-  # XWayland pour exécuter XMonad/apps X11 dans Hyprland
+  # XWayland pour exécuter les apps X11 sous Wayland
   programs.xwayland.enable = true;
 
-  # Hyprland Compositor system-level enablement
-  programs.hyprland.enable = true;
+  # Niri is installed per user (home/desktops/niri); the system only provides
+  # what a compositor session needs.
+  security.polkit.enable = true;
+  hardware.graphics.enable = true;
+
+  # Blip (P2P file transfer - https://blip.net), packaged by upstream's own flake
+  programs.blip.enable = true;
 
   # XDG Desktop Portals (Requis pour Flameshot / Screen sharing)
   xdg.portal = {
     enable = true;
     extraPortals = [
-      pkgs.xdg-desktop-portal-hyprland
+      pkgs.xdg-desktop-portal-gnome
       pkgs.xdg-desktop-portal-gtk
     ];
+    # Niri sessions (XDG_CURRENT_DESKTOP=niri): screencast via the GNOME portal,
+    # but Settings (color-scheme, read by Chromium/Helium) via GTK — the GNOME
+    # portal's Settings backend needs a real GNOME session to proxy dconf, which
+    # niri doesn't provide, so apps never see prefer-dark without this override.
+    config.niri = {
+      default = [ "gnome" "gtk" ];
+      "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
+    };
   };
 }

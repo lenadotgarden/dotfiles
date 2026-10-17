@@ -1,12 +1,13 @@
-{ config, pkgs, inputs, ... }:
+{ config, lib, pkgs, inputs, withHandy, withFsel, withFlakeYazi, withNiri, withXmonad, ... }:
 
+let
+  # yazi from its flake (master, compiled from source) or the cached nixpkgs build
+  yaziPkg = if withFlakeYazi then inputs.yazi.packages.${pkgs.stdenv.hostPlatform.system}.default else pkgs.yazi;
+in
 {
   imports = [
     # --- Desktop Environment ---
-    # ./desktops/hyprland
-    ./desktops/niri
-    # ./desktops/sway
-    # ./desktops/xmonad
+    # (niri / xmonad are added below, per host)
     # ---------------------------
 
     ./neovim
@@ -14,9 +15,12 @@
     ./zsh
     ./git
     ./tmux
-    ./fsel
     ./librewolf
-  ];
+  ]
+  # fsel is built with naersk (one derivation per Rust crate): heavy to build
+  ++ lib.optional withFsel ./fsel
+  ++ lib.optional withNiri ./desktops/niri
+  ++ lib.optional withXmonad ./desktops/xmonad;
 
   home.username = "lena";
   home.homeDirectory = "/home/lena";
@@ -28,23 +32,6 @@
     gay = "agy";
     fsel = "quicklauncher";
     sleep = "systemctl suspend";
-  };
-
-  # Service systemd permanent pour Quickshell (Relance automatique garantie)
-  systemd.user.services.quickshell = {
-    Unit = {
-      Description = "Quickshell Desktop Bar Service";
-      After = [ "graphical-session.target" ];
-      PartOf = [ "graphical-session.target" ];
-    };
-    Service = {
-      ExecStart = "${pkgs.quickshell}/bin/quickshell";
-      Restart = "always";
-      RestartSec = "1s";
-    };
-    Install = {
-      WantedBy = [ "graphical-session.target" ];
-    };
   };
 
   # Services systemd permanents pour le presse-papier universel (cliphist + clipse)
@@ -102,7 +89,6 @@
     package = pkgs.apple-cursor;
     size = 24;
     gtk.enable = true;
-    hyprcursor.enable = true;
     x11.enable = true;
   };
 
@@ -146,9 +132,8 @@
     imagemagick
     brightnessctl
     playerctl
-    inputs.helium.packages.${pkgs.system}.default
-    inputs.handy.packages.${pkgs.stdenv.hostPlatform.system}.default
-    inputs.yazi.packages.${pkgs.system}.default
+    inputs.helium.packages.${pkgs.stdenv.hostPlatform.system}.default
+    yaziPkg
     telegram-desktop
     signal-desktop
     karere     # Whatsapp Linux Client
@@ -165,8 +150,12 @@
     slurp
     element-desktop
     thunderbird
-    qutebrowser
-  ];
+    claude-code
+    netbird-ui
+    netbird
+  ]
+  # Handy (speech-to-text) is heavy to build: thousands of Rust/npm derivations
+  ++ lib.optional withHandy inputs.handy.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
   # Gestionnaire de mise en veille Hypridle avec économie d'énergie écran
   services.hypridle = {
@@ -175,7 +164,7 @@
       general = {
         lock_cmd = "pidof hyprlock || hyprlock";
         before_sleep_cmd = "loginctl lock-session";
-        after_sleep_cmd = "hyprctl dispatch dpms on";
+        after_sleep_cmd = "niri msg action power-on-monitors";
       };
       listener = [
         {
@@ -185,8 +174,8 @@
         }
         {
           timeout = 300;
-          on-timeout = "hyprctl dispatch dpms off";
-          on-resume = "hyprctl dispatch dpms on";
+          on-timeout = "niri msg action power-off-monitors";
+          on-resume = "niri msg action power-on-monitors";
         }
         {
           timeout = 600;
@@ -199,7 +188,7 @@
   # Configuration Yazi (Explorateur de fichiers par défaut)
   programs.yazi = {
     enable = true;
-    package = inputs.yazi.packages.${pkgs.system}.default;
+    package = yaziPkg;
     enableZshIntegration = true;
     enableBashIntegration = true;
     shellWrapperName = "y";
@@ -225,22 +214,24 @@
   };
 
   # Fichier Desktop personnalisés (.desktop)
-  xdg.desktopEntries.handy = {
-    name = "Handy";
-    comment = "Offline Speech-to-Text Application";
-    exec = "${inputs.handy.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/handy";
-    icon = "handy";
-    terminal = false;
-    categories = [ "Utility" "AudioVideo" ];
-  };
-
-  xdg.desktopEntries.btop = {
-    name = "btop";
-    comment = "Resource Monitor";
-    exec = "kitty -e btop";
-    icon = "btop";
-    terminal = false;
-    categories = [ "System" "Monitor" ];
+  xdg.desktopEntries = {
+    btop = {
+      name = "btop";
+      comment = "Resource Monitor";
+      exec = "kitty -e btop";
+      icon = "btop";
+      terminal = false;
+      categories = [ "System" "Monitor" ];
+    };
+  } // lib.optionalAttrs withHandy {
+    handy = {
+      name = "Handy";
+      comment = "Offline Speech-to-Text Application";
+      exec = "${inputs.handy.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/handy";
+      icon = "handy";
+      terminal = false;
+      categories = [ "Utility" "AudioVideo" ];
+    };
   };
 
   # Layout Rofi pour wallselect

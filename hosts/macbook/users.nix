@@ -8,6 +8,6 @@
     initialPassword = "3141";
   };
 
-  # Autologin user lena on TTY1 to directly launch Hyprland on boot
+  # Autologin user lena on TTY1 to directly launch niri on boot
   services.getty.autologinUser = "lena";
 }
