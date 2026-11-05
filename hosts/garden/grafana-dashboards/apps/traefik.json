@@ -1,0 +1,156 @@
+{
+  "uid": "app-traefik",
+  "title": "App — Traefik (Docker)",
+  "tags": [
+    "app",
+    "docker"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 41,
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Conteneurs actifs",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "targets": [
+        {
+          "expr": "count(docker_container_info{project=\"traefik\"})",
+          "legendFormat": "conteneurs"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "range",
+              "options": {
+                "from": 0,
+                "to": 0,
+                "result": {
+                  "text": "ARRÊTÉ",
+                  "color": "red"
+                }
+              }
+            },
+            {
+              "type": "range",
+              "options": {
+                "from": 1,
+                "to": 1000,
+                "result": {
+                  "text": "EN COURS",
+                  "color": "green"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "textMode": "value_and_name",
+        "colorMode": "background"
+      }
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "CPU par conteneur",
+      "gridPos": {
+        "h": 8,
+        "w": 18,
+        "x": 6,
+        "y": 0
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum by (name) (rate(container_cpu_usage_seconds_total{id!=\"/\"}[5m]) * on(id) group_left(name) docker_container_info{project=\"traefik\"})",
+          "legendFormat": "{{name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Mémoire par conteneur",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum by (name) (container_memory_usage_bytes{id!=\"/\"} * on(id) group_left(name) docker_container_info{project=\"traefik\"})",
+          "legendFormat": "{{name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Réseau (reçu/envoyé)",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "Prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum by (name) (rate(container_network_receive_bytes_total{id!=\"/\"}[5m]) * on(id) group_left(name) docker_container_info{project=\"traefik\"})",
+          "legendFormat": "{{name}} - reçu"
+        },
+        {
+          "expr": "sum by (name) (rate(container_network_transmit_bytes_total{id!=\"/\"}[5m]) * on(id) group_left(name) docker_container_info{project=\"traefik\"})",
+          "legendFormat": "{{name}} - envoyé"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps"
+        },
+        "overrides": []
+      }
+    }
+  ]
+}

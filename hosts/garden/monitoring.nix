@@ -59,8 +59,10 @@
         {
           echo "# HELP docker_container_info Correspondance id cgroup -> nom/projet docker"
           echo "# TYPE docker_container_info gauge"
-          docker ps --no-trunc --format '{{.ID}}|{{.Names}}|{{.Label "com.docker.compose.project"}}' | \
-          while IFS='|' read -r id name project; do
+          docker ps --no-trunc --format '{{.ID}}|{{.Names}}' | \
+          while IFS='|' read -r id name; do
+            wd=$(docker inspect "$id" --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}' 2>/dev/null)
+            project="''${wd##*/}"
             [ -n "$project" ] || project="$name"
             echo "docker_container_info{id=\"/system.slice/docker-$id.scope\",name=\"$name\",project=\"$project\"} 1"
           done

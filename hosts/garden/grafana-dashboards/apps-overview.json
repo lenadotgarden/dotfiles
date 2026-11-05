@@ -1,0 +1,124 @@
+{
+  "uid": "apps-overview",
+  "title": "Applications — Vue d'ensemble",
+  "tags": ["app", "overview"],
+  "timezone": "browser",
+  "schemaVersion": 41,
+  "time": { "from": "now-6h", "to": "now" },
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "Applications natives (NixOS)",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "panels": []
+    },
+    {
+      "id": 2,
+      "type": "table",
+      "title": "Processus natifs",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "expr": "namedprocess_namegroup_num_procs{groupname!~\"other|monitoring\"}",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "transformations": [
+        { "id": "organize", "options": { "excludeByName": { "Time": true, "__name__": true, "job": true, "instance": true }, "renameByName": { "groupname": "Application", "Value": "Processus" } } }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "cellOptions": { "type": "color-background" } },
+          "mappings": [
+            { "type": "range", "options": { "from": 0, "to": 0, "result": { "text": "ARRÊTÉ", "color": "red" } } },
+            { "type": "range", "options": { "from": 1, "to": 1000, "result": { "text": "EN COURS", "color": "green" } } }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "value": null, "color": "green" }] }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Application" }, "properties": [{ "id": "custom.cellOptions", "value": { "type": "auto" } }] }
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "type": "row",
+      "title": "Applications Docker",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 11 },
+      "panels": []
+    },
+    {
+      "id": 4,
+      "type": "table",
+      "title": "Conteneurs Docker (par application)",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "expr": "count by (project, name) (docker_container_info)",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "transformations": [
+        { "id": "organize", "options": { "excludeByName": { "Time": true, "__name__": true, "job": true, "instance": true }, "renameByName": { "project": "Application", "name": "Conteneur", "Value": "Actif" } } }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "type": "value", "options": { "1": { "text": "EN COURS", "color": "green" } } }
+          ],
+          "custom": { "cellOptions": { "type": "color-background" } }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 5,
+      "type": "row",
+      "title": "Vue serveur rapide",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 22 },
+      "panels": []
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Charge (1m)",
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 23 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [{ "expr": "node_load1" }],
+      "fieldConfig": { "defaults": {}, "overrides": [] }
+    },
+    {
+      "id": 7,
+      "type": "gauge",
+      "title": "RAM utilisée",
+      "gridPos": { "h": 6, "w": 6, "x": 6, "y": 23 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [{ "expr": "1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)" }],
+      "fieldConfig": { "defaults": { "unit": "percentunit", "min": 0, "max": 1 }, "overrides": [] }
+    },
+    {
+      "id": 8,
+      "type": "gauge",
+      "title": "Disque / utilisé",
+      "gridPos": { "h": 6, "w": 6, "x": 12, "y": 23 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [{ "expr": "1 - (node_filesystem_avail_bytes{mountpoint=\"/\"} / node_filesystem_size_bytes{mountpoint=\"/\"})" }],
+      "fieldConfig": { "defaults": { "unit": "percentunit", "min": 0, "max": 1 }, "overrides": [] }
+    },
+    {
+      "id": 9,
+      "type": "stat",
+      "title": "Uptime",
+      "gridPos": { "h": 6, "w": 6, "x": 18, "y": 23 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [{ "expr": "time() - node_boot_time_seconds" }],
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] }
+    }
+  ]
+}
