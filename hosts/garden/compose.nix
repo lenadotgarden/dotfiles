@@ -31,5 +31,5 @@
       TimeoutStartSec = 900;
       ExecStart = "${config.virtualisation.docker.package}/bin/docker compose up -d --remove-orphans";
     };
-  }) [ "traefik" "netbird" "pihole" "syncthing" "calcom" "excalidash" "baserow" "mornye" "cadvisor" ]);
+  }) [ "traefik" "netbird" "pihole" "syncthing" "calcom" "excalidash" "baserow" "mornye" "cadvisor" "picard" ]);
 }
