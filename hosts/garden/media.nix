@@ -149,10 +149,11 @@ in
   ];
 
   ############################################################
-  # Navidrome — admin/accès uniquement via NetBird (pas de domaine public ;
-  # route Traefik music.lena.sh retirée pour rester cohérent avec les autres
-  # outils perso : seuls calcom et excalidash restent publics)
+  # Navidrome — accessible via music.lena.sh (Traefik, filtré par IP
+  # NetBird) ou directement en 100.79.103.184:4533.
   ############################################################
+  networking.firewall.interfaces.br-proxy.allowedTCPPorts = [ 4533 ];
+
   services.navidrome = {
     enable = true;
     settings = {

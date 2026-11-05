@@ -88,11 +88,14 @@
   };
 
   ############################################################
-  # Grafana — admin uniquement via NetBird (100.79.103.184:3000), pas de
-  # domaine public. Importer les dashboards communautaires "Node Exporter
-  # Full" (ID 1860) et "Process exporter" (ID 249) depuis grafana.com une
-  # fois connecté.
+  # Grafana — accessible via grafana.lena.sh (Traefik, filtré par IP
+  # NetBird, middleware "netbird-only") ou directement en
+  # 100.79.103.184:3000. Importer les dashboards communautaires "Node
+  # Exporter Full" (ID 1860) et "Process exporter" (ID 249) depuis
+  # grafana.com une fois connecté.
   ############################################################
+  networking.firewall.interfaces.br-proxy.allowedTCPPorts = [ 3000 ];
+
   services.grafana = {
     enable = true;
     settings = {
