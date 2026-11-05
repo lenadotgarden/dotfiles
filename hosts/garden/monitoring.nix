@@ -30,7 +30,48 @@
       "loadavg"
       "cpu"
       "time"
+      "textfile"
     ];
+    extraFlags = [ "--collector.textfile.directory=/var/lib/node-exporter-textfile" ];
+  };
+
+  ############################################################
+  # Correspondance id cgroup -> nom/projet docker, pour joindre les
+  # métriques cAdvisor (qui n'a que l'id cgroup brut, le factory Docker
+  # de cAdvisor étant cassé avec le snapshotter containerd de Docker 29)
+  # à un nom lisible dans Grafana. Republié en métrique via le textfile
+  # collector de node_exporter, régénéré toutes les 30s.
+  ############################################################
+  systemd.tmpfiles.rules = [
+    "d /var/lib/node-exporter-textfile 0755 root root -"
+  ];
+
+  systemd.services.garden-docker-names = {
+    description = "Publie la correspondance id cgroup -> nom/projet docker pour Prometheus";
+    after = [ "docker.service" ];
+    path = [ config.virtualisation.docker.package ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = pkgs.writeShellScript "garden-docker-names" ''
+        set -eu
+        OUT=/var/lib/node-exporter-textfile/docker_containers.prom
+        TMP="$OUT.$$"
+        {
+          echo "# HELP docker_container_info Correspondance id cgroup -> nom/projet docker"
+          echo "# TYPE docker_container_info gauge"
+          docker ps --no-trunc --format '{{.ID}}|{{.Names}}|{{.Label "com.docker.compose.project"}}' | \
+          while IFS='|' read -r id name project; do
+            [ -n "$project" ] || project="$name"
+            echo "docker_container_info{id=\"/system.slice/docker-$id.scope\",name=\"$name\",project=\"$project\"} 1"
+          done
+        } > "$TMP"
+        mv "$TMP" "$OUT"
+      '';
+    };
+  };
+  systemd.timers.garden-docker-names = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = { OnBootSec = "10s"; OnUnitActiveSec = "30s"; };
   };
 
   ############################################################
