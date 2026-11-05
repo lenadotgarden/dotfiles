@@ -4,6 +4,9 @@
   # Stack Docker (remplace Dokploy) : un docker-compose par service dans /srv/garden/<nom>
   # (les fichiers contiennent des secrets -> hors du store Nix). Images épinglées par digest.
   ############################################################
+  # beets-flask (5001) : Traefik (br-proxy) doit pouvoir l'atteindre côté hôte.
+  networking.firewall.interfaces.br-proxy.allowedTCPPorts = [ 5001 ];
+
   systemd.services = {
   garden-docker-network = {
     description = "Réseau Docker 'proxy' (Traefik <-> services)";
