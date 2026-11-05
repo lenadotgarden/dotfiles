@@ -1,0 +1,223 @@
+{ config, lib, pkgs, unstable, ... }:
+
+let
+  sshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQChGh2cqz9B0pyPMjL3yZIp3n/oMLR5gZXfeGOtN0EJ4M/pQCvvaJ/wdsB17doN4BCdRjNzMIwk4cOt6afmPN0VtgY+md607Nre5g/ba1ceRYLaVJvJBam3Hy8EuPynvqoTOgHhpElb4AHQoXz3y9kyX/g5zgx5ipvK5s3y518uUsRHf8iuT36e1jcRODNWvUZsw7HTMC6lEiq/yTdL8Q9lDbDyujQK+OGWZuZREDWjYQft4SPKk84CDcOm2by4J+bbn5xmeh20gXRr1dbQ0rny9rTzjYbWO+k0WLCFo/EhpndQVO6Uzcvmn/SKsTSYb8ezp6qmS+PKzuU+qn2Mtv+z";
+in
+{
+  system.stateVersion = "26.05";
+  nixpkgs.hostPlatform = "aarch64-linux";
+
+  ############################################################
+  # Boot (UEFI aarch64, GRUB en mode "removable" -> pas de NVRAM)
+  ############################################################
+  boot.loader.grub = {
+    enable = true;
+    efiSupport = true;
+    efiInstallAsRemovable = true;
+    device = "nodev";
+    configurationLimit = 8;
+  };
+  boot.loader.efi.canTouchEfiVariables = false;
+  boot.initrd.availableKernelModules = [
+    "virtio_pci" "virtio_scsi" "virtio_blk" "virtio_net" "sd_mod" "sr_mod"
+    "xhci_pci" "usbhid" "nvme" "ahci"
+  ];
+  # console série OCI (ttyAMA0) + console VGA
+  boot.kernelParams = [ "console=tty1" "console=ttyAMA0,115200" "nvme.shutdown_timeout=10" ];
+
+  ############################################################
+  # Réseau : DHCP Oracle (10.0.0.118/24), MTU 9000 comme Ubuntu
+  ############################################################
+  networking.hostName = "garden";
+  networking.useDHCP = false;
+  networking.useNetworkd = true;
+  systemd.network.enable = true;
+  systemd.network.wait-online.enable = true;
+  systemd.network.networks."10-oci" = {
+    matchConfig.MACAddress = "02:00:17:02:b0:09";
+    networkConfig.DHCP = "ipv4";
+    linkConfig.MTUBytes = "9000";
+    dhcpV4Config.RouteMetric = 100;
+  };
+  # DNS hôte : résolveur VCN Oracle puis publics (pas de systemd-resolved :
+  # le port 53 du host est publié par Pi-hole/Docker).
+  networking.nameservers = [ "169.254.169.254" "9.9.9.9" "1.1.1.1" ];
+  services.resolved.enable = false;
+  networking.timeServers = [ "169.254.169.254" ];
+  time.timeZone = "UTC";
+  i18n.defaultLocale = "en_US.UTF-8";
+
+  ############################################################
+  # Utilisateurs
+  ############################################################
+  users.mutableUsers = false;
+  users.groups.ubuntu.gid = 1001;
+  users.groups.hermes.gid = 10000;
+  users.users.hermes = {
+    uid = 10000;
+    group = "hermes";
+    isSystemUser = true;
+    description = "propriétaire du vault (Syncthing/Hermes)";
+  };
+  users.users.ubuntu = {
+    isNormalUser = true;
+    uid = 1001;
+    group = "ubuntu";
+    extraGroups = [ "wheel" "docker" "hermes" ];
+    openssh.authorizedKeys.keys = [ sshKey ];
+  };
+  security.sudo.wheelNeedsPassword = false; # identique à Ubuntu (clé SSH uniquement)
+
+  ############################################################
+  # SSH : 22 / 2222 / 8443 comme avant, clé uniquement, pas de root
+  ############################################################
+  services.openssh = {
+    enable = true;
+    ports = [ 22 2222 8443 ];
+    openFirewall = false;
+    settings = {
+      PasswordAuthentication = false;
+      KbdInteractiveAuthentication = false;
+      PermitRootLogin = "no";
+      X11Forwarding = false;
+      AllowUsers = [ "ubuntu" ];
+      MaxAuthTries = 3;
+      LoginGraceTime = 20;
+      ClientAliveInterval = 300;
+      ClientAliveCountMax = 2;
+    };
+  };
+
+  ############################################################
+  # Pare-feu
+  ############################################################
+  boot.kernel.sysctl = {
+    "net.ipv4.ip_forward" = 1;
+    "net.ipv6.conf.all.forwarding" = 1;
+    "net.ipv4.ip_nonlocal_bind" = 1; # radicale écoute sur 172.30.0.1 (br-proxy)
+    # durcissement noyau (sans impact docker/netbird)
+    "kernel.kptr_restrict" = 2;
+    "kernel.dmesg_restrict" = 1;
+    "kernel.unprivileged_bpf_disabled" = 1;
+    "net.core.bpf_jit_harden" = 2;
+    "net.ipv4.conf.all.accept_redirects" = 0;
+    "net.ipv4.conf.default.accept_redirects" = 0;
+    "net.ipv4.conf.all.send_redirects" = 0;
+    "net.ipv4.tcp_syncookies" = 1;
+  };
+  networking.firewall = {
+    enable = true;
+    checkReversePath = "loose"; # docker + netbird
+    allowedTCPPorts = [ 22 2222 8443 ];
+    allowedUDPPorts = [ 51820 ]; # wireguard netbird
+    trustedInterfaces = [ "wt0" ];
+    # Traefik (réseau proxy, passerelle 172.30.0.1) joint radicale / cal.com / excalidash
+    interfaces.br-proxy.allowedTCPPorts = [ 5232 3100 6767 8008 8009 8010 ];
+    logRefusedConnections = false;
+  };
+
+  # Règles Docker reprises à l'identique de Ubuntu (iptables-persistent)
+  systemd.services.garden-docker-firewall = {
+    description = "Règles DOCKER-USER / FORWARD wt0 (DNS Pi-hole restreint)";
+    after = [ "docker.service" ];
+    requires = [ "docker.service" ];
+    partOf = [ "docker.service" ];
+    wantedBy = [ "multi-user.target" ];
+    path = [ pkgs.iptables ];
+    serviceConfig = { Type = "oneshot"; RemainAfterExit = true; };
+    script = ''
+      set -e
+      iptables -N DOCKER-USER 2>/dev/null || true
+      iptables -F DOCKER-USER
+      iptables -A DOCKER-USER -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+      for p in udp tcp; do
+        iptables -A DOCKER-USER -s 172.19.0.0/16 -p $p --dport 53 -j ACCEPT
+        iptables -A DOCKER-USER -s 100.79.0.0/16 -p $p --dport 53 -j ACCEPT
+      done
+      for p in udp tcp; do
+        iptables -A DOCKER-USER -p $p --dport 53 -j DROP
+      done
+      iptables -A DOCKER-USER -j RETURN
+      # wt0 <-> conteneurs
+      iptables -C FORWARD -o wt0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT 2>/dev/null \
+        || iptables -I FORWARD 1 -o wt0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+      iptables -C FORWARD -i wt0 -j ACCEPT 2>/dev/null \
+        || iptables -I FORWARD 1 -i wt0 -j ACCEPT
+    '';
+  };
+
+  ############################################################
+  # Docker (Dokploy / Swarm / Traefik / apps) — état recréé par restore.sh
+  ############################################################
+  virtualisation.docker = {
+    enable = true;
+    enableOnBoot = true;
+    daemon.settings = {
+      log-driver = "json-file";
+      log-opts = { max-size = "100m"; max-file = "3"; };
+    };
+  };
+
+
+  ############################################################
+  # NetBird client (état /var/lib/netbird conservé ; socket /var/run/netbird/sock = défaut de la CLI nixpkgs)
+  ############################################################
+  systemd.services.netbird = {
+    description = "NetBird mesh network client";
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
+    wantedBy = [ "multi-user.target" ];
+    path = [ pkgs.iproute2 pkgs.iptables pkgs.nftables pkgs.openresolv pkgs.kmod ];
+    environment.SYSTEMD_UNIT = "netbird";
+    serviceConfig = {
+      ExecStart = "${unstable.netbird}/bin/netbird service run --log-level info --daemon-addr unix:///var/run/netbird/sock --log-file /var/log/netbird/client.log";
+      Restart = "always";
+      RestartSec = 10;
+      StateDirectory = "netbird";
+      RuntimeDirectory = "netbird";
+      LogsDirectory = "netbird";
+    };
+  };
+  programs.nix-ld.enable = true;
+  programs.nix-ld.libraries = with pkgs; [ stdenv.cc.cc.lib zlib openssl curl ];
+
+  environment.systemPackages = [ unstable.netbird unstable.claude-code ] ++ (with pkgs; [
+    git vim curl wget htop rsync zstd tmux jq tcpdump dnsutils iproute2 lsof pciutils restic sqlite
+  ]);
+
+  ############################################################
+  # Radicale (CalDAV/CardDAV) — même config qu'Ubuntu
+  ############################################################
+  services.radicale = {
+    enable = true;
+    settings = {
+      server = { hosts = [ "172.30.0.1:5232" ]; max_connections = 20; };
+      auth = {
+        type = "htpasswd";
+        htpasswd_filename = "/etc/radicale/users";
+        htpasswd_encryption = "bcrypt";
+      };
+      rights.type = "owner_only";
+      storage.filesystem_folder = "/var/lib/radicale/collections";
+      logging.level = "info";
+    };
+  };
+  systemd.services.radicale = {
+    after = [ "docker.service" ];
+    wants = [ "docker.service" ];
+  };
+
+  ############################################################
+  # Divers
+  ############################################################
+  zramSwap.enable = true;
+  nix.settings = {
+    experimental-features = [ "nix-command" "flakes" ];
+    trusted-users = [ "root" "@wheel" ];
+    auto-optimise-store = true;
+    allowed-users = [ "@wheel" ];
+  };
+  nix.gc = { automatic = true; dates = "weekly"; options = "--delete-older-than 30d"; };
+  services.journald.extraConfig = "SystemMaxUse=500M";
+  security.sudo.execWheelOnly = true;
+}

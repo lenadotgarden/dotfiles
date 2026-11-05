@@ -1,0 +1,9 @@
+# Destinataires des secrets sops (secrets/*.yaml) :
+#  - admin : clé age locale (~/.config/sops/age/keys.txt) pour éditer depuis le Mac
+#  - garden : clé dérivée de la clé SSH de l'hôte (/etc/ssh/ssh_host_ed25519_key), pour le déchiffrement au boot
+# Édition : sops secrets/garden.yaml
+creation_rules:
+  - path_regex: secrets/.*\.yaml$
+    age: >-
+      age1kshdcdlfu4737cjs0v4dar6l0pxxyrdst5spxgj0z94f0p6jk92s6q7d7c,
+      age1ehtcetf3md9xdgtwxxx7utacypygp8v86zvza0xc92fz7chkwq3sfdw6r6

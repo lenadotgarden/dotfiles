@@ -3,7 +3,12 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    
+
+    # Channel figé utilisé uniquement par le host "garden" (VPS en prod) :
+    # ses mises à jour ne doivent pas suivre nixos-unstable comme les autres hosts.
+    nixpkgs-garden.url = "github:NixOS/nixpkgs/nixos-26.05";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
+
     flake-parts.url = "github:hercules-ci/flake-parts";
     wrapper-modules.url = "github:BirdeeHub/nix-wrapper-modules";
     niri.url = "github:YaLTeR/niri";
@@ -11,6 +16,15 @@
     home-manager = {
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    disko = {
+      url = "github:nix-community/disko/v1.9.0";
+      inputs.nixpkgs.follows = "nixpkgs-garden";
+    };
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs-garden";
     };
 
     apple-silicon-support.url = "github:tpwrules/nixos-apple-silicon";
@@ -269,6 +283,32 @@
               home-manager.users.lena = import ./home/default.nix;
               home-manager.extraSpecialArgs = { inherit inputs; niriPackage = "myNiriDms"; withHandy = false; withFsel = false; withFlakeYazi = false; withNiri = true; withXmonad = true; };
             }
+          ];
+        };
+
+        # garden — VPS Oracle Ampere A1 (aarch64), géré précédemment dans un
+        # repo séparé (/etc/nixos sur le serveur), fusionné ici. Channel figé
+        # (nixpkgs-garden) : indépendant des mises à jour du reste du flake.
+        nixosConfigurations.garden = inputs.nixpkgs-garden.lib.nixosSystem {
+          system = "aarch64-linux";
+          specialArgs = {
+            unstable = import inputs.nixpkgs-unstable {
+              system = "aarch64-linux";
+              config.allowUnfreePredicate = pkg:
+                builtins.elem (inputs.nixpkgs-unstable.lib.getName pkg) [ "claude-code" ];
+            };
+          };
+          modules = [
+            inputs.disko.nixosModules.disko
+            inputs.sops-nix.nixosModules.sops
+            ./hosts/garden/disk.nix
+            ./hosts/garden/default.nix
+            ./hosts/garden/compose.nix
+            ./hosts/garden/matrix.nix
+            ./hosts/garden/media.nix
+            ./hosts/garden/torrent.nix
+            ./hosts/garden/maintenance.nix
+            ./hosts/garden/monitoring.nix
           ];
         };
       };
