@@ -19,7 +19,7 @@ let
       wants = [ "network-online.target" ];
       wantedBy = [ "multi-user.target" ];
       environment.HOME = "/root";
-      path = [ pkgs.rclone pkgs.fuse3 pkgs.gawk ];
+      path = [ pkgs.rclone pkgs.fuse3 pkgs.gawk pkgs.util-linux pkgs.findutils ];
       serviceConfig = {
         Type = "simple";
         ExecStartPre = pkgs.writeShellScript "rclone-${name}-conf" ''
@@ -48,6 +48,14 @@ let
           directory_name_encryption = true
           CONF
           install -d -m ${dirMode} -o root -g ${group} ${mountPoint}
+          # Sécurité : si un service dépendant a démarré avant que le montage FUSE
+          # précédent ne soit effectif (course au boot), il a pu écrire directement
+          # dans le dossier local sous-jacent. rclone refuse de monter sur un dossier
+          # non-vide -> on nettoie, mais seulement si rien n'est actuellement monté
+          # (sinon on toucherait aux vraies données servies par le montage en cours).
+          if ! mountpoint -q ${mountPoint}; then
+            find ${mountPoint} -mindepth 1 -delete
+          fi
         '';
         ExecStart = ''
           ${pkgs.rclone}/bin/rclone mount ${name}crypt: ${mountPoint} \
@@ -98,6 +106,21 @@ in
       "nextcloud-setup" = {
         after = [ "postgresql.service" "rclone-nextcloud-mount.service" ];
         requires = [ "postgresql.service" "rclone-nextcloud-mount.service" ];
+        # rclone-nextcloud-mount.service est "active" dès que le process est lancé,
+        # pas forcément une fois le montage FUSE effectif -> on attend explicitement,
+        # sinon nextcloud-setup peut écrire dans le dossier local sous-jacent au lieu
+        # du montage (course observée au premier déploiement).
+        serviceConfig.ExecStartPre = [
+          (pkgs.writeShellScript "wait-nextcloud-mount" ''
+            set -eu
+            for i in $(seq 1 30); do
+              ${pkgs.util-linux}/bin/mountpoint -q ${nextcloudDataMount} && exit 0
+              sleep 1
+            done
+            echo "timeout en attendant le montage ${nextcloudDataMount}" >&2
+            exit 1
+          '')
+        ];
       };
       "phpfpm-nextcloud" = {
         after = [ "rclone-nextcloud-mount.service" ];
