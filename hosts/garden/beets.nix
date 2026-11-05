@@ -27,7 +27,6 @@ let
 
     duplicates = {
       album = true;
-      checksum = false;
     };
   };
 in
