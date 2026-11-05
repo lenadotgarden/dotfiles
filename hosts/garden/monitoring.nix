@@ -84,6 +84,13 @@
         job_name = "prometheus";
         static_configs = [{ targets = [ "127.0.0.1:9090" ]; }];
       }
+      {
+        # cAdvisor — métriques par conteneur (CPU/RAM/réseau) pour les apps
+        # qui restent en Docker (traefik, pihole, syncthing, calcom,
+        # excalidash, baserow, mornye, netbird-server/dashboard).
+        job_name = "cadvisor";
+        static_configs = [{ targets = [ "172.30.0.1:8081" ]; }];
+      }
     ];
   };
 
