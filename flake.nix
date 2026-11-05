@@ -317,6 +317,7 @@
             ./hosts/garden/monitoring.nix
             ./hosts/garden/comin.nix
             ./hosts/garden/webhook.nix
+            ./hosts/garden/beets.nix
           ];
         };
       };
