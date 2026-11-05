@@ -316,6 +316,7 @@
             ./hosts/garden/maintenance.nix
             ./hosts/garden/monitoring.nix
             ./hosts/garden/comin.nix
+            ./hosts/garden/webhook.nix
           ];
         };
       };
