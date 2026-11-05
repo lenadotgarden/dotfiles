@@ -12,7 +12,7 @@ let
   # Réutilise les secrets media/* (même clé SSH, même mot de passe
   # de chiffrement) : seul le sous-dossier distant change.
   ##########################################################
-  mkRcloneCryptMount = { name, remoteDir, mountPoint, group, dirMode ? "0770" }: {
+  mkRcloneCryptMount = { name, remoteDir, mountPoint, group, uid ? 0, dirMode ? "0770" }: {
     "rclone-${name}-mount" = {
       description = "Montage chiffré (rclone crypt) de la Storage Box Hetzner — ${name}";
       after = [ "network-online.target" ];
@@ -47,7 +47,7 @@ let
           filename_encryption = standard
           directory_name_encryption = true
           CONF
-          install -d -m ${dirMode} -o root -g ${group} ${mountPoint}
+          install -d -m ${dirMode} -o ${toString uid} -g ${group} ${mountPoint}
           # Sécurité : si un service dépendant a démarré avant que le montage FUSE
           # précédent ne soit effectif (course au boot), il a pu écrire directement
           # dans le dossier local sous-jacent. rclone refuse de monter sur un dossier
@@ -61,7 +61,7 @@ let
           ${pkgs.rclone}/bin/rclone mount ${name}crypt: ${mountPoint} \
             --config /run/rclone-${name}/rclone.conf \
             --allow-other \
-            --uid 0 --gid ${toString config.users.groups.${group}.gid} \
+            --uid ${toString uid} --gid ${toString config.users.groups.${group}.gid} \
             --dir-perms ${dirMode} --file-perms 0660 \
             --vfs-cache-mode writes \
             --vfs-cache-max-size 4G \
@@ -78,6 +78,9 @@ let
     };
   };
 
+  # UID fixe (pas celui alloué dynamiquement par le module) : il faut le connaître
+  # à l'évaluation Nix pour l'utiliser comme --uid du montage rclone.
+  nextcloudUid = 10001;
   nextcloudDataMount = "/mnt/nextcloud-data";
   audiobooksMount = "/mnt/audiobooks";
   booksMount = "/mnt/books";
@@ -89,6 +92,7 @@ in
       remoteDir = "nextcloud";
       mountPoint = nextcloudDataMount;
       group = mediaGroup;
+      uid = nextcloudUid;
     }) //
     (mkRcloneCryptMount {
       name = "audiobooks";
@@ -169,7 +173,10 @@ in
       enable_previews = true;
     };
   };
-  users.users.nextcloud.extraGroups = [ mediaGroup ];
+  users.users.nextcloud = {
+    uid = nextcloudUid;
+    extraGroups = [ mediaGroup ];
+  };
 
   services.nginx.virtualHosts.${config.services.nextcloud.hostName} = {
     listen = [{ addr = "172.30.0.1"; port = 8020; }];
