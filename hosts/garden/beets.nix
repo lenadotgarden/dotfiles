@@ -22,7 +22,7 @@ let
 
     fetchart = {
       auto = true;
-      sources = [ "coverart" "musicbrainz" "itunes" ];
+      sources = [ "coverart" "itunes" ];
     };
 
     duplicates = {
