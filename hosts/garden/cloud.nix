@@ -12,7 +12,7 @@ let
   # Réutilise les secrets media/* (même clé SSH, même mot de passe
   # de chiffrement) : seul le sous-dossier distant change.
   ##########################################################
-  mkRcloneCryptMount = { name, remoteDir, mountPoint, group, uid ? 0, dirMode ? "0770" }: {
+  mkRcloneCryptMount = { name, remoteDir, mountPoint, group, dirMode ? "0770" }: {
     "rclone-${name}-mount" = {
       description = "Montage chiffré (rclone crypt) de la Storage Box Hetzner — ${name}";
       after = [ "network-online.target" ];
@@ -47,7 +47,7 @@ let
           filename_encryption = standard
           directory_name_encryption = true
           CONF
-          install -d -m ${dirMode} -o ${toString uid} -g ${group} ${mountPoint}
+          install -d -m ${dirMode} -o root -g ${group} ${mountPoint}
           # Sécurité : si un service dépendant a démarré avant que le montage FUSE
           # précédent ne soit effectif (course au boot), il a pu écrire directement
           # dans le dossier local sous-jacent. rclone refuse de monter sur un dossier
@@ -61,7 +61,7 @@ let
           ${pkgs.rclone}/bin/rclone mount ${name}crypt: ${mountPoint} \
             --config /run/rclone-${name}/rclone.conf \
             --allow-other \
-            --uid ${toString uid} --gid ${toString config.users.groups.${group}.gid} \
+            --uid 0 --gid ${toString config.users.groups.${group}.gid} \
             --dir-perms ${dirMode} --file-perms 0660 \
             --vfs-cache-mode writes \
             --vfs-cache-max-size 4G \
@@ -78,9 +78,6 @@ let
     };
   };
 
-  # UID fixe (pas celui alloué dynamiquement par le module) : il faut le connaître
-  # à l'évaluation Nix pour l'utiliser comme --uid du montage rclone.
-  nextcloudUid = 10001;
   nextcloudDataMount = "/mnt/nextcloud-data";
   audiobooksMount = "/mnt/audiobooks";
   booksMount = "/mnt/books";
@@ -92,7 +89,6 @@ in
       remoteDir = "nextcloud";
       mountPoint = nextcloudDataMount;
       group = mediaGroup;
-      uid = nextcloudUid;
     }) //
     (mkRcloneCryptMount {
       name = "audiobooks";
@@ -108,27 +104,8 @@ in
     }) //
     {
       "nextcloud-setup" = {
-        after = [ "postgresql.service" "rclone-nextcloud-mount.service" ];
-        requires = [ "postgresql.service" "rclone-nextcloud-mount.service" ];
-        # rclone-nextcloud-mount.service est "active" dès que le process est lancé,
-        # pas forcément une fois le montage FUSE effectif -> on attend explicitement,
-        # sinon nextcloud-setup peut écrire dans le dossier local sous-jacent au lieu
-        # du montage (course observée au premier déploiement).
-        serviceConfig.ExecStartPre = [
-          (pkgs.writeShellScript "wait-nextcloud-mount" ''
-            set -eu
-            for i in $(seq 1 30); do
-              ${pkgs.util-linux}/bin/mountpoint -q ${nextcloudDataMount} && exit 0
-              sleep 1
-            done
-            echo "timeout en attendant le montage ${nextcloudDataMount}" >&2
-            exit 1
-          '')
-        ];
-      };
-      "phpfpm-nextcloud" = {
-        after = [ "rclone-nextcloud-mount.service" ];
-        requires = [ "rclone-nextcloud-mount.service" ];
+        after = [ "postgresql.service" ];
+        requires = [ "postgresql.service" ];
       };
       audiobookshelf = {
         after = [ "rclone-audiobooks-mount.service" ];
@@ -141,9 +118,18 @@ in
     };
 
   ############################################################
-  # Nextcloud (cloud.lena.sh) — WebDAV natif sur /remote.php/dav/,
-  # données sur la Storage Box (montage chiffré ci-dessus). DB
-  # Postgres existante (auth peer via socket unix, comme Synapse).
+  # Nextcloud (cloud.lena.sh) — WebDAV natif sur /remote.php/dav/.
+  # DB Postgres existante (auth peer via socket unix, comme Synapse).
+  #
+  # datadir reste LOCAL (défaut du module, /var/lib/nextcloud) :
+  # NixOS déconseille explicitement un datadir sur un montage réseau/FUSE,
+  # l'installeur vérifie strictement la propriété de ${datadir}/config et
+  # ça casse systématiquement avec un montage externe (testé en prod sur
+  # ce host — nextcloud-setup échoue en boucle avec "config is not owned
+  # by user 'nextcloud'", cf. https://nixos.org/manual, section pitfalls).
+  # Le montage chiffré de la Storage Box reste dispo sur nextcloudDataMount
+  # (${nextcloudDataMount}) pour être ajouté a posteriori comme stockage
+  # externe ("Local") depuis l'UI Nextcloud, une fois l'instance up.
   ############################################################
   sops.secrets."nextcloud/admin_pass" = { owner = "nextcloud"; mode = "0400"; };
 
@@ -157,7 +143,6 @@ in
   services.nextcloud = {
     enable = true;
     hostName = "cloud.${domain}";
-    datadir = nextcloudDataMount;
     database.createLocally = false;
     config = {
       dbtype = "pgsql";
@@ -173,10 +158,7 @@ in
       enable_previews = true;
     };
   };
-  users.users.nextcloud = {
-    uid = nextcloudUid;
-    extraGroups = [ mediaGroup ];
-  };
+  users.users.nextcloud.extraGroups = [ mediaGroup ];
 
   services.nginx.virtualHosts.${config.services.nextcloud.hostName} = {
     listen = [{ addr = "172.30.0.1"; port = 8020; }];
