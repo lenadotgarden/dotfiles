@@ -36,6 +36,9 @@ in
 
   environment.etc."beets/config.yaml".source = beetsConfig;
 
+  # beets ne lit pas /etc/beets automatiquement sans BEETSDIR.
+  environment.variables.BEETSDIR = "/etc/beets";
+
   systemd.tmpfiles.rules = [
     "d /var/lib/beets 0750 ubuntu users -"
   ];
