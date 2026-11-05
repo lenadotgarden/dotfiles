@@ -26,6 +26,10 @@
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs-garden";
     };
+    comin = {
+      url = "github:nlewo/comin";
+      inputs.nixpkgs.follows = "nixpkgs-garden";
+    };
 
     apple-silicon-support.url = "github:tpwrules/nixos-apple-silicon";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
@@ -292,6 +296,7 @@
         nixosConfigurations.garden = inputs.nixpkgs-garden.lib.nixosSystem {
           system = "aarch64-linux";
           specialArgs = {
+            inherit inputs;
             unstable = import inputs.nixpkgs-unstable {
               system = "aarch64-linux";
               config.allowUnfreePredicate = pkg:
@@ -301,6 +306,7 @@
           modules = [
             inputs.disko.nixosModules.disko
             inputs.sops-nix.nixosModules.sops
+            inputs.comin.nixosModules.comin
             ./hosts/garden/disk.nix
             ./hosts/garden/default.nix
             ./hosts/garden/compose.nix
@@ -309,6 +315,7 @@
             ./hosts/garden/torrent.nix
             ./hosts/garden/maintenance.nix
             ./hosts/garden/monitoring.nix
+            ./hosts/garden/comin.nix
           ];
         };
       };
