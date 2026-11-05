@@ -88,22 +88,17 @@
   };
 
   ############################################################
-  # Grafana — exposé sur grafana.lena.sh via Traefik (route dans
-  # /srv/garden/traefik/dynamic/grafana.yml, basicAuth "admin-auth" comme
-  # Lidarr en plus de l'auth Grafana elle-même). Importer les dashboards
-  # communautaires "Node Exporter Full" (ID 1860) et "Process exporter"
-  # (ID 249) depuis grafana.com une fois connecté.
+  # Grafana — admin uniquement via NetBird (100.79.103.184:3000), pas de
+  # domaine public. Importer les dashboards communautaires "Node Exporter
+  # Full" (ID 1860) et "Process exporter" (ID 249) depuis grafana.com une
+  # fois connecté.
   ############################################################
-  networking.firewall.interfaces.br-proxy.allowedTCPPorts = [ 3000 ];
-
   services.grafana = {
     enable = true;
     settings = {
       server = {
         http_addr = "0.0.0.0";
         http_port = 3000;
-        domain = "grafana.lena.sh";
-        root_url = "https://grafana.lena.sh/";
       };
       security.admin_user = "admin";
       security.admin_password = "$__file{${config.sops.secrets."monitoring/grafana_admin_password".path}}";

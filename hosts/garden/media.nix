@@ -149,15 +149,14 @@ in
   ];
 
   ############################################################
-  # Navidrome — exposé via Traefik sur music.lena.sh (172.30.0.1:4533)
+  # Navidrome — admin/accès uniquement via NetBird (pas de domaine public ;
+  # route Traefik music.lena.sh retirée pour rester cohérent avec les autres
+  # outils perso : seuls calcom et excalidash restent publics)
   ############################################################
-  # Autorise Traefik (br-proxy) à atteindre Navidrome côté hôte
-  networking.firewall.interfaces.br-proxy.allowedTCPPorts = [ 4533 ];
-
   services.navidrome = {
     enable = true;
     settings = {
-      Address = "172.30.0.1";
+      Address = "0.0.0.0";
       Port = 4533;
       MusicFolder = musicMount;
       ScanInterval = "30m";
