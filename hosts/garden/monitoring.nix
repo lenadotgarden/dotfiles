@@ -118,6 +118,12 @@
           isDefault = true;
         }
       ];
+      dashboards.settings.providers = [
+        {
+          name = "garden";
+          options.path = ./grafana-dashboards;
+        }
+      ];
     };
   };
 }
