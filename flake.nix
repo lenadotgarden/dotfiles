@@ -318,6 +318,7 @@
             ./hosts/garden/comin.nix
             ./hosts/garden/webhook.nix
             ./hosts/garden/beets.nix
+            ./hosts/garden/cloud.nix
           ];
         };
       };
