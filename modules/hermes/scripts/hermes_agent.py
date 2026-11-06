@@ -23,6 +23,10 @@ from telegram.ext import Application, ContextTypes, MessageHandler, filters
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s hermes-agent %(message)s")
 log = logging.getLogger("hermes-agent")
+# httpx/telegram loguent l'URL complète des requêtes, TOKEN INCLUS, en INFO :
+# ça finirait en clair dans le journal systemd sinon.
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
 
 WORKSPACE = Path(os.environ.get("HERMES_WORKSPACE", "/opt/vault"))
 MEMORY_DIR = WORKSPACE / "6 Archive" / "Hermes" / "sessions"

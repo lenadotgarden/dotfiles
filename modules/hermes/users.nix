@@ -13,9 +13,12 @@
   #     ne peut pas s'auto-promouvoir ni exécuter de commande privilégiée.
   ############################################################
   flake.modules.nixos."hermes-users" = { config, lib, pkgs, ... }: {
-    users.groups.hermes-ctl.gid = 10001;
+    # uid 10001 est déjà pris par `nextcloud` (ajouté après coup) : collision
+    # UID réelle détectée en prod (id hermes-ctl affichait "nextcloud") — 10002
+    # est libre, vérifié contre `getent passwd`.
+    users.groups.hermes-ctl.gid = 10002;
     users.users.hermes-ctl = {
-      uid = 10001;
+      uid = 10002;
       group = "hermes-ctl";
       extraGroups = [ "hermes" "systemd-journal" ];
       isSystemUser = true;
