@@ -336,7 +336,6 @@
             self.modules.nixos.hermes-users
             self.modules.nixos.hermes-trust
             self.modules.nixos.hermes-ctl
-            self.modules.nixos.hermes-core
             self.modules.nixos.hermes-real-agent
             ./hosts/garden/hermes.nix
           ];

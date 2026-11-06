@@ -2,29 +2,32 @@
 {
   ############################################################
   # hermes-real-agent — le vrai projet "Hermes Agent" (NousResearch),
-  # celui que l'appli desktop officielle attend. Remplace l'agent custom
-  # (hermes-core) comme cerveau ; réutilise le même utilisateur `hermes`
-  # et donc le même ACL vault déjà corrigé (hermes-vault-acl).
+  # celui que l'appli desktop officielle attend. C'est maintenant LE
+  # cerveau (Telegram + backend desktop) ; hermes-agent-legacy (custom)
+  # est retiré. Réutilise l'utilisateur `hermes` et son ACL vault.
   #
   # backend.mode = "serve" : expose /api/ws en local uniquement
-  # (127.0.0.1:9119) — pas de port public ouvert. L'appli desktop doit
-  # s'y connecter via une passerelle SSH (user ubuntu@garden, tunnel),
-  # jamais en HTTP direct depuis Internet.
+  # (127.0.0.1:9119) — pas de port public ouvert. L'appli desktop s'y
+  # connecte via une passerelle SSH (ubuntu@hermes.lena.sh), jamais en
+  # HTTP direct depuis Internet.
+  #
+  # addToSystemPackages : le CLI `hermes` doit être sur le PATH de
+  # l'utilisateur SSH (ubuntu) pour que la passerelle SSH de l'appli
+  # desktop puisse le trouver et démarrer une session.
   ############################################################
   flake.modules.nixos."hermes-real-agent" = { config, lib, pkgs, ... }: {
     sops.secrets."hermes/backend_session_token" = { owner = "hermes"; mode = "0400"; };
 
-    # Fichier d'env dédié : surtout PAS le même que hermes-agent-legacy
-    # (hermes-agent.env), qui contient aussi TELEGRAM_BOT_TOKEN — sinon le
-    # vrai hermes gateway tente de poller Telegram en même temps que le
-    # bot maison et les deux se font jeter par l'API Telegram (un seul
-    # poller autorisé par token). Telegram reste pour l'instant la
-    # responsabilité exclusive du legacy, tant que la migration vers
-    # `hermes gateway` n'est pas faite délibérément.
+    # TELEGRAM_ALLOWED_USERS n'est pas un secret (juste ton chat_id) :
+    # valeur Nix normale, pas besoin de sops pour ça.
     sops.templates."hermes-real-agent.env" = {
       owner = "hermes";
       mode = "0400";
-      content = "DEEPSEEK_API_KEY=${config.sops.placeholder."hermes/deepseek_api_key"}";
+      content = ''
+        DEEPSEEK_API_KEY=${config.sops.placeholder."hermes/deepseek_api_key"}
+        TELEGRAM_BOT_TOKEN=${config.sops.placeholder."hermes/telegram_bot_token"}
+        TELEGRAM_ALLOWED_USERS=5077790394
+      '';
     };
 
     services.hermes-agent = {
@@ -32,6 +35,7 @@
       user = "hermes";
       group = "hermes";
       workingDirectory = "/opt/vault";
+      addToSystemPackages = true;
       settings.model.default = "deepseek/deepseek-chat";
       environmentFiles = [ config.sops.templates."hermes-real-agent.env".path ];
       backend = {
