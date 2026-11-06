@@ -10,6 +10,10 @@
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     flake-parts.url = "github:hercules-ci/flake-parts";
+    # Pattern dendritic pour les modules Hermes (modules/hermes/) : chaque
+    # fichier s'auto-déclare dans flake.modules.nixos.<nom>, pas d'import
+    # manuel à tenir à jour ici.
+    import-tree.url = "github:vic/import-tree";
     wrapper-modules.url = "github:BirdeeHub/nix-wrapper-modules";
     niri.url = "github:YaLTeR/niri";
 
@@ -49,6 +53,8 @@
 
   outputs = inputs@{ self, nixpkgs, flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
+      imports = [ (inputs.import-tree ./modules) ];
+
       systems = [ "aarch64-linux" "x86_64-linux" ];
 
       perSystem = { config, self', inputs', pkgs, system, lib, ... }:
@@ -319,6 +325,14 @@
             ./hosts/garden/webhook.nix
             ./hosts/garden/beets.nix
             ./hosts/garden/cloud.nix
+
+            # Hermes (dendritic, modules/hermes/*.nix) :
+            self.modules.nixos.hermes-vault-acl
+            self.modules.nixos.hermes-users
+            self.modules.nixos.hermes-trust
+            self.modules.nixos.hermes-ctl
+            self.modules.nixos.hermes-core
+            ./hosts/garden/hermes.nix
           ];
         };
       };
