@@ -18,7 +18,10 @@
     let
       cfg = config.hermes;
       hermesAgent = pkgs.writers.writePython3Bin "hermes-agent"
-        { libraries = [ pkgs.python3Packages.requests pkgs.python3Packages.python-telegram-bot ]; }
+        {
+          libraries = [ pkgs.python3Packages.requests pkgs.python3Packages.python-telegram-bot ];
+          flakeIgnore = [ "E501" "E265" "E131" ];
+        }
         (builtins.readFile ./scripts/hermes_agent.py);
     in
     {

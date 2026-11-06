@@ -9,5 +9,5 @@
   # Le seul chat_id Telegram autorisé à parler à Hermes (toi). Pas un
   # secret — remplace 0 par ton vrai chat_id (demande à @userinfobot sur
   # Telegram, ou dis-le moi et je le mets).
-  hermes.telegramAllowedChatId = 0; # TODO: remplacer par ton vrai chat_id
+  hermes.telegramAllowedChatId = 5077790394;
 }

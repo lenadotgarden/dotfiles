@@ -10,7 +10,7 @@
   ############################################################
   flake.modules.nixos."hermes-ctl" = { config, lib, pkgs, ... }:
     let
-      hermesCtl = pkgs.writers.writePython3Bin "hermes-ctl" { } (builtins.readFile ./scripts/hermes_ctl.py);
+      hermesCtl = pkgs.writers.writePython3Bin "hermes-ctl" { flakeIgnore = [ "E501" "E265" ]; } (builtins.readFile ./scripts/hermes_ctl.py);
     in
     {
       systemd.tmpfiles.rules = [
