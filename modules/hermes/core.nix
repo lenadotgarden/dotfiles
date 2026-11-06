@@ -1,11 +1,14 @@
 { ... }:
 {
   ############################################################
-  # hermes-core — l'agent lui-même : UN process Python (pas d'OpenCode,
-  # pas de CLI tierce), tourne en tant que `hermes` (aucun sudo, aucun
-  # accès docker, écriture limitée à /opt/vault via l'ACL de
-  # hermes-vault-acl). Il parle à l'API Deepseek directement et au pont
-  # Telegram dans le même process (cf scripts/hermes_agent.py).
+  # hermes-core — pont Telegram "maison" écrit avant de découvrir le vrai
+  # projet NousResearch/hermes-agent (cf hermes-real-agent.nix, qui est
+  # maintenant le cerveau officiel). Gardé sous le nom hermes-agent-legacy
+  # (renommé pour ne plus entrer en collision avec le service officiel
+  # `hermes-agent` du module importé) UNIQUEMENT pour ne pas couper le
+  # canal Telegram qui fonctionne déjà, en attendant de le migrer vers
+  # `hermes gateway` (le gateway messagerie natif du vrai projet). À
+  # retirer une fois cette migration faite.
   #
   # La sécurité ne repose pas sur un système de permissions interne au
   # modèle : Hermes n'a tout simplement pas les outils/droits Unix pour
@@ -79,8 +82,8 @@
             seulement le résultat.
         '';
 
-        systemd.services.hermes-agent = {
-          description = "Hermes — agent (Deepseek + pont Telegram)";
+        systemd.services.hermes-agent-legacy = {
+          description = "Hermes (legacy) — pont Telegram maison, à migrer vers hermes gateway";
           after = [ "network-online.target" "sops-nix.service" "garden-vault-acl.service" ];
           wants = [ "network-online.target" ];
           wantedBy = [ "multi-user.target" ];

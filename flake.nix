@@ -14,6 +14,10 @@
     # fichier s'auto-déclare dans flake.modules.nixos.<nom>, pas d'import
     # manuel à tenir à jour ici.
     import-tree.url = "github:vic/import-tree";
+    # Le vrai projet Hermes Agent (NousResearch) — gateway + backend pour
+    # l'appli desktop officielle. nixpkgs non suivi (pas de follows) : il a
+    # son propre pin (uv2nix) pour son packaging Python, à ne pas perturber.
+    hermes-agent.url = "github:NousResearch/hermes-agent";
     wrapper-modules.url = "github:BirdeeHub/nix-wrapper-modules";
     niri.url = "github:YaLTeR/niri";
 
@@ -313,6 +317,7 @@
             inputs.disko.nixosModules.disko
             inputs.sops-nix.nixosModules.sops
             inputs.comin.nixosModules.comin
+            inputs.hermes-agent.nixosModules.default
             ./hosts/garden/disk.nix
             ./hosts/garden/default.nix
             ./hosts/garden/compose.nix
@@ -332,6 +337,7 @@
             self.modules.nixos.hermes-trust
             self.modules.nixos.hermes-ctl
             self.modules.nixos.hermes-core
+            self.modules.nixos.hermes-real-agent
             ./hosts/garden/hermes.nix
           ];
         };
