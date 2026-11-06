@@ -17,6 +17,8 @@
   ############################################################
   flake.modules.nixos."hermes-real-agent" = { config, lib, pkgs, ... }: {
     sops.secrets."hermes/backend_session_token" = { owner = "hermes"; mode = "0400"; };
+    sops.secrets."hermes/deepseek_api_key" = { owner = "hermes"; mode = "0400"; };
+    sops.secrets."hermes/telegram_bot_token" = { owner = "hermes"; mode = "0400"; };
 
     # TELEGRAM_ALLOWED_USERS n'est pas un secret (juste ton chat_id) :
     # valeur Nix normale, pas besoin de sops pour ça.
