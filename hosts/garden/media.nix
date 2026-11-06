@@ -167,6 +167,11 @@ in
       LastFM.Enabled = true;
       LastFM.ApiKey = "9a26827f02d92eb6a6ae8a3241193b8a";
       LastFM.Secret = "22abf953b10fdfc0acd8e627b3446d8b";
+      # Maloja (scrobbler auto-hébergé) via l'API compatible ListenBrainz qu'il expose.
+      # Chaque utilisateur active "Scrobble to ListenBrainz" dans ses réglages perso et
+      # colle la clé API Maloja (admin -> API Keys) à la place d'un vrai token LB.
+      ListenBrainz.Enabled = true;
+      ListenBrainz.BaseURL = "http://100.79.103.184:42010/apis/listenbrainz/1/";
     };
   };
   systemd.services.navidrome = {
