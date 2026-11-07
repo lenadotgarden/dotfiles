@@ -61,8 +61,8 @@
       settings.model.default = "deepseek/deepseek-chat";
       environmentFiles = [ config.sops.templates."hermes-real-agent.env".path ];
       backend = {
-        mode = "serve";
-        host = "127.0.0.1";
+        mode = "dashboard";
+        host = "0.0.0.0";
         port = 9119;
         sessionTokenFile = config.sops.secrets."hermes/backend_session_token".path;
       };
