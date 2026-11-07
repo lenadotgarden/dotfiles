@@ -65,6 +65,7 @@
       workingDirectory = "/opt/vault";
       addToSystemPackages = true;
       settings.model.default = "deepseek/deepseek-chat";
+      settings.discord.auto_thread = false;
       environmentFiles = [ config.sops.templates."hermes-real-agent.env".path ];
       backend = {
         mode = "dashboard";
