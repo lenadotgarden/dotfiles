@@ -63,6 +63,11 @@ in
   };
 
   environment.systemPackages = [
+    # sops sur le PATH système : hermes n'est pas un utilisateur nix
+    # trusted, `nix shell` lui est inaccessible (daemon refuse la
+    # connexion, volontairement — pas d'évasion de sandbox nix). Un
+    # binaire sops déjà construit, lui, ne demande rien au démon.
+    pkgs.sops
     (pkgs.writeShellApplication {
       name = "hermes-git-propose";
       runtimeInputs = [ pkgs.git pkgs.sops pkgs.curl pkgs.jq ];
