@@ -2,7 +2,22 @@
 #  - admin : clé age locale (~/.config/sops/age/keys.txt) pour éditer depuis le Mac
 #  - garden : clé dérivée de la clé SSH de l'hôte (/etc/ssh/ssh_host_ed25519_key), pour le déchiffrement au boot
 # Édition : sops secrets/garden.yaml
+#
+# secrets/hermes-managed.yaml : fichier séparé, Hermes a sa PROPRE clé age
+# dédiée (age1qnrevzv8e68j7wqcvqdukhejp3a3ksm52xck8dw7a603z5h08gpqtltql7,
+# privée dans /var/lib/hermes/.age/keys.txt, générée hors de toute clé admin).
+# Isolation cryptographique volontaire : Hermes ne figure PAS dans la règle
+# générale ci-dessous, donc il est incapable de déchiffrer secrets/garden.yaml
+# (tes autres secrets), même en cas d'instruction malveillante ou d'injection
+# de prompt. admin+garden restent destinataires ici aussi, pour que tu gardes
+# un œil dessus et que sops-nix (clé hôte) puisse toujours le déchiffrer au
+# boot si besoin. Règle plus spécifique, donc placée AVANT la règle générale.
 creation_rules:
+  - path_regex: secrets/hermes-managed\.yaml$
+    age: >-
+      age1kshdcdlfu4737cjs0v4dar6l0pxxyrdst5spxgj0z94f0p6jk92s6q7d7c,
+      age1ehtcetf3md9xdgtwxxx7utacypygp8v86zvza0xc92fz7chkwq3sfdw6r6,
+      age1qnrevzv8e68j7wqcvqdukhejp3a3ksm52xck8dw7a603z5h08gpqtltql7
   - path_regex: secrets/.*\.yaml$
     age: >-
       age1kshdcdlfu4737cjs0v4dar6l0pxxyrdst5spxgj0z94f0p6jk92s6q7d7c,

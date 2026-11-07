@@ -335,12 +335,14 @@
             # hermes-trust/hermes-ctl (cadre de confiance pour l'agent custom
             # retiré) ont été retirés eux aussi — plus personne ne les utilise
             # depuis que le vrai hermes-agent (NousResearch) a remplacé l'agent
-            # maison. À redessiner spécifiquement pour le vrai Hermes si/quand
-            # on lui donne plus de responsabilités serveur.
+            # maison. hermes-autonomy (2026-11-07) lui donne un espace
+            # autonome pour proposer des changements (PR scopée, jamais push
+            # direct sur main) — cf modules/hermes/autonomy.nix.
             self.modules.nixos.hermes-vault-acl
             self.modules.nixos.hermes-users
             self.modules.nixos.hermes-real-agent
             self.modules.nixos.garden-secret-tool
+            self.modules.nixos.hermes-autonomy
             ./hosts/garden/hermes.nix
           ];
         };
