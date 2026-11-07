@@ -150,6 +150,26 @@ in
   };
 
   ############################################################
+  # Nettoyage Docker hebdomadaire (images inutilisées + cache de build) —
+  # jamais --volumes, les données des conteneurs restent intactes. Jusqu'ici
+  # fait à la main (disque plein à 100% le 2026-11-06), maintenant automatique.
+  ############################################################
+  systemd.services.garden-docker-prune = {
+    description = "Nettoyage Docker (images inutilisées, cache de build)";
+    after = [ "docker.service" ];
+    path = [ docker ];
+    serviceConfig = { Type = "oneshot"; };
+    script = ''
+      docker image prune -af
+      docker builder prune -af
+    '';
+  };
+  systemd.timers.garden-docker-prune = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = { OnCalendar = "Sat 04:00"; RandomizedDelaySec = "20min"; Persistent = true; };
+  };
+
+  ############################################################
   # Sauvegardes chiffrées quotidiennes (restic) — dépôt local ; copie hors-serveur sur le Mac
   ############################################################
   services.restic.backups.garden = {
