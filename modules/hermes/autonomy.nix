@@ -73,11 +73,15 @@ in
   };
 
   environment.systemPackages = [
-    # sops sur le PATH système : hermes n'est pas un utilisateur nix
+    # sops + age sur le PATH système : hermes n'est pas un utilisateur nix
     # trusted, `nix shell` lui est inaccessible (daemon refuse la
-    # connexion, volontairement — pas d'évasion de sandbox nix). Un
-    # binaire sops déjà construit, lui, ne demande rien au démon.
+    # connexion, volontairement — pas d'évasion de sandbox nix). Des
+    # binaires déjà construits, eux, ne demandent rien au démon. age (pas
+    # seulement sops) est nécessaire pour déchiffrer les fichiers chiffrés
+    # directement avec `age -r <pubkey hermes>` (ex. cookies déposés dans
+    # /var/lib/hermes/incoming/), par opposition au format sops/yaml.
     pkgs.sops
+    pkgs.age
     (pkgs.writeShellApplication {
       name = "hermes-git-propose";
       runtimeInputs = [ pkgs.git pkgs.sops pkgs.curl pkgs.jq ];
