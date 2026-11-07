@@ -107,15 +107,6 @@
         timeout = 120;
       };
       environmentFiles = [ config.sops.templates."hermes-real-agent.env".path ];
-      # ~/.local/bin n'est pas dans le PATH de l'unité : les CLI installés en
-      # user-space (defuddle, bw, codebase-memory-mcp, agent-reach) restent
-      # sinon appelables seulement par chemin absolu.
-      systemd.services.hermes-agent.path = [ "/var/lib/hermes/.local/bin" ];
-      # Ordre de démarrage : pas de passerelle sans proxy.
-      systemd.services.hermes-agent.after = [ "skillclaw.service" ];
-      systemd.services.hermes-agent.wants = [ "skillclaw.service" ];
-
-
       backend = {
         mode = "dashboard";
         host = "0.0.0.0";
@@ -123,5 +114,14 @@
         sessionTokenFile = config.sops.secrets."hermes/backend_session_token".path;
       };
     };
+
+    # ── Réglages de l'unité (hors de l'attrset services.hermes-agent) ────
+    # ~/.local/bin n'est pas dans le PATH de l'unité : les CLI installés en
+    # user-space (defuddle, bw, codebase-memory-mcp, agent-reach) restent
+    # sinon appelables seulement par chemin absolu.
+    systemd.services.hermes-agent.path = [ "/var/lib/hermes/.local/bin" ];
+    # Ordre de démarrage : pas de passerelle sans proxy.
+    systemd.services.hermes-agent.after = [ "skillclaw.service" ];
+    systemd.services.hermes-agent.wants = [ "skillclaw.service" ];
   };
 }
