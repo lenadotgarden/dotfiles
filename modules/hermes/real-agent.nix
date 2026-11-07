@@ -62,28 +62,6 @@
       '';
     };
 
-    # ── SkillClaw : proxy OpenAI-compatible local ────────────────────────
-    # Installé en user-space (venv uv sous /var/lib/hermes/.local/share) :
-    # Nix ne possède que l'unité, pas les fichiers. S'il est réinstallé,
-    # l'ExecStart ci-dessous reste valable tant que le venv ne bouge pas.
-    systemd.services.skillclaw = {
-      description = "SkillClaw client proxy (DeepSeek via 127.0.0.1:30000)";
-      wantedBy = [ "multi-user.target" ];
-      wants = [ "network-online.target" ];
-      after = [ "network-online.target" ];
-      environment.HOME = "/var/lib/hermes";
-      serviceConfig = {
-        Type = "simple";
-        User = "hermes";
-        Group = "hermes";
-        WorkingDirectory = "/var/lib/hermes";
-        ExecStart = "/var/lib/hermes/.local/share/skillclaw/venv/bin/python -m skillclaw start";
-        Restart = "on-failure";
-        RestartSec = 5;
-        NoNewPrivileges = true;
-      };
-    };
-
     services.hermes-agent = {
       enable = true;
       user = "hermes";
@@ -91,12 +69,6 @@
       workingDirectory = "/opt/vault";
       addToSystemPackages = true;
       settings.model.default = "deepseek/deepseek-chat";
-      # Tout le trafic LLM passe par le proxy local SkillClaw (127.0.0.1:30000),
-      # qui enregistre les sessions et fait évoluer les skills. Le proxy
-      # relaie vers DeepSeek avec sa propre clé (~/.skillclaw/config.yaml).
-      # Si le proxy est arrêté, plus aucun tour ne passe : d'où le service
-      # systemd ci-dessous, démarré avant la passerelle.
-      settings.model.base_url = "http://127.0.0.1:30000/v1";
       settings.discord.auto_thread = false;
       settings.display.tool_progress = "off";
       settings.display.interim_assistant_messages = false;
@@ -120,8 +92,5 @@
     # user-space (defuddle, bw, codebase-memory-mcp, agent-reach) restent
     # sinon appelables seulement par chemin absolu.
     systemd.services.hermes-agent.path = [ "/var/lib/hermes/.local/bin" ];
-    # Ordre de démarrage : pas de passerelle sans proxy.
-    systemd.services.hermes-agent.after = [ "skillclaw.service" ];
-    systemd.services.hermes-agent.wants = [ "skillclaw.service" ];
   };
 }
