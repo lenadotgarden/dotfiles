@@ -85,6 +85,12 @@ in
       LoginGraceTime = 20;
       ClientAliveInterval = 300;
       ClientAliveCountMax = 2;
+      # Le réseau NetBird (wt0, déjà "trusted" dans le firewall juste en
+      # dessous) est exempté des pénalités anti-scan OpenSSH : sinon
+      # l'appli Hermes Desktop (connexions SSH répétées en peu de temps
+      # pour établir sa passerelle) se fait jeter par PerSourcePenalties
+      # ("Connection reset by peer" avant même le handshake).
+      PerSourcePenaltyExemptList = "100.79.0.0/16";
     };
   };
 

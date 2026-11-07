@@ -22,9 +22,16 @@
 
     # TELEGRAM_ALLOWED_USERS n'est pas un secret (juste ton chat_id) :
     # valeur Nix normale, pas besoin de sops pour ça.
+    # restartUnits : le chemin rendu par sops-nix est stable (toujours le
+    # même /run/secrets-rendered/...), donc NixOS ne redémarre PAS
+    # hermes-agent tout seul quand seul le CONTENU change (le nom du
+    # fichier dans l'unit systemd ne bouge pas) — constaté en prod,
+    # Telegram restait configuré avec l'ancien contenu après plusieurs
+    # déploiements. Explicite ici pour que ça ne se reproduise plus.
     sops.templates."hermes-real-agent.env" = {
       owner = "hermes";
       mode = "0400";
+      restartUnits = [ "hermes-agent.service" "hermes-backend.service" ];
       content = ''
         DEEPSEEK_API_KEY=${config.sops.placeholder."hermes/deepseek_api_key"}
         TELEGRAM_BOT_TOKEN=${config.sops.placeholder."hermes/telegram_bot_token"}
