@@ -2,6 +2,10 @@
 
 let
   sshKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQChGh2cqz9B0pyPMjL3yZIp3n/oMLR5gZXfeGOtN0EJ4M/pQCvvaJ/wdsB17doN4BCdRjNzMIwk4cOt6afmPN0VtgY+md607Nre5g/ba1ceRYLaVJvJBam3Hy8EuPynvqoTOgHhpElb4AHQoXz3y9kyX/g5zgx5ipvK5s3y518uUsRHf8iuT36e1jcRODNWvUZsw7HTMC6lEiq/yTdL8Q9lDbDyujQK+OGWZuZREDWjYQft4SPKk84CDcOm2by4J+bbn5xmeh20gXRr1dbQ0rny9rTzjYbWO+k0WLCFo/EhpndQVO6Uzcvmn/SKsTSYb8ezp6qmS+PKzuU+qn2Mtv+z";
+  # Clé perso de Léna (MacBook Pro), ajoutée 2026-11-07 pour scp/ssh direct
+  # depuis son Mac (jusque-là seule la clé Oracle Cloud ci-dessus était
+  # autorisée pour ubuntu).
+  lenaMacKey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDOIZw3DrQffv5jPSinILYK3eJ7Yr/zpaI0ThNaDOntVYoA1KtVrJIV+6RwIyED0M4ybLGkqX0QL5gfbJWO+A/4Cq3pfXgPyS8Nahyyb7W5SOSv9Fk53NvoFXivdXtT7jliNhfb6kOH6Po1Ug1kZ5NGI0fiyTPzIhD1Ctmy9/3fKj3wywHf1/xtKjYrcVus7TWCXdDqrFAYEWdDDgu+1JB2MMZUZrHmVT+ra9oD0aFwZCY3dnQxgvCVwoV9sXhiQgfxvJuPHP2hD+4d/aTqpNvBSlotdfyynSASjKZwh2Qnl4UFmyAsz2X+MjB1hOo+6VjDQDUdpj3fNGoqUdvTEH7NbsR1y2L/JZPTCjdGMxbEUJHKKOefimdi+xTHun4yqId9kOX5la+UyAvtou2L9eqJVlkbYWJ83K1gbDX0ytjoVkLBoCPqR26G515yCxax6iBB/pv9FlyPAQPnC5jda+0RK8R1EBUsgNv8wvFuyBYS+0p+0an3jw0u2Miirn34p777xx6bgblMxoFB0NGjXkWQEq6Ob8amjlCN3ZfA3sWpYWh6gf7KWpBQm9L1AYx0MzGKIwBMIwMNQuTXoy0ZWdsJAjxO4RIAGJpah38tJTi/mdyRLGW1qKrPhbMikHguE4LIq7Vm0QmNgRo1muJYEDF5iAX4W5cgJIWCnCByybLC6Q== alex.kalonkoat@gmail.com";
 in
 {
   system.stateVersion = "26.05";
@@ -64,7 +68,7 @@ in
     uid = 1001;
     group = "ubuntu";
     extraGroups = [ "wheel" "docker" "hermes" ];
-    openssh.authorizedKeys.keys = [ sshKey ];
+    openssh.authorizedKeys.keys = [ sshKey lenaMacKey ];
   };
   security.sudo.wheelNeedsPassword = false; # identique à Ubuntu (clé SSH uniquement)
 
