@@ -170,11 +170,15 @@ in
   };
 
   ############################################################
-  # Sauvegardes chiffrées quotidiennes (restic) — dépôt local ; copie hors-serveur sur le Mac
+  # Sauvegardes chiffrées quotidiennes (restic) — directement sur la
+  # Storage Box Hetzner en SFTP (même clé que le montage musique dans
+  # media.nix), plutôt que de s'accumuler sur le disque local de garden
+  # (45 Go, serré). restic chiffre déjà tout lui-même (passwordFile) —
+  # le transport SFTP est en plus chiffré par SSH.
   ############################################################
   services.restic.backups.garden = {
     initialize = true;
-    repository = "/var/backups/restic";
+    repository = "sftp:u709640@u709640.your-storagebox.de:restic-garden";
     passwordFile = "/var/lib/garden/restic-password";
     paths = [ "/srv/garden" "/var/lib/radicale" "/var/lib/netbird" "/opt/vault" "/opt/syncthing" "/opt/unbound" "/etc/ssh" "/etc/nixos" "/var/backups/garden/dumps" "/var/lib/matrix-synapse" ];
     extraBackupArgs = [ "--exclude-caches" ];
@@ -182,4 +186,14 @@ in
     pruneOpts = [ "--keep-daily 7" "--keep-weekly 5" "--keep-monthly 6" ];
     timerConfig = { OnCalendar = "03:00"; RandomizedDelaySec = "10min"; Persistent = true; };
   };
+
+  # restic (root) utilise la clé SSH de la Storage Box (secret déjà
+  # présent pour le montage musique, media.nix) sur le port SFTP 23.
+  programs.ssh.extraConfig = ''
+    Host u709640.your-storagebox.de
+      User u709640
+      Port 23
+      IdentityFile ${config.sops.secrets."media/storagebox_ssh_key".path}
+      StrictHostKeyChecking accept-new
+  '';
 }
