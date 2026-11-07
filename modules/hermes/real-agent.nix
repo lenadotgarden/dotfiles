@@ -29,6 +29,7 @@
     sops.secrets."hermes/telegram_bot_token" = { owner = "hermes"; mode = "0400"; };
     sops.secrets."hermes/dashboard_basic_auth_password" = { owner = "hermes"; mode = "0400"; };
     sops.secrets."hermes/dashboard_basic_auth_secret" = { owner = "hermes"; mode = "0400"; };
+    sops.secrets."hermes/excalidash_api_key" = { owner = "hermes"; mode = "0400"; };
 
     # TELEGRAM_ALLOWED_USERS n'est pas un secret (juste ton chat_id) :
     # valeur Nix normale, pas besoin de sops pour ça.
@@ -49,6 +50,8 @@
         HERMES_DASHBOARD_BASIC_AUTH_USERNAME=lena
         HERMES_DASHBOARD_BASIC_AUTH_PASSWORD=${config.sops.placeholder."hermes/dashboard_basic_auth_password"}
         HERMES_DASHBOARD_BASIC_AUTH_SECRET=${config.sops.placeholder."hermes/dashboard_basic_auth_secret"}
+        EXCALIDASH_API_URL=https://excali.lena.sh
+        EXCALIDASH_API_KEY=${config.sops.placeholder."hermes/excalidash_api_key"}
       '';
     };
 

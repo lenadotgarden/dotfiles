@@ -340,6 +340,7 @@
             self.modules.nixos.hermes-vault-acl
             self.modules.nixos.hermes-users
             self.modules.nixos.hermes-real-agent
+            self.modules.nixos.garden-secret-tool
             ./hosts/garden/hermes.nix
           ];
         };
