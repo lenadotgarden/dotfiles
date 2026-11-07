@@ -6,19 +6,29 @@
   # cerveau (Telegram + backend desktop) ; hermes-agent-legacy (custom)
   # est retiré. Réutilise l'utilisateur `hermes` et son ACL vault.
   #
-  # backend.mode = "serve" : expose /api/ws en local uniquement
-  # (127.0.0.1:9119) — pas de port public ouvert. L'appli desktop s'y
-  # connecte via une passerelle SSH (ubuntu@hermes.lena.sh), jamais en
-  # HTTP direct depuis Internet.
+  # backend.mode = "dashboard" : API + panneau web, sur 0.0.0.0:9119.
+  # Pas un vrai risque d'exposition publique : le firewall de garden est
+  # en default-deny (seuls 22/2222/8443 sont ouverts), et wt0 (NetBird,
+  # réseau déjà "trusted") est la seule interface qui le contourne — donc
+  # dans les faits, joignable uniquement depuis ton Mac via NetBird
+  # (http://100.79.103.184:9119), jamais depuis l'Internet public.
   #
-  # addToSystemPackages : le CLI `hermes` doit être sur le PATH de
-  # l'utilisateur SSH (ubuntu) pour que la passerelle SSH de l'appli
-  # desktop puisse le trouver et démarrer une session.
+  # Deux couches d'auth (un bind non-loopback active le portail
+  # automatiquement) :
+  #  - sessionTokenFile : jeton API pour la connexion "Remote gateway"
+  #    de l'appli desktop.
+  #  - HERMES_DASHBOARD_BASIC_AUTH_* : login/mot de passe pour le
+  #    panneau web dans un navigateur.
+  #
+  # addToSystemPackages : le CLI `hermes` doit être sur le PATH système
+  # (utile pour du debug via SSH en tant que ubuntu).
   ############################################################
   flake.modules.nixos."hermes-real-agent" = { config, lib, pkgs, ... }: {
     sops.secrets."hermes/backend_session_token" = { owner = "hermes"; mode = "0400"; };
     sops.secrets."hermes/deepseek_api_key" = { owner = "hermes"; mode = "0400"; };
     sops.secrets."hermes/telegram_bot_token" = { owner = "hermes"; mode = "0400"; };
+    sops.secrets."hermes/dashboard_basic_auth_password" = { owner = "hermes"; mode = "0400"; };
+    sops.secrets."hermes/dashboard_basic_auth_secret" = { owner = "hermes"; mode = "0400"; };
 
     # TELEGRAM_ALLOWED_USERS n'est pas un secret (juste ton chat_id) :
     # valeur Nix normale, pas besoin de sops pour ça.
@@ -36,6 +46,9 @@
         DEEPSEEK_API_KEY=${config.sops.placeholder."hermes/deepseek_api_key"}
         TELEGRAM_BOT_TOKEN=${config.sops.placeholder."hermes/telegram_bot_token"}
         TELEGRAM_ALLOWED_USERS=5077790394
+        HERMES_DASHBOARD_BASIC_AUTH_USERNAME=lena
+        HERMES_DASHBOARD_BASIC_AUTH_PASSWORD=${config.sops.placeholder."hermes/dashboard_basic_auth_password"}
+        HERMES_DASHBOARD_BASIC_AUTH_SECRET=${config.sops.placeholder."hermes/dashboard_basic_auth_secret"}
       '';
     };
 
