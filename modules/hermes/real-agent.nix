@@ -66,6 +66,8 @@
       addToSystemPackages = true;
       settings.model.default = "deepseek/deepseek-chat";
       settings.discord.auto_thread = false;
+      settings.display.tool_progress = "off";
+      settings.display.interim_assistant_messages = false;
       environmentFiles = [ config.sops.templates."hermes-real-agent.env".path ];
       backend = {
         mode = "dashboard";

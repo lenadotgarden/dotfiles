@@ -1,8 +1,8 @@
 ############################################################
-# hermes-autonomy — Hermes peut PROPOSER des changements à sa propre
-# config/secrets sans jamais toucher le checkout de prod (/etc/nixos,
-# root:root, hermes n'y a aucun accès écriture) ni pousser sur `main`
-# (qui ferait déployer comin automatiquement).
+# hermes-autonomy — Hermes peut PROPOSER des changements (sa propre
+# config, les fichiers par service de hosts/garden/) sans jamais toucher
+# le checkout de prod (/etc/nixos, root:root, hermes n'y a aucun accès
+# écriture) ni pousser/fusionner sur `main` lui-même.
 #
 # Garde-fous, du plus fort au plus faible :
 #  1. Isolation cryptographique : clé age DÉDIÉE à Hermes
@@ -17,25 +17,35 @@
 #  3. Outil étroit (hermes-git-propose) : seul chemin pour committer depuis
 #     ce clone. Refuse tout fichier en dehors de l'allowlist ci-dessous,
 #     crée toujours une branche hermes/auto-*, ouvre une PR via l'API
-#     GitHub — ne pousse jamais sur `main`.
-#  4. Le jeton GitHub que ce script utilise est un fine-grained PAT propre
-#     à Hermes (stocké DANS secrets/hermes-managed.yaml, donc lui-même
-#     protégé par (1)) : à créer dans github.com/settings/tokens avec
-#     Contents: Read&Write + Pull requests: Read&Write sur
+#     GitHub — ne pousse jamais sur `main`. Allowlist (2026-11-07, élargie
+#     sur demande explicite de Léna) : sa propre config
+#     (modules/hermes/real-agent.nix), ses secrets
+#     (secrets/hermes-managed.yaml), et tout hosts/garden/*.nix SAUF
+#     default.nix (réseau, SSH, utilisateurs, disque — hors de portée).
+#     Note : ça inclut comin.nix et disk.nix, qui ont plus de blast radius
+#     que "gérer une appli" — explicitement acceptés par Léna en élargissant
+#     à "tout hosts/garden/*.nix sauf default.nix", pas un oubli.
+#  4. hermes-git-merge est un outil SÉPARÉ de hermes-git-propose : fusionner
+#     une PR n'est jamais un effet de bord de la proposer. Pas de variable
+#     d'environnement "auto-merge" permanente : Hermes ne peut se
+#     l'accorder lui-même (ça avait été explicitement proposé par Hermes
+#     sous couvert de "corriger un bug" qui n'existait pas — refusé). Léna
+#     garde le dernier mot à chaque fusion, dans la conversation du moment.
+#  5. Le jeton GitHub que ces outils utilisent est un fine-grained PAT
+#     propre à Hermes (stocké DANS secrets/hermes-managed.yaml, donc
+#     lui-même protégé par (1)) : Contents RW + Pull requests RW sur
 #     lenadotgarden/dotfiles UNIQUEMENT, zéro droit admin. Même si ce token
-#     fuitait, il ne permet pas de pousser sur main ni de changer les
-#     protections de branche.
+#     fuitait, il ne permet pas de changer les protections de branche.
 #
 # Ce que ça NE fait PAS (volontairement) : pas de sudo supplémentaire pour
-# hermes, pas d'accès à /etc/nixos, pas de push direct sur main. La fusion
-# de la PR reste un geste humain (toi, dans GitHub).
+# hermes, pas d'accès à /etc/nixos, pas de push direct sur main, pas de
+# bascule "auto-merge" permanente que Hermes pourrait s'activer seul.
 ############################################################
 { ... }:
 {
 flake.modules.nixos."hermes-autonomy" = { config, lib, pkgs, ... }:
 let
   cloneDir = "/var/lib/hermes/dotfiles";
-  allowedPaths = [ "secrets/hermes-managed.yaml" ];
 in
 {
   systemd.services."hermes-dotfiles-clone" = {
@@ -85,15 +95,15 @@ in
         shift
         title="$*"
 
-        allowed=0
-        # shellcheck disable=SC2043
-        for p in ${lib.concatStringsSep " " allowedPaths}; do
-          if [ "$file" = "$p" ]; then
-            allowed=1
-          fi
-        done
+        case "$file" in
+          secrets/hermes-managed.yaml) allowed=1 ;;
+          modules/hermes/real-agent.nix) allowed=1 ;;
+          hosts/garden/default.nix) allowed=0 ;;
+          hosts/garden/*.nix) allowed=1 ;;
+          *) allowed=0 ;;
+        esac
         if [ "$allowed" -ne 1 ]; then
-          echo "refusé : $file n'est pas dans l'allowlist (${lib.concatStringsSep ", " allowedPaths})" >&2
+          echo "refusé : $file n'est pas dans l'allowlist (secrets/hermes-managed.yaml, modules/hermes/real-agent.nix, hosts/garden/*.nix sauf default.nix)" >&2
           exit 1
         fi
 
@@ -129,6 +139,40 @@ in
 
         git checkout main
         echo "PR ouverte : $pr_url"
+      '';
+    })
+    (pkgs.writeShellApplication {
+      name = "hermes-git-merge";
+      runtimeInputs = [ pkgs.git pkgs.sops pkgs.curl pkgs.jq ];
+      text = ''
+        # Usage : hermes-git-merge <numéro de PR>
+        # Outil séparé de hermes-git-propose à dessein : fusionner une PR
+        # n'est jamais un effet de bord de la proposer. À n'appeler QUE si
+        # Léna l'a explicitement demandé, dans la conversation en cours,
+        # pour CETTE PR précise. Pas de mode permanent.
+        if [ $# -ne 1 ]; then
+          echo "usage: hermes-git-merge <numero_PR>" >&2
+          exit 1
+        fi
+        pr="$1"
+        cd ${cloneDir}
+
+        token=$(SOPS_AGE_KEY_FILE=/var/lib/hermes/.age/keys.txt sops -d --extract '["github"]["hermes_pat"]' secrets/hermes-managed.yaml)
+
+        resp=$(curl -sS -X PUT \
+          -H "Authorization: Bearer $token" \
+          -H "Accept: application/vnd.github+json" \
+          "https://api.github.com/repos/lenadotgarden/dotfiles/pulls/$pr/merge" \
+          -d '{"merge_method":"squash"}')
+
+        ok=$(echo "$resp" | jq -r '.merged // false')
+        if [ "$ok" = "true" ]; then
+          sha=$(echo "$resp" | jq -r '.sha')
+          echo "fusionné : $sha (comin va déployer dans la minute)"
+        else
+          echo "échec : $(echo "$resp" | jq -r '.message // "réponse inattendue"')" >&2
+          exit 1
+        fi
       '';
     })
   ];
