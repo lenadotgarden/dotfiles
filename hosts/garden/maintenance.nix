@@ -2,7 +2,7 @@
 
 let
   docker = config.virtualisation.docker.package;
-  bin = lib.makeBinPath [ docker pkgs.jq pkgs.zstd pkgs.coreutils pkgs.gnused pkgs.gnugrep pkgs.gawk pkgs.findutils pkgs.gnutar pkgs.sqlite ];
+  bin = lib.makeBinPath [ docker pkgs.jq pkgs.zstd pkgs.coreutils pkgs.gnused pkgs.gnugrep pkgs.gawk pkgs.findutils pkgs.gnutar pkgs.sqlite pkgs.util-linux ];
 
   # Images suivies automatiquement (mise à jour + test de santé + retour arrière).
   # Format : projet = "image:tag-suivi image:tag-suivi"
