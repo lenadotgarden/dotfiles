@@ -81,6 +81,7 @@ in
         title="$*"
 
         allowed=0
+        # shellcheck disable=SC2043
         for p in ${lib.concatStringsSep " " allowedPaths}; do
           if [ "$file" = "$p" ]; then
             allowed=1
