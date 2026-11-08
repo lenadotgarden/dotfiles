@@ -3,7 +3,6 @@
 let
   s = config.sops.secrets;
   mediaGroup = "media"; # groupe déjà créé par media.nix (gid 20000)
-  domain = "lena.sh";
 
   ##########################################################
   # Montage chiffré générique (même pattern que rclone-music-mount
@@ -78,18 +77,16 @@ let
     };
   };
 
-  nextcloudDataMount = "/mnt/nextcloud-data";
   audiobooksMount = "/mnt/audiobooks";
   booksMount = "/mnt/books";
 in
 {
+  # Nextcloud a été retiré (2026-11-08) : remplacé par FileBrowser
+  # (cloud.lena.sh, liens de partage client) et un WebDAV chiffré séparé
+  # (files.lena.sh) — voir hosts/garden/cloud-share.nix. Les 2 xlsx réels
+  # et le dossier Trash ont été migrés vers le nouveau stockage avant ce
+  # retrait. audiobookshelf/calibre-web, indépendants, restent inchangés.
   systemd.services =
-    (mkRcloneCryptMount {
-      name = "nextcloud";
-      remoteDir = "nextcloud";
-      mountPoint = nextcloudDataMount;
-      group = mediaGroup;
-    }) //
     (mkRcloneCryptMount {
       name = "audiobooks";
       remoteDir = "audiobooks";
@@ -103,10 +100,6 @@ in
       group = mediaGroup;
     }) //
     {
-      "nextcloud-setup" = {
-        after = [ "postgresql.service" ];
-        requires = [ "postgresql.service" ];
-      };
       audiobookshelf = {
         after = [ "rclone-audiobooks-mount.service" ];
         requires = [ "rclone-audiobooks-mount.service" ];
@@ -116,53 +109,6 @@ in
         requires = [ "rclone-books-mount.service" ];
       };
     };
-
-  ############################################################
-  # Nextcloud (cloud.lena.sh) — WebDAV natif sur /remote.php/dav/.
-  # DB Postgres existante (auth peer via socket unix, comme Synapse).
-  #
-  # datadir reste LOCAL (défaut du module, /var/lib/nextcloud) :
-  # NixOS déconseille explicitement un datadir sur un montage réseau/FUSE,
-  # l'installeur vérifie strictement la propriété de ${datadir}/config et
-  # ça casse systématiquement avec un montage externe (testé en prod sur
-  # ce host — nextcloud-setup échoue en boucle avec "config is not owned
-  # by user 'nextcloud'", cf. https://nixos.org/manual, section pitfalls).
-  # Le montage chiffré de la Storage Box reste dispo sur nextcloudDataMount
-  # (${nextcloudDataMount}) pour être ajouté a posteriori comme stockage
-  # externe ("Local") depuis l'UI Nextcloud, une fois l'instance up.
-  ############################################################
-  sops.secrets."nextcloud/admin_pass" = { owner = "nextcloud"; mode = "0400"; };
-
-  services.postgresql = {
-    ensureDatabases = [ "nextcloud" ];
-    ensureUsers = [
-      { name = "nextcloud"; ensureDBOwnership = true; }
-    ];
-  };
-
-  services.nextcloud = {
-    enable = true;
-    hostName = "cloud.${domain}";
-    database.createLocally = false;
-    config = {
-      dbtype = "pgsql";
-      dbhost = "/run/postgresql";
-      dbuser = "nextcloud";
-      dbname = "nextcloud";
-      adminuser = "admin";
-      adminpassFile = s."nextcloud/admin_pass".path;
-    };
-    settings = {
-      overwriteprotocol = "https";
-      trusted_proxies = [ "172.30.0.1" ];
-      enable_previews = true;
-    };
-  };
-  users.users.nextcloud.extraGroups = [ mediaGroup ];
-
-  services.nginx.virtualHosts.${config.services.nextcloud.hostName} = {
-    listen = [{ addr = "172.30.0.1"; port = 8020; }];
-  };
 
   ############################################################
   # Audiobookshelf (audiobooks.lena.sh) — serveur HTTP intégré,
@@ -192,6 +138,6 @@ in
   };
   users.users."calibre-web".extraGroups = [ mediaGroup ];
 
-  # Traefik (br-proxy, passerelle 172.30.0.1) doit atteindre ces trois services côté hôte.
-  networking.firewall.interfaces.br-proxy.allowedTCPPorts = [ 8020 8030 8040 ];
+  # Traefik (br-proxy, passerelle 172.30.0.1) doit atteindre ces deux services côté hôte.
+  networking.firewall.interfaces.br-proxy.allowedTCPPorts = [ 8030 8040 ];
 }

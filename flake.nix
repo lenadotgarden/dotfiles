@@ -330,6 +330,7 @@
             ./hosts/garden/webhook.nix
             ./hosts/garden/beets.nix
             ./hosts/garden/cloud.nix
+            ./hosts/garden/cloud-share.nix
 
             # Hermes (dendritic, modules/hermes/*.nix) :
             # hermes-trust/hermes-ctl (cadre de confiance pour l'agent custom
