@@ -211,6 +211,11 @@ in
       # owner_only pour chacun + règle explicite donnant à hermes un accès
       # RW sur tous ses calendriers (2026-11-08, pour qu'il
       # puisse les gérer directement en CalDAV).
+      # NB (2026-11-08) : permissions "RW" (majuscule) seules ne suffisent
+      # PAS pour créer un nouveau calendrier (MKCALENDAR exige "w" minuscule
+      # sur la collection cible, cf. radicale/app/mkcol.py) — d'où "RWrw"
+      # pour owner-only, sinon le client Mac Calendar se heurte à un 403
+      # en boucle quand il essaie de créer une collection manquante.
       rights = { type = "from_file"; file = "/etc/radicale/rights"; };
       storage.filesystem_folder = "/var/lib/radicale/collections";
       logging.level = "info";
