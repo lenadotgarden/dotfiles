@@ -207,7 +207,11 @@ in
         htpasswd_filename = "/etc/radicale/users";
         htpasswd_encryption = "bcrypt";
       };
-      rights.type = "owner_only";
+      # rights.file (pas nix-managé, comme /etc/radicale/users) : accès
+      # owner_only pour chacun + règle explicite donnant à hermes un accès
+      # RW scopé au seul calendrier lena/life (2026-11-08, pour qu'il
+      # puisse gérer ce calendrier directement en CalDAV).
+      rights = { type = "from_file"; file = "/etc/radicale/rights"; };
       storage.filesystem_folder = "/var/lib/radicale/collections";
       logging.level = "info";
     };
