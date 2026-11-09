@@ -172,11 +172,18 @@ in
       # colle la clé API Maloja (admin -> API Keys) à la place d'un vrai token LB.
       ListenBrainz.Enabled = true;
       ListenBrainz.BaseURL = "http://100.79.103.184:42010/apis/listenbrainz/1/";
+      # Discord Rich Presence (plugin .ndp téléchargé manuellement, cf.
+      # systemd.services.navidrome.environment pour ND_PLUGINS_FOLDER) :
+      Plugins.Enabled = true;
     };
   };
   systemd.services.navidrome = {
     after = [ "rclone-music-mount.service" ];
     requires = [ "rclone-music-mount.service" ];
+    # Folder est en lecture seule dans le module nix (pointe sur le store) ->
+    # override par variable d'env (ND_PLUGINS_FOLDER), lue par Navidrome
+    # avec une priorité supérieure au fichier de config.
+    environment.ND_PLUGINS_FOLDER = "/var/lib/navidrome/plugins";
   };
   users.users.navidrome.extraGroups = [ mediaGroup ];
 
