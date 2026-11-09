@@ -42,7 +42,14 @@
     sops.secrets."hermes/dashboard_basic_auth_secret" = { owner = "hermes"; mode = "0400"; };
     sops.secrets."hermes/excalidash_api_key" = { owner = "hermes"; mode = "0400"; };
     sops.secrets."discord/bot_token" = { owner = "hermes"; mode = "0400"; };
-    sops.secrets."paperless/api_key" = { owner = "hermes"; mode = "0400"; };
+    sops.secrets."paperless/api_key" = {
+      owner = "hermes"; mode = "0400";
+      # Sans sopsFile explicite, sops.secrets résout contre le sopsFile par
+      # défaut de l'hôte (secrets/garden.yaml) - raté en prod : "the key
+      # 'paperless' cannot be found". Ce secret vit dans hermes-managed.yaml
+      # (seul fichier sops que hermes-git-propose peut toucher).
+      sopsFile = ../../secrets/hermes-managed.yaml;
+    };
 
     # TELEGRAM_ALLOWED_USERS n'est pas un secret (juste ton chat_id) :
     # valeur Nix normale, pas besoin de sops pour ça.
