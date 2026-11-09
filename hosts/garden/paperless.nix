@@ -82,7 +82,7 @@ in
           ${pkgs.util-linux}/bin/mountpoint -q ${mountPoint} && break
           sleep 1
         done
-        ${pkgs.coreutils}/bin/mkdir -p ${mountPoint}/media
+        ${pkgs.coreutils}/bin/mkdir -p ${mountPoint}/media/documents/originals ${mountPoint}/media/documents/archive ${mountPoint}/media/documents/thumbnails
       '';
       ExecStop = "${pkgs.fuse3}/bin/fusermount3 -u ${mountPoint}";
       Restart = "on-failure";
