@@ -294,6 +294,50 @@
             end,
           })
           vim.keymap.set("n", "<leader>nd", ":Obsidian today<CR>", { silent = true, desc = "Ouvrir la Daily Note d'aujourd'hui" })
+
+          -- Note rapide : ouvre/ferme la Daily Note dans une fenêtre flottante
+          -- minimaliste centrée à l'écran (toggle avec <leader>dn).
+          local quick_note_win = nil
+
+          local function toggle_quick_note()
+            if quick_note_win and vim.api.nvim_win_is_valid(quick_note_win) then
+              vim.api.nvim_win_close(quick_note_win, false)
+              quick_note_win = nil
+              return
+            end
+
+            local width = math.floor(vim.o.columns * 0.6)
+            local height = math.floor(vim.o.lines * 0.7)
+            local row = math.floor((vim.o.lines - height) / 2)
+            local col = math.floor((vim.o.columns - width) / 2)
+
+            quick_note_win = vim.api.nvim_open_win(0, true, {
+              relative = "editor",
+              width = width,
+              height = height,
+              row = row,
+              col = col,
+              style = "minimal",
+              border = "rounded",
+              title = "  Note du jour ",
+              title_pos = "center",
+            })
+            vim.wo[quick_note_win].winblend = 0
+            vim.wo[quick_note_win].cursorline = true
+
+            vim.cmd("Obsidian today")
+
+            vim.keymap.set("n", "q", toggle_quick_note, { buffer = true, silent = true, desc = "Fermer la note rapide" })
+            vim.keymap.set("n", "<Esc>", toggle_quick_note, { buffer = true, silent = true, desc = "Fermer la note rapide" })
+
+            vim.api.nvim_create_autocmd("WinClosed", {
+              pattern = tostring(quick_note_win),
+              once = true,
+              callback = function() quick_note_win = nil end,
+            })
+          end
+
+          vim.keymap.set("n", "<leader>dn", toggle_quick_note, { silent = true, desc = "Daily note flottante (toggle)" })
         '';
       }
       {
@@ -362,6 +406,9 @@
                 number = false,
                 relativenumber = false,
                 cursorline = false,
+                -- Casse les lignes sur un espace plutôt qu'au milieu d'un mot.
+                linebreak = true,
+                breakindent = true,
               },
             },
             plugins = {
@@ -370,6 +417,17 @@
             },
           })
           vim.keymap.set("n", "<leader>z", ":ZenMode<CR>", { silent = true })
+        '';
+      }
+      {
+        plugin = stay-centered-nvim;
+        type = "lua";
+        config = ''
+          -- Garde le curseur verticalement centré à l'écran en permanence
+          -- (déplacements, scroll, et aussi en mode Zen puisque ça ne dépend
+          -- pas de la mise en page de la fenêtre).
+          require("stay-centered").setup({})
+          vim.keymap.set("n", "<leader>cc", require("stay-centered").toggle, { silent = true, desc = "Activer/Désactiver le curseur centré" })
         '';
       }
       fzf-lua
