@@ -109,6 +109,7 @@ in
     port = 28981; # accessible uniquement via NetBird (wt0, trustedInterfaces), pas exposé publiquement — même posture que hermes-agent.
 
     settings = {
+      PAPERLESS_URL = "https://docs.lena.sh";
       PAPERLESS_OCR_LANGUAGE = "fra+eng";
       PAPERLESS_TIME_ZONE = "Europe/Paris";
     };
@@ -125,4 +126,7 @@ in
   systemd.services.paperless-consumer.wants = [ "rclone-paperless-mount.service" ];
   systemd.services.paperless-task-queue.after = [ "rclone-paperless-mount.service" ];
   systemd.services.paperless-task-queue.wants = [ "rclone-paperless-mount.service" ];
+
+  # Traefik (br-proxy) doit pouvoir atteindre paperless-web pour docs.lena.sh.
+  networking.firewall.interfaces.br-proxy.allowedTCPPorts = [ 28981 ];
 }
