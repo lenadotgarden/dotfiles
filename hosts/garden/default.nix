@@ -165,6 +165,7 @@ in
     daemon.settings = {
       log-driver = "json-file";
       log-opts = { max-size = "100m"; max-file = "3"; };
+      userland-proxy = false; # préserve la vraie IP client pour ipAllowList/netbird-only de Traefik
     };
   };
 
