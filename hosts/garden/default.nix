@@ -159,6 +159,21 @@ in
   ############################################################
   # Docker (Dokploy / Swarm / Traefik / apps) — état recréé par restore.sh
   ############################################################
+  # Données Docker sur le second volume (/dev/sdb) : le disque de boot
+  # (45 Go) ne peut pas les contenir. /nix/store est monté en ro par
+  # NixOS, donc on remonte le volume en rw à part et on bind-mount.
+  fileSystems."/mnt/storage2" = {
+    device = "/dev/disk/by-uuid/56087f50-7a26-4939-953d-5901bd9ae179";
+    fsType = "ext4";
+    options = [ "noatime" ];
+  };
+  fileSystems."/var/lib/docker" = {
+    device = "/mnt/storage2/.garden-data/docker";
+    fsType = "none";
+    options = [ "bind" ];
+    depends = [ "/mnt/storage2" ];
+  };
+
   virtualisation.docker = {
     enable = true;
     enableOnBoot = true;
