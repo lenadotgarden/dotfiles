@@ -167,9 +167,17 @@
     };
 
     # ── Réglages de l'unité (hors de l'attrset services.hermes-agent) ────
-    # ~/.local/bin n'est pas dans le PATH de l'unité : les CLI installés en
-    # user-space (defuddle, bw, codebase-memory-mcp, agent-reach) restent
-    # sinon appelables seulement par chemin absolu.
-    systemd.services.hermes-agent.path = [ "/var/lib/hermes/.local/bin" ];
+    # `systemd.services.<x>.path` ajoute "/bin" (et "/sbin") à CHAQUE entrée
+    # (nixpkgs modules/system/boot/systemd.nix, makeBinPath) : il faut donner
+    # le dossier PARENT de bin/, pas bin/ lui-même. L'ancienne valeur
+    # ("/var/lib/hermes/.local/bin") produisait ".local/bin/bin", qui n'existe
+    # pas - au final ~/.local/bin n'a jamais été sur le PATH de l'unité, les
+    # CLI user-space (defuddle, bw, codebase-memory-mcp, agent-reach) restaient
+    # appelables seulement par chemin absolu (bug préexistant, corrigé ici).
+    # "/run/current-system/sw" ajouté pour que `claude` (environment.systemPackages,
+    # hosts/garden/default.nix) soit trouvable par le plugin Claude Subscription
+    # DirectSDK - sans ça la passerelle répond "Could not find ... 'claude'"
+    # après chaque redémarrage, malgré un `claude auth login` déjà fait.
+    systemd.services.hermes-agent.path = [ "/var/lib/hermes/.local" "/run/current-system/sw" ];
   };
 }
