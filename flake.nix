@@ -345,6 +345,7 @@
             self.modules.nixos.garden-secret-tool
             self.modules.nixos.hermes-autonomy
             ./hosts/garden/hermes.nix
+            ./hosts/garden/paperless.nix
           ];
         };
       };
