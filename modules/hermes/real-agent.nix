@@ -23,7 +23,18 @@
   # addToSystemPackages : le CLI `hermes` doit être sur le PATH système
   # (utile pour du debug via SSH en tant que ubuntu).
   ############################################################
-  flake.modules.nixos."hermes-real-agent" = { config, lib, pkgs, ... }: {
+  flake.modules.nixos."hermes-real-agent" = { config, lib, pkgs, ... }:
+    let
+      # Route "petites tâches" : DeepSeek 4.1 flash (API DeepSeek, modèle
+      # `deepseek-flash`). Sert aux tâches internes qui n'ont pas besoin de
+      # l'orchestrateur (compression, titres, classifieur d'approbation, MCP,
+      # triage/décomposition Kanban, routeur de groupe, ...).
+      auxFlash = {
+        provider = "deepseek";
+        model = "deepseek-flash";
+      };
+    in
+    {
     sops.secrets."hermes/backend_session_token" = { owner = "hermes"; mode = "0400"; };
     sops.secrets."hermes/deepseek_api_key" = { owner = "hermes"; mode = "0400"; };
     sops.secrets."hermes/telegram_bot_token" = { owner = "hermes"; mode = "0400"; };
@@ -68,7 +79,13 @@
       group = "hermes";
       workingDirectory = "/opt/vault";
       addToSystemPackages = true;
-      settings.model.default = "deepseek/deepseek-chat";
+      # Orchestrateur = Claude Sonnet via l'abonnement Claude Pro, à travers la
+      # CLI officielle `claude` (plugin claude-subscription-directsdk). Aucune
+      # clé API Anthropic, aucune facture au token : la conso est imputée au
+      # quota Agent SDK de l'abonnement. `sonnet` est l'alias natif (résout
+      # vers claude-sonnet-5[1m]).
+      settings.model.provider = "claude-subscription-directsdk-experimental";
+      settings.model.default = "sonnet";
       settings.discord.auto_thread = false;
       settings.display.tool_progress = "off";
       settings.display.interim_assistant_messages = false;
@@ -78,6 +95,68 @@
         args = [ ];
         timeout = 120;
       };
+
+      # ── Routage des modèles ──────────────────────────────────────────
+      # Plugins installés en user-space (~/.hermes/plugins) ; la passerelle
+      # tourne sous l'utilisateur hermes et partage ce home.
+      settings.plugins.enabled = [
+        "claude-subscription-directsdk-experimental"
+        "advanced-delegation"
+      ];
+
+      # Le login `claude` a été fait avec un HOME différent (le home passwd de
+      # l'utilisateur hermes est /opt/vault) : on fige le dossier de config
+      # pour que la passerelle lise toujours /var/lib/hermes/.claude.
+      settings.plugins.entries."claude-subscription-directsdk-experimental".settings.claude_config_dir =
+        "/var/lib/hermes/.claude";
+
+      # Tâches internes qui ne méritent pas l'orchestrateur : DeepSeek flash.
+      # Volontairement exclues de cette liste : `background_review` et
+      # `curator` (ils relisent et réécrivent mémoire et skills, la qualité
+      # prime sur le coût) et `vision` (pas un modèle texte).
+      settings.auxiliary = {
+        compression = auxFlash;
+        title_generation = auxFlash;
+        approval = auxFlash;
+        mcp = auxFlash;
+        memory_query_rewrite = auxFlash;
+        triage_specifier = auxFlash;
+        kanban_decomposer = auxFlash;
+        profile_describer = auxFlash;
+        group_router = auxFlash;
+        goal_judge = auxFlash;
+        monitor = auxFlash;
+        tts_audio_tags = auxFlash;
+      };
+
+      # Sous-agents : le modèle choisit une route nommée par tâche (plugin
+      # advanced-delegation). Une tâche sans route hérite de l'orchestrateur.
+      settings.delegation = {
+        backend = "model_map";
+        backends.model_map = {
+          options = [
+            {
+              name = "fast";
+              description = "Rapide et pas cher : recherches simples, résumés, extractions, petites éditions.";
+              provider = "deepseek";
+              model = "deepseek-flash";
+            }
+            {
+              name = "balanced";
+              description = "Tâches courantes : rédaction, analyse moyenne, plusieurs étapes.";
+              provider = "deepseek";
+              model = "deepseek-chat";
+            }
+            {
+              name = "deep";
+              description = "Raisonnement complexe, debug difficile, décisions structurantes.";
+              provider = "claude-subscription-directsdk-experimental";
+              model = "sonnet";
+            }
+          ];
+        };
+      };
+
       environmentFiles = [ config.sops.templates."hermes-real-agent.env".path ];
       backend = {
         mode = "dashboard";
