@@ -76,6 +76,14 @@ in
           --transfers 4 \
           --log-level INFO
       '';
+      ExecStartPost = pkgs.writeShellScript "rclone-paperless-ensure-media" ''
+        set -eu
+        for i in $(seq 1 30); do
+          ${pkgs.util-linux}/bin/mountpoint -q ${mountPoint} && break
+          sleep 1
+        done
+        ${pkgs.coreutils}/bin/mkdir -p ${mountPoint}/media
+      '';
       ExecStop = "${pkgs.fuse3}/bin/fusermount3 -u ${mountPoint}";
       Restart = "on-failure";
       RestartSec = 5;
