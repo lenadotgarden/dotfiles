@@ -6,7 +6,7 @@
 
     # Channel figé utilisé uniquement par le host "garden" (VPS en prod) :
     # ses mises à jour ne doivent pas suivre nixos-unstable comme les autres hosts.
-    nixpkgs-garden.url = "github:NixOS/nixpkgs/nixos-26.05";
+    nixpkgs-garden.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     flake-parts.url = "github:hercules-ci/flake-parts";
