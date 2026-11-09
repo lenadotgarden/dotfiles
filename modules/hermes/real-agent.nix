@@ -42,6 +42,7 @@
     sops.secrets."hermes/dashboard_basic_auth_secret" = { owner = "hermes"; mode = "0400"; };
     sops.secrets."hermes/excalidash_api_key" = { owner = "hermes"; mode = "0400"; };
     sops.secrets."discord/bot_token" = { owner = "hermes"; mode = "0400"; };
+    sops.secrets."paperless/api_key" = { owner = "hermes"; mode = "0400"; };
 
     # TELEGRAM_ALLOWED_USERS n'est pas un secret (juste ton chat_id) :
     # valeur Nix normale, pas besoin de sops pour ça.
@@ -70,6 +71,10 @@
         # Déclaré ici pour que le canal par défaut (cron + messages) soit stable.
         DISCORD_HOME_CHANNEL=1568658252634267791
         DISCORD_HOME_CHANNEL_NAME="#《🔔》notifs"
+        # Lu par Hermes via ${"\${PAPERLESS_API_KEY}"} dans mcp_servers.paperless.env
+        # (agent.secret_scope.get_secret, qui retombe sur os.environ en mono-profil) :
+        # jamais écrit en clair dans config.yaml ni dans le store Nix.
+        PAPERLESS_API_KEY=${config.sops.placeholder."paperless/api_key"}
       '';
     };
 
@@ -105,6 +110,23 @@
         command = "claude";
         args = [ "mcp" "serve" ];
         timeout = 300;
+      };
+      # Paperless-ngx (docs.lena.sh) en MCP : lister/chercher/tagger des documents.
+      # Le token API est une credential - jamais en clair ici. La valeur littérale
+      # ci-dessous (dollar-accolade PAPERLESS_API_KEY) est un template résolu au
+      # lancement via agent.secret_scope.get_secret(), qui en mono-profil retombe
+      # sur os.environ de la passerelle (rempli par environmentFiles ci-dessous,
+      # lui-même rendu par sops). Vérifié dans le code (tools/mcp_tool_config.py) :
+      # ce n'est PAS un héritage de tout l'environnement - seule cette clé explicite
+      # traverse vers le sous-processus npx.
+      settings.mcp_servers.paperless = {
+        command = "npx";
+        args = [ "-y" "@baruchiro/paperless-mcp@latest" ];
+        env = {
+          PAPERLESS_URL = "https://docs.lena.sh";
+          PAPERLESS_API_KEY = "\${PAPERLESS_API_KEY}";
+        };
+        timeout = 60;
       };
 
       # ── Routage des modèles ──────────────────────────────────────────
