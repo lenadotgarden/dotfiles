@@ -6,7 +6,8 @@
 
     # Channel figé utilisé uniquement par le host "garden" (VPS en prod) :
     # ses mises à jour ne doivent pas suivre nixos-unstable comme les autres hosts.
-    nixpkgs-garden.url = "github:NixOS/nixpkgs/nixos-26.05";
+    # Bump ponctuel vers nixos-unstable (paperless-ngx 3.x non disponible sur 26.05).
+    nixpkgs-garden.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     flake-parts.url = "github:hercules-ci/flake-parts";
@@ -256,7 +257,7 @@
       flake = {
         homeConfigurations."MacOS" = inputs.home-manager.lib.homeManagerConfiguration {
           pkgs = import nixpkgs { system = "aarch64-darwin"; };
-          extraSpecialArgs = { inherit inputs; };
+          extraSpecialArgs = { inherit inputs; niriPackage = null; };
           modules = [ ./home/macos.nix ];
         };
 

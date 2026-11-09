@@ -240,6 +240,6 @@ in
   # 7j au lieu de 30j : disque Oracle fixe (45 Go, non redimensionnable),
   # marge structurellement serrée avec Grafana/Nextcloud/Matrix/Hermes/Docker.
   nix.gc = { automatic = true; dates = "daily"; options = "--delete-older-than 7d"; };
-  services.journald.extraConfig = "SystemMaxUse=500M";
+  services.journald.settings.Journal.SystemMaxUse = "500M";
   security.sudo.execWheelOnly = true;
 }
