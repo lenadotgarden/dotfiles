@@ -130,7 +130,7 @@
         command = "npx";
         args = [ "-y" "@baruchiro/paperless-mcp@latest" ];
         env = {
-          PAPERLESS_URL = "https://docs.lena.sh";
+          PAPERLESS_URL = "http://localhost:28981";
           PAPERLESS_API_KEY = "\${PAPERLESS_API_KEY}";
         };
         timeout = 60;
