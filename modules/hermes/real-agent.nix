@@ -220,5 +220,19 @@
     # DirectSDK - sans ça la passerelle répond "Could not find ... 'claude'"
     # après chaque redémarrage, malgré un `claude auth login` déjà fait.
     systemd.services.hermes-agent.path = [ "/var/lib/hermes/.local" "/run/current-system/sw" ];
+
+    # Le script d'activation du module (hermes-agent-setup) force `chmod 2770`
+    # sur /var/lib/hermes/.hermes à CHAQUE switch. Or le groupe `hermes`
+    # contient aussi le compte admin (ubuntu) : le contrôle du gateway
+    # (hermes_cli/gateway_runtime_discovery.py, home_mode_unsafe) refuse alors
+    # le dossier en `unsafe_control_permissions` et TOUS les crons échouent
+    # (briefs matin/soir, rituel du dimanche) jusqu'à un chmod manuel.
+    # On repasse en 2750 (setgid conservé, plus d'écriture groupe) juste après.
+    system.activationScripts.hermes-home-private = {
+      deps = [ "hermes-agent-setup" ];
+      text = ''
+        chmod 2750 /var/lib/hermes/.hermes
+      '';
+    };
   };
 }
