@@ -121,7 +121,7 @@ in
     allowedTCPPorts = [ 22 2222 8443 ];
     allowedUDPPorts = [ 51820 ]; # wireguard netbird
     trustedInterfaces = [ "wt0" ];
-    # Traefik (réseau proxy, passerelle 172.30.0.1) joint radicale / cal.com / excalidash
+    # Traefik (réseau proxy, passerelle 172.30.0.1) joint radicale / excalidash
     interfaces.br-proxy.allowedTCPPorts = [ 5232 3100 6767 8008 8009 8010 ];
     logRefusedConnections = false;
   };

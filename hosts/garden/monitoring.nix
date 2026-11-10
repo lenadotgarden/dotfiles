@@ -78,7 +78,7 @@
 
   ############################################################
   # process-exporter — CPU/RAM par application (services NixOS natifs).
-  # Les conteneurs Docker restants (traefik, pihole, calcom, baserow,
+  # Les conteneurs Docker restants (traefik, pihole,
   # excalidash, mornye, netbird-server/dashboard) ne sont pas détaillés
   # individuellement ici : ajouter cAdvisor plus tard si besoin de ce niveau
   # de détail pour eux spécifiquement.
@@ -129,8 +129,8 @@
       }
       {
         # cAdvisor — métriques par conteneur (CPU/RAM/réseau) pour les apps
-        # qui restent en Docker (traefik, pihole, syncthing, calcom,
-        # excalidash, baserow, mornye, netbird-server/dashboard).
+        # qui restent en Docker (traefik, pihole, syncthing,
+        # excalidash, mornye, netbird-server/dashboard).
         job_name = "cadvisor";
         static_configs = [{ targets = [ "172.30.0.1:8081" ]; }];
       }
