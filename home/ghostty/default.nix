@@ -12,7 +12,7 @@
     settings = {
       # Catppuccin Mocha (sombre) / Latte (clair), bascule automatique avec
       # l'apparence du Mac — thèmes livrés nativement par Ghostty.
-      theme = "dark:catppuccin-mocha,light:catppuccin-latte";
+      theme = "dark:Catppuccin Mocha,light:Catppuccin Latte";
 
       font-family = "Iosevka";
       font-size = 13;
