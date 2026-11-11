@@ -325,7 +325,16 @@
             vim.wo[quick_note_win].winblend = 0
             vim.wo[quick_note_win].cursorline = true
 
-            vim.cmd("Obsidian today")
+            -- On charge le fichier directement (plutôt que ":Obsidian today",
+            -- asynchrone et qui "drop" vers une fenêtre existante si la daily
+            -- note est déjà ouverte ailleurs) pour être sûr qu'elle s'affiche
+            -- bien dans notre fenêtre flottante.
+            local note = require("obsidian.daily").today()
+            if not note:exists() then
+              note:write()
+            end
+            vim.cmd("edit " .. vim.fn.fnameescape(tostring(note.path)))
+            vim.b.note = note
 
             vim.keymap.set("n", "q", toggle_quick_note, { buffer = true, silent = true, desc = "Fermer la note rapide" })
             vim.keymap.set("n", "<Esc>", toggle_quick_note, { buffer = true, silent = true, desc = "Fermer la note rapide" })
