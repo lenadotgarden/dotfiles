@@ -50,6 +50,10 @@
       # (seul fichier sops que hermes-git-propose peut toucher).
       sopsFile = ../../secrets/hermes-managed.yaml;
     };
+    sops.secrets."vikunja/mcp_token" = {
+      owner = "hermes"; mode = "0400";
+      sopsFile = ../../secrets/hermes-managed.yaml;
+    };
 
     # TELEGRAM_ALLOWED_USERS n'est pas un secret (juste ton chat_id) :
     # valeur Nix normale, pas besoin de sops pour ça.
@@ -82,6 +86,8 @@
         # (agent.secret_scope.get_secret, qui retombe sur os.environ en mono-profil) :
         # jamais écrit en clair dans config.yaml ni dans le store Nix.
         PAPERLESS_API_KEY=${config.sops.placeholder."paperless/api_key"}
+        # Idem pour le MCP Vikunja (header Authorization de mcp_servers.vikunja).
+        VIKUNJA_MCP_TOKEN=${config.sops.placeholder."vikunja/mcp_token"}
       '';
     };
 
@@ -133,6 +139,14 @@
           PAPERLESS_URL = "http://localhost:28981";
           PAPERLESS_API_KEY = "\${PAPERLESS_API_KEY}";
         };
+        timeout = 60;
+      };
+      # Vikunja (tasks.lena.sh) en MCP officiel (intégré depuis la 2.7.0), en HTTP
+      # sur l'adresse locale (Traefik/NetBird-only répond 403 à garden lui-même).
+      # Token en lecture + écriture, jamais en clair : résolu depuis l'environnement.
+      settings.mcp_servers.vikunja = {
+        url = "http://localhost:3456/api/v2/mcp";
+        headers.Authorization = "Bearer \${VIKUNJA_MCP_TOKEN}";
         timeout = 60;
       };
 
