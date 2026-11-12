@@ -1,5 +1,7 @@
 { config, lib, pkgs, ... }:
 {
+  imports = [ ./vikunja.nix ];
+
   ############################################################
   # Stack Docker (remplace Dokploy) : un docker-compose par service dans /srv/garden/<nom>
   # (les fichiers contiennent des secrets -> hors du store Nix). Images épinglées par digest.
