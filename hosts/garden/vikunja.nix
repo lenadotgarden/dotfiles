@@ -23,8 +23,8 @@ in
     inherit port;
     environmentFiles = [ "/var/lib/vikunja-secret/secret.env" ];
     settings.service.timezone = "Europe/Paris";
-    # A passer à false une fois ton compte créé.
-    settings.service.enableregistration = true;
+    # Compte créé : inscriptions fermées.
+    settings.service.enableregistration = false;
   };
 
   # Secret de signature des sessions : généré une fois par un oneshot root
