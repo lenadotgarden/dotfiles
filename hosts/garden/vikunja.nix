@@ -21,22 +21,30 @@ in
     frontendHostname = hostname;
     address = "0.0.0.0"; # joignable via NetBird (wt0 est de confiance), pas exposé publiquement
     inherit port;
-    environmentFiles = [ "/var/lib/vikunja/secret.env" ];
+    environmentFiles = [ "/var/lib/vikunja-secret/secret.env" ];
     settings.service.timezone = "Europe/Paris";
     # A passer à false une fois ton compte créé.
     settings.service.enableregistration = true;
   };
 
-  # Secret de signature des sessions : généré une fois, conservé dans le
-  # StateDirectory (sans lui, chaque redémarrage déconnecte tout le monde).
-  systemd.services.vikunja.serviceConfig.ExecStartPre = pkgs.writeShellScript "vikunja-secret" ''
-    set -eu
-    f=/var/lib/vikunja/secret.env
-    if [ ! -s "$f" ]; then
-      umask 077
-      echo "VIKUNJA_SERVICE_SECRET=$(${pkgs.openssl}/bin/openssl rand -hex 32)" > "$f"
-    fi
-  '';
+  # Secret de signature des sessions : généré une fois par un oneshot root
+  # (avant vikunja : systemd lit l'EnvironmentFile avant tout ExecStartPre, donc
+  # le fichier doit déjà exister au premier démarrage). Sans lui, chaque
+  # redémarrage déconnecte tout le monde.
+  systemd.services.vikunja-secret = {
+    description = "Génère le secret de session Vikunja";
+    before = [ "vikunja.service" ];
+    requiredBy = [ "vikunja.service" ];
+    serviceConfig = { Type = "oneshot"; RemainAfterExit = true; };
+    script = ''
+      d=/var/lib/vikunja-secret
+      install -d -m 0700 $d
+      if [ ! -s $d/secret.env ]; then
+        umask 077
+        echo "VIKUNJA_SERVICE_SECRET=$(${pkgs.openssl}/bin/openssl rand -hex 32)" > $d/secret.env
+      fi
+    '';
+  };
 
   # Traefik (br-proxy) doit pouvoir atteindre vikunja pour tasks.lena.sh.
   networking.firewall.interfaces.br-proxy.allowedTCPPorts = [ port ];
