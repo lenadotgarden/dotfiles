@@ -5,6 +5,8 @@ let
   mountPoint = "/mnt/paperless";
 in
 {
+  imports = [ ./paperless-mail.nix ];
+
   ############################################################
   # Paperless-ngx — gestion de documents (NixOS natif, module
   # nixpkgs services.paperless). Base de données Postgres locale
