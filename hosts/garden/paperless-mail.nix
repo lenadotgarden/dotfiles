@@ -95,6 +95,7 @@ in
     settings.master.paperless-ingest = {
       type = "unix";
       chroot = false;
+      privileged = true; # pipe user=... exige unpriv=n
       maxproc = 2;
       command = "pipe";
       args = [ "flags=Rq" "user=paperless:paperless" "argv=${ingest}" ];
