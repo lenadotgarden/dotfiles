@@ -18,6 +18,7 @@
       ripgrep
       fd
       nodejs
+      lilypond
     ] ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
       wl-clipboard
       xclip
