@@ -89,12 +89,13 @@ in
       LoginGraceTime = 20;
       ClientAliveInterval = 300;
       ClientAliveCountMax = 2;
-      # Le réseau NetBird (wt0, déjà "trusted" dans le firewall juste en
-      # dessous) est exempté des pénalités anti-scan OpenSSH : sinon
+      # Réseau mesh (tailscale0, déjà "trusted" dans le firewall juste en
+      # dessous ; NetBird utilisait 100.79.0.0/16, sous-réseau du même CGNAT
+      # /10 que Tailscale) exempté des pénalités anti-scan OpenSSH : sinon
       # l'appli Hermes Desktop (connexions SSH répétées en peu de temps
       # pour établir sa passerelle) se fait jeter par PerSourcePenalties
       # ("Connection reset by peer" avant même le handshake).
-      PerSourcePenaltyExemptList = "100.79.0.0/16";
+      PerSourcePenaltyExemptList = "100.64.0.0/10";
     };
   };
 
@@ -117,10 +118,10 @@ in
   };
   networking.firewall = {
     enable = true;
-    checkReversePath = "loose"; # docker + netbird
+    checkReversePath = "loose"; # docker + netbird/tailscale
     allowedTCPPorts = [ 22 2222 8443 ];
-    allowedUDPPorts = [ 51820 ]; # wireguard netbird
-    trustedInterfaces = [ "wt0" ];
+    allowedUDPPorts = [ 51820 41641 ]; # wireguard netbird (en pause) + tailscale
+    trustedInterfaces = [ "wt0" "tailscale0" ];
     # Traefik (réseau proxy, passerelle 172.30.0.1) joint radicale / cal.com / excalidash
     interfaces.br-proxy.allowedTCPPorts = [ 5232 3100 6767 8008 8009 8010 ];
     logRefusedConnections = false;
@@ -186,9 +187,12 @@ in
 
 
   ############################################################
-  # NetBird client (état /var/lib/netbird conservé ; socket /var/run/netbird/sock = défaut de la CLI nixpkgs)
+  # NetBird client — EN PAUSE (2026-11-14, remplacé par Tailscale ci-dessous).
+  # `enable = false` désactive déclarativement l'unit sans effacer la config
+  # ni /var/lib/netbird : repasser à `true` pour la ranimer.
   ############################################################
   systemd.services.netbird = {
+    enable = false;
     description = "NetBird mesh network client";
     after = [ "network-online.target" ];
     wants = [ "network-online.target" ];
@@ -204,6 +208,12 @@ in
       LogsDirectory = "netbird";
     };
   };
+
+  ############################################################
+  # Tailscale (remplace NetBird, 2026-11-14)
+  ############################################################
+  services.tailscale.enable = true;
+
   programs.nix-ld.enable = true;
   programs.nix-ld.libraries = with pkgs; [ stdenv.cc.cc.lib zlib openssl curl ];
 

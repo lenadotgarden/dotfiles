@@ -34,5 +34,7 @@
       TimeoutStartSec = 900;
       ExecStart = "${config.virtualisation.docker.package}/bin/docker compose up -d --remove-orphans";
     };
-  }) [ "traefik" "netbird" "pihole" "syncthing" "calcom" "excalidash" "baserow" "mornye" "cadvisor" "beets-flask" "maloja" ]);
+  # "netbird" retiré (2026-11-14, en pause -> Tailscale) : compose file
+  # conservé sur disque sous /srv/garden/netbird pour une reprise facile.
+  }) [ "traefik" "pihole" "syncthing" "calcom" "excalidash" "baserow" "mornye" "cadvisor" "beets-flask" "maloja" ]);
 }
