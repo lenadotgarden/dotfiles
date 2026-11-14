@@ -530,6 +530,37 @@
             },
           })
 
+          -- Bug du plugin : son ftplugin ajoute "-" et "\\" à iskeyword (pour ses
+          -- propres motifs de mots), ce qui casse les motifs `\<` (limite de mot) du
+          -- fichier syntax/lilypond.vim — dont celui qui colore les notes elles-mêmes
+          -- (lilyPitch). Seuls les nombres, qui n'utilisent pas `\<`, s'en sortaient.
+          -- On remet iskeyword à sa valeur par défaut, et on resynchronise la
+          -- coloration depuis le début du buffer (nécessaire pour les régions
+          -- imbriquées type `{ ... }` sur un fichier un peu long). Le `syntax sync`
+          -- doit être différé (vim.schedule) : exécuté tout de suite dans le
+          -- FileType, il est écrasé par le chargement de syntax/lilypond.vim qui
+          -- n'a pas encore eu lieu à ce moment précis.
+          vim.api.nvim_create_autocmd("FileType", {
+            pattern = "lilypond",
+            callback = function()
+              vim.bo.iskeyword = "@,48-57,_,192-255"
+              vim.schedule(function()
+                vim.cmd("syntax sync fromstart")
+              end)
+            end,
+          })
+
+          -- Le thème "dms" (DankMaterialShell) se recharge tout seul en live quand
+          -- le fond d'écran/l'apparence change (voir plus bas dans ce fichier). Toute
+          -- réapplication de colorscheme fait un `hi clear`, qui efface les couleurs
+          -- lily* définies par nvls.setup() ci-dessus. On les redéfinit donc à chaque
+          -- changement de colorscheme, pas seulement une fois au démarrage.
+          vim.api.nvim_create_autocmd("ColorScheme", {
+            callback = function()
+              pcall(require("nvls").syntax)
+            end,
+          })
+
           -- Pas de vrai LSP LilyPond disponible : source nvim-cmp maison avec les
           -- commandes/mots-clés les plus courants, pour une autocomplétion légère
           -- sur les fichiers .ly sans avoir besoin d'un serveur LSP.

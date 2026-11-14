@@ -29,7 +29,10 @@
       mouse-hide-while-typing = true;
 
       confirm-close-surface = false;
-      macos-option-as-alt = true;
+      # false (pas true) : sur clavier français, Option produit les caractères
+      # spéciaux ({ [ ] } \ @ etc.) ; en "alt" il sert de modificateur Meta pour
+      # le shell/readline mais avale ces caractères avant qu'ils soient produits.
+      macos-option-as-alt = false;
     };
   };
 }
