@@ -143,17 +143,21 @@ in
       iptables -A DOCKER-USER -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
       for p in udp tcp; do
         iptables -A DOCKER-USER -s 172.19.0.0/16 -p $p --dport 53 -j ACCEPT
-        iptables -A DOCKER-USER -s 100.79.0.0/16 -p $p --dport 53 -j ACCEPT
+        # 100.64.0.0/10 : plage CGNAT partagée par Tailscale et NetBird
+        # (celui-ci utilisait 100.79.0.0/16, un sous-réseau du même /10).
+        iptables -A DOCKER-USER -s 100.64.0.0/10 -p $p --dport 53 -j ACCEPT
       done
       for p in udp tcp; do
         iptables -A DOCKER-USER -p $p --dport 53 -j DROP
       done
       iptables -A DOCKER-USER -j RETURN
-      # wt0 <-> conteneurs
-      iptables -C FORWARD -o wt0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT 2>/dev/null \
-        || iptables -I FORWARD 1 -o wt0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
-      iptables -C FORWARD -i wt0 -j ACCEPT 2>/dev/null \
-        || iptables -I FORWARD 1 -i wt0 -j ACCEPT
+      # wt0/tailscale0 <-> conteneurs
+      for iface in wt0 tailscale0; do
+        iptables -C FORWARD -o $iface -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT 2>/dev/null \
+          || iptables -I FORWARD 1 -o $iface -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+        iptables -C FORWARD -i $iface -j ACCEPT 2>/dev/null \
+          || iptables -I FORWARD 1 -i $iface -j ACCEPT
+      done
     '';
   };
 
@@ -183,6 +187,16 @@ in
       log-opts = { max-size = "100m"; max-file = "3"; };
       userland-proxy = false; # préserve la vraie IP client pour ipAllowList/netbird-only de Traefik
     };
+  };
+
+  # Dépendance explicite sur le bind-mount externe (sinon rien n'empêche
+  # dockerd de démarrer — ou de continuer à tourner — avant que
+  # /var/lib/docker soit effectivement monté sur /mnt/storage2 : ça s'est
+  # produit le 2026-11-14, où le bind s'est réactivé sous un dockerd déjà
+  # lancé, masquant ses données sans le faire planter dans l'immédiat).
+  systemd.services.docker = {
+    after = [ "var-lib-docker.mount" ];
+    requires = [ "var-lib-docker.mount" ];
   };
 
 

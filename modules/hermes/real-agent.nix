@@ -54,6 +54,10 @@
       owner = "hermes"; mode = "0400";
       sopsFile = ../../secrets/hermes-managed.yaml;
     };
+    sops.secrets."tailscale/api_key" = {
+      owner = "hermes"; mode = "0400";
+      sopsFile = ../../secrets/hermes-managed.yaml;
+    };
 
     # TELEGRAM_ALLOWED_USERS n'est pas un secret (juste ton chat_id) :
     # valeur Nix normale, pas besoin de sops pour ça.
