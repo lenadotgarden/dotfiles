@@ -150,7 +150,8 @@ in
 
   ############################################################
   # Navidrome — accessible via music.lena.sh (Traefik, filtré par IP
-  # NetBird) ou directement en 100.79.103.184:4533.
+  # Tailscale/NetBird) ou directement en 100.95.31.43:4533 (IP Tailscale
+  # de garden).
   ############################################################
   networking.firewall.interfaces.br-proxy.allowedTCPPorts = [ 4533 ];
 

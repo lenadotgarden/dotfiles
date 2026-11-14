@@ -139,8 +139,9 @@
 
   ############################################################
   # Grafana — accessible via grafana.lena.sh (Traefik, filtré par IP
-  # NetBird, middleware "netbird-only") ou directement en
-  # 100.79.103.184:3000. Importer les dashboards communautaires "Node
+  # Tailscale/NetBird, middleware "netbird-only") ou directement en
+  # 100.95.31.43:3000 (IP Tailscale de garden). Importer les dashboards
+  # communautaires "Node
   # Exporter Full" (ID 1860) et "Process exporter" (ID 249) depuis
   # grafana.com une fois connecté.
   ############################################################

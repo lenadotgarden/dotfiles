@@ -8,10 +8,10 @@
   #
   # backend.mode = "dashboard" : API + panneau web, sur 0.0.0.0:9119.
   # Pas un vrai risque d'exposition publique : le firewall de garden est
-  # en default-deny (seuls 22/2222/8443 sont ouverts), et wt0 (NetBird,
-  # réseau déjà "trusted") est la seule interface qui le contourne — donc
-  # dans les faits, joignable uniquement depuis ton Mac via NetBird
-  # (http://100.79.103.184:9119), jamais depuis l'Internet public.
+  # en default-deny (seuls 22/2222/8443 sont ouverts), et tailscale0/wt0
+  # (réseaux déjà "trusted") sont les seules interfaces qui le contournent
+  # — donc dans les faits, joignable uniquement depuis ton Mac via
+  # Tailscale (http://100.95.31.43:9119), jamais depuis l'Internet public.
   #
   # Deux couches d'auth (un bind non-loopback active le portail
   # automatiquement) :
