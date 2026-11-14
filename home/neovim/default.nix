@@ -19,6 +19,9 @@
       fd
       nodejs
       lilypond
+      prettier
+      stylua
+      nixfmt-rfc-style
     ] ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
       wl-clipboard
       xclip
@@ -116,6 +119,35 @@
               { name = 'path' },
             })
           })
+        '';
+      }
+      {
+        plugin = conform-nvim;
+        type = "lua";
+        config = ''
+          require("conform").setup({
+            formatters_by_ft = {
+              javascript = { "prettier" },
+              javascriptreact = { "prettier" },
+              typescript = { "prettier" },
+              typescriptreact = { "prettier" },
+              css = { "prettier" },
+              html = { "prettier" },
+              json = { "prettier" },
+              jsonc = { "prettier" },
+              yaml = { "prettier" },
+              markdown = { "prettier" },
+              lua = { "stylua" },
+              nix = { "nixfmt" },
+            },
+            format_on_save = {
+              timeout_ms = 2000,
+              lsp_fallback = true,
+            },
+          })
+          vim.keymap.set({ "n", "v" }, "<leader>cf", function()
+            require("conform").format({ async = true, lsp_fallback = true })
+          end, { desc = "Formater le buffer (conform)" })
         '';
       }
       {
