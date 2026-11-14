@@ -22,6 +22,7 @@
       prettier
       stylua
       nixfmt-rfc-style
+      (python3.withPackages (ps: [ ps.python-ly ])) # fournit `ly` (indentation LilyPond)
     ] ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
       wl-clipboard
       xclip
@@ -126,6 +127,13 @@
         type = "lua";
         config = ''
           require("conform").setup({
+            formatters = {
+              ["ly-indent"] = {
+                command = "ly",
+                args = { "indent", "-i", "$FILENAME" },
+                stdin = false,
+              },
+            },
             formatters_by_ft = {
               javascript = { "prettier" },
               javascriptreact = { "prettier" },
@@ -139,6 +147,7 @@
               markdown = { "prettier" },
               lua = { "stylua" },
               nix = { "nixfmt" },
+              lilypond = { "ly-indent" },
             },
             format_on_save = {
               timeout_ms = 2000,
