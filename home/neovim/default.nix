@@ -536,21 +536,18 @@
       })
 
       -- LilyPond : compile automatiquement à la sauvegarde et rafraîchit l'aperçu PDF.
-      -- LilyPond recrée le fichier PDF à chaque compilation (au lieu de le modifier
-      -- en place), ce qui fait qu'Aperçu/Preview.app perd le lien avec sa fenêtre déjà
-      -- ouverte et en ouvre une seconde. `revert` via AppleScript ne fonctionne pas sur
-      -- Preview (erreur -1708, event non géré malgré le dictionnaire) : on ferme donc
-      -- l'ancienne fenêtre pour ce fichier (si elle existe) puis on rouvre, ce qui
-      -- garantit toujours une seule fenêtre à jour.
+      -- Preview.app recharge tout seul un PDF modifié sur disque (watcher natif) tant
+      -- qu'on ne rappelle pas `open` sur un document déjà ouvert : c'est cet appel en
+      -- trop qui créait parfois une seconde fenêtre. On n'ouvre donc que s'il n'y a
+      -- encore aucune fenêtre pour ce fichier, et on laisse Preview faire le reste.
       local function lilypond_preview(pdf, bring_to_front)
         local script = {
           "on run argv",
           "  set pdfPath to item 1 of argv",
           "  tell application \"Preview\"",
-          "    repeat with d in (documents whose path is pdfPath)",
-          "      close d",
-          "    end repeat",
-          "    open POSIX file pdfPath",
+          "    if (count of (documents whose path is pdfPath)) = 0 then",
+          "      open POSIX file pdfPath",
+          "    end if",
           bring_to_front and "    activate" or "",
           "  end tell",
           "end run",
