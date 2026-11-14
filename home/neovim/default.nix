@@ -19,6 +19,10 @@
       fd
       nodejs
       lilypond
+      prettier
+      stylua
+      nixfmt-rfc-style
+      (python3.withPackages (ps: [ ps.python-ly ])) # fournit `ly` (indentation LilyPond)
     ] ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
       wl-clipboard
       xclip
@@ -100,7 +104,7 @@
             mapping = cmp.mapping.preset.insert({
               ['<C-b>'] = cmp.mapping.scroll_docs(-4),
               ['<C-f>'] = cmp.mapping.scroll_docs(4),
-              ['<C-Space>'] = cmp.mapping.complete(),
+              ['<C-y>'] = cmp.mapping.complete(),
               ['<CR>'] = cmp.mapping.confirm({ select = true }),
               ['<Tab>'] = cmp.mapping(function(fallback)
                 if cmp.visible() then cmp.select_next_item()
@@ -116,6 +120,52 @@
               { name = 'path' },
             })
           })
+        '';
+      }
+      {
+        plugin = conform-nvim;
+        type = "lua";
+        config = ''
+          require("conform").setup({
+            formatters = {
+              ["ly-indent"] = {
+                command = "ly",
+                args = { "indent", "-i", "$FILENAME" },
+                stdin = false,
+              },
+            },
+            formatters_by_ft = {
+              javascript = { "prettier" },
+              javascriptreact = { "prettier" },
+              typescript = { "prettier" },
+              typescriptreact = { "prettier" },
+              css = { "prettier" },
+              html = { "prettier" },
+              json = { "prettier" },
+              jsonc = { "prettier" },
+              yaml = { "prettier" },
+              markdown = { "prettier" },
+              lua = { "stylua" },
+              nix = { "nixfmt" },
+              lilypond = { "ly-indent" },
+            },
+            format_on_save = {
+              timeout_ms = 2000,
+              lsp_fallback = true,
+            },
+          })
+          vim.keymap.set({ "n", "v" }, "<leader>cf", function()
+            require("conform").format({ async = true, lsp_fallback = true })
+          end, { desc = "Formater le buffer (conform)" })
+        '';
+      }
+      {
+        plugin = nvim-autopairs;
+        type = "lua";
+        config = ''
+          require("nvim-autopairs").setup({ check_ts = true })
+          local cmp_autopairs = require("nvim-autopairs.completion.cmp")
+          require("cmp").event:on("confirm_done", cmp_autopairs.on_confirm_done())
         '';
       }
 
@@ -462,6 +512,75 @@
            vim.keymap.set("n", "go", overview.focus, { desc = "Toggle focus between Overview sidebar and source buffer" })
         '';
       })
+
+      # LilyPond : coloration syntaxique dédiée (accords, variables, etc., bien plus
+      # riche que syntax/lilypond.vim de base) + lecteur MIDI/MP3 intégré (<F3>).
+      # La compilation + aperçu automatiques à la sauvegarde restent gérées par notre
+      # propre autocommande ci-dessous (ce plugin ne compile qu'à la demande, <F5>) ;
+      # <F6> reste dispo comme raccourci de secours pour ouvrir le PDF via Skim.
+      {
+        plugin = nvim-lilypond-suite;
+        type = "lua";
+        config = ''
+          require('nvls').setup({
+            lilypond = {
+              options = {
+                pdf_viewer = "open -a Skim",
+              },
+            },
+          })
+
+          -- Pas de vrai LSP LilyPond disponible : source nvim-cmp maison avec les
+          -- commandes/mots-clés les plus courants, pour une autocomplétion légère
+          -- sur les fichiers .ly sans avoir besoin d'un serveur LSP.
+          local cmp_ok, cmp = pcall(require, "cmp")
+          if cmp_ok then
+            local lilypond_keywords = {
+              "version", "include", "header", "paper", "layout", "midi", "score",
+              "new", "context", "with", "set", "unset", "override", "revert", "tweak",
+              "relative", "fixed", "transpose", "clef", "key", "time", "tempo", "partial",
+              "repeat", "volta", "alternative", "times", "tuplet", "grace",
+              "acciaccatura", "appoggiatura", "skip", "mark", "segno", "coda", "fermata",
+              "bar", "break", "noBreak", "pageBreak",
+              "voiceOne", "voiceTwo", "voiceThree", "voiceFour", "oneVoice",
+              "stemUp", "stemDown", "stemNeutral",
+              "slurUp", "slurDown", "slurNeutral",
+              "tieUp", "tieDown", "tieNeutral",
+              "dynamicUp", "dynamicDown", "dynamicNeutral",
+              "change", "accidentalStyle", "autoBeamOn", "autoBeamOff",
+              "global", "markup", "lyricmode", "lyricsto", "addlyrics",
+              "chordmode", "drummode", "figuremode", "notemode",
+              "bold", "italic", "sans", "fontsize", "hspace", "vspace",
+              "center-column", "column", "concat", "with-color", "with-url",
+              "instrumentName", "shortInstrumentName",
+            }
+            local source = {}
+            function source:is_available()
+              return vim.bo.filetype == "lilypond"
+            end
+            function source:get_debug_name()
+              return "lilypond"
+            end
+            function source:complete(_, callback)
+              local items = {}
+              for _, word in ipairs(lilypond_keywords) do
+                table.insert(items, { label = "\\" .. word, insertText = "\\" .. word })
+              end
+              callback(items)
+            end
+            cmp.register_source("lilypond", source)
+            cmp.setup.filetype("lilypond", {
+              sources = cmp.config.sources({
+                { name = "lilypond" },
+                { name = "luasnip" },
+              }, {
+                { name = "buffer" },
+                { name = "path" },
+              }),
+            })
+          end
+        '';
+      }
     ];
 
     initLua = ''
@@ -532,6 +651,62 @@
           if vim.fn.executable(script) == 1 then
             vim.fn.jobstart({ script }, { detach = true })
           end
+        end,
+      })
+
+      -- LilyPond : compile automatiquement à la sauvegarde et rafraîchit l'aperçu PDF
+      -- via Skim.app (`brew install --cask skim`) plutôt que Preview, dont `revert`
+      -- AppleScript ne fonctionne pas (event non géré, -1708) et dont `open` réutilise
+      -- la fenêtre de façon aléatoire. Skim recharge la page en place sans perdre le
+      -- scroll/zoom, et son `revert` fonctionne réellement.
+      local function lilypond_preview(pdf, bring_to_front)
+        local script = {
+          "on run argv",
+          "  set pdfPath to item 1 of argv",
+          "  tell application \"Skim\"",
+          "    if (count of (documents whose path is pdfPath)) > 0 then",
+          "      revert (document 1 whose path is pdfPath)",
+          "    else",
+          "      open POSIX file pdfPath",
+          "    end if",
+          bring_to_front and "    activate" or "",
+          "  end tell",
+          "end run",
+        }
+        local args = { "osascript" }
+        for _, line in ipairs(script) do
+          if line ~= "" then
+            table.insert(args, "-e")
+            table.insert(args, line)
+          end
+        end
+        table.insert(args, pdf)
+        vim.fn.jobstart(args)
+      end
+
+      vim.api.nvim_create_autocmd("BufWritePost", {
+        pattern = { "*.ly", "*.ily" },
+        callback = function()
+          local file = vim.fn.expand("%:p")
+          local basename = vim.fn.expand("%:p:r")
+          vim.fn.jobstart({ "lilypond", "-o", basename, file }, {
+            on_exit = function(_, code)
+              if code == 0 then
+                lilypond_preview(basename .. ".pdf", false)
+              else
+                vim.notify("LilyPond : erreur de compilation (:messages pour le détail)", vim.log.levels.ERROR)
+              end
+            end,
+          })
+        end,
+      })
+
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = "lilypond",
+        callback = function()
+          vim.keymap.set("n", "<leader>lo", function()
+            lilypond_preview(vim.fn.expand("%:p:r") .. ".pdf", true)
+          end, { buffer = true, silent = true, desc = "Ouvrir/mettre au premier plan le PDF LilyPond" })
         end,
       })
     '';
