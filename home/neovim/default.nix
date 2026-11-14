@@ -479,6 +479,56 @@
               },
             },
           })
+
+          -- Pas de vrai LSP LilyPond disponible : source nvim-cmp maison avec les
+          -- commandes/mots-clés les plus courants, pour une autocomplétion légère
+          -- sur les fichiers .ly sans avoir besoin d'un serveur LSP.
+          local cmp_ok, cmp = pcall(require, "cmp")
+          if cmp_ok then
+            local lilypond_keywords = {
+              "version", "include", "header", "paper", "layout", "midi", "score",
+              "new", "context", "with", "set", "unset", "override", "revert", "tweak",
+              "relative", "fixed", "transpose", "clef", "key", "time", "tempo", "partial",
+              "repeat", "volta", "alternative", "times", "tuplet", "grace",
+              "acciaccatura", "appoggiatura", "skip", "mark", "segno", "coda", "fermata",
+              "bar", "break", "noBreak", "pageBreak",
+              "voiceOne", "voiceTwo", "voiceThree", "voiceFour", "oneVoice",
+              "stemUp", "stemDown", "stemNeutral",
+              "slurUp", "slurDown", "slurNeutral",
+              "tieUp", "tieDown", "tieNeutral",
+              "dynamicUp", "dynamicDown", "dynamicNeutral",
+              "change", "accidentalStyle", "autoBeamOn", "autoBeamOff",
+              "global", "markup", "lyricmode", "lyricsto", "addlyrics",
+              "chordmode", "drummode", "figuremode", "notemode",
+              "bold", "italic", "sans", "fontsize", "hspace", "vspace",
+              "center-column", "column", "concat", "with-color", "with-url",
+              "instrumentName", "shortInstrumentName",
+            }
+            local source = {}
+            function source:is_available()
+              return vim.bo.filetype == "lilypond"
+            end
+            function source:get_debug_name()
+              return "lilypond"
+            end
+            function source:complete(_, callback)
+              local items = {}
+              for _, word in ipairs(lilypond_keywords) do
+                table.insert(items, { label = "\\" .. word, insertText = "\\" .. word })
+              end
+              callback(items)
+            end
+            cmp.register_source("lilypond", source)
+            cmp.setup.filetype("lilypond", {
+              sources = cmp.config.sources({
+                { name = "lilypond" },
+                { name = "luasnip" },
+              }, {
+                { name = "buffer" },
+                { name = "path" },
+              }),
+            })
+          end
         '';
       }
     ];
