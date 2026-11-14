@@ -534,6 +534,63 @@
           end
         end,
       })
+
+      -- LilyPond : compile automatiquement à la sauvegarde et rafraîchit l'aperçu PDF.
+      -- LilyPond recrée le fichier PDF à chaque compilation (au lieu de le modifier
+      -- en place), ce qui fait qu'Aperçu/Preview.app perd parfois le lien avec sa
+      -- fenêtre déjà ouverte et en ouvre une seconde. On pilote donc Preview via
+      -- AppleScript : s'il a déjà ce PDF ouvert, on le recharge (`revert`, pas de
+      -- nouvelle fenêtre, pas de vol de focus) ; sinon on l'ouvre une première fois.
+      local function lilypond_preview(pdf, bring_to_front)
+        local script = {
+          "on run argv",
+          "  set pdfPath to item 1 of argv",
+          "  tell application \"Preview\"",
+          "    if (exists document whose path is pdfPath) then",
+          "      revert document whose path is pdfPath",
+          "    else",
+          "      open POSIX file pdfPath",
+          "    end if",
+          bring_to_front and "    activate" or "",
+          "  end tell",
+          "end run",
+        }
+        local args = { "osascript" }
+        for _, line in ipairs(script) do
+          if line ~= "" then
+            table.insert(args, "-e")
+            table.insert(args, line)
+          end
+        end
+        table.insert(args, pdf)
+        vim.fn.jobstart(args, {})
+      end
+
+      vim.api.nvim_create_autocmd("BufWritePost", {
+        pattern = { "*.ly", "*.ily" },
+        callback = function()
+          local file = vim.fn.expand("%:p")
+          local basename = vim.fn.expand("%:p:r")
+          vim.fn.jobstart({ "lilypond", "-o", basename, file }, {
+            on_exit = function(_, code)
+              if code == 0 then
+                lilypond_preview(basename .. ".pdf", false)
+              else
+                vim.notify("LilyPond : erreur de compilation (:messages pour le détail)", vim.log.levels.ERROR)
+              end
+            end,
+          })
+        end,
+      })
+
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = "lilypond",
+        callback = function()
+          vim.keymap.set("n", "<leader>lo", function()
+            lilypond_preview(vim.fn.expand("%:p:r") .. ".pdf", true)
+          end, { buffer = true, silent = true, desc = "Ouvrir/mettre au premier plan le PDF LilyPond" })
+        end,
+      })
     '';
   };
 }
