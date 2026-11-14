@@ -535,17 +535,19 @@
         end,
       })
 
-      -- LilyPond : compile automatiquement à la sauvegarde et rafraîchit l'aperçu PDF.
-      -- Preview.app recharge tout seul un PDF modifié sur disque (watcher natif) tant
-      -- qu'on ne rappelle pas `open` sur un document déjà ouvert : c'est cet appel en
-      -- trop qui créait parfois une seconde fenêtre. On n'ouvre donc que s'il n'y a
-      -- encore aucune fenêtre pour ce fichier, et on laisse Preview faire le reste.
+      -- LilyPond : compile automatiquement à la sauvegarde et rafraîchit l'aperçu PDF
+      -- via Skim.app (`brew install --cask skim`) plutôt que Preview, dont `revert`
+      -- AppleScript ne fonctionne pas (event non géré, -1708) et dont `open` réutilise
+      -- la fenêtre de façon aléatoire. Skim recharge la page en place sans perdre le
+      -- scroll/zoom, et son `revert` fonctionne réellement.
       local function lilypond_preview(pdf, bring_to_front)
         local script = {
           "on run argv",
           "  set pdfPath to item 1 of argv",
-          "  tell application \"Preview\"",
-          "    if (count of (documents whose path is pdfPath)) = 0 then",
+          "  tell application \"Skim\"",
+          "    if (count of (documents whose path is pdfPath)) > 0 then",
+          "      revert (document 1 whose path is pdfPath)",
+          "    else",
           "      open POSIX file pdfPath",
           "    end if",
           bring_to_front and "    activate" or "",
