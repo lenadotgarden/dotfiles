@@ -1,0 +1,49 @@
+http:
+  routers:
+    docs-router:
+      rule: Host(`docs.lena.sh`)
+      service: docs-service
+      entryPoints:
+        - web
+      middlewares:
+        - redirect-to-https
+    docs-router-secure:
+      rule: Host(`docs.lena.sh`)
+      service: docs-service
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+      middlewares:
+        - netbird-only
+    # Public : uniquement les liens de partage Paperless (/share/<jeton>), en lecture seule.
+    docs-share-public:
+      rule: Host(`docs.lena.sh`) && PathPrefix(`/share/`) && (Method(`GET`) || Method(`HEAD`))
+      priority: 1000
+      service: docs-service
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+      middlewares:
+        - docs-share-ratelimit
+        - docs-share-headers
+  middlewares:
+    docs-share-ratelimit:
+      rateLimit:
+        average: 5
+        period: 1s
+        burst: 20
+    docs-share-headers:
+      headers:
+        customResponseHeaders:
+          X-Robots-Tag: "noindex, nofollow"
+          Cache-Control: "no-store"
+        contentTypeNosniff: true
+        referrerPolicy: "no-referrer"
+  services:
+    docs-service:
+      loadBalancer:
+        servers:
+          - url: http://172.30.0.1:28981
+        passHostHeader: true

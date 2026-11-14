@@ -1,11 +1,22 @@
 { config, lib, pkgs, ... }:
 {
+  imports = [ ./vikunja.nix ];
+
   ############################################################
   # Stack Docker (remplace Dokploy) : un docker-compose par service dans /srv/garden/<nom>
   # (les fichiers contiennent des secrets -> hors du store Nix). Images épinglées par digest.
   ############################################################
   # beets-flask (5001) : Traefik (br-proxy) doit pouvoir l'atteindre côté hôte.
   networking.firewall.interfaces.br-proxy.allowedTCPPorts = [ 5001 ];
+
+  # Route Traefik publique de docs.lena.sh (liens de partage /share/ uniquement),
+  # versionnée ici (sans secret) et copiée à chaque activation. Le reste du
+  # répertoire dynamic reste géré à la main dans /srv/garden/traefik/dynamic.
+  system.activationScripts.traefikDocsRoute = ''
+    if [ -d /srv/garden/traefik/dynamic ]; then
+      ${pkgs.coreutils}/bin/install -m 0644 ${./traefik/docs.yml} /srv/garden/traefik/dynamic/docs.yml
+    fi
+  '';
 
   systemd.services = {
   garden-docker-network = {
@@ -36,5 +47,5 @@
     };
   # "netbird" retiré (2026-11-14, en pause -> Tailscale) : compose file
   # conservé sur disque sous /srv/garden/netbird pour une reprise facile.
-  }) [ "traefik" "pihole" "syncthing" "calcom" "excalidash" "baserow" "mornye" "cadvisor" "beets-flask" "maloja" ]);
+  }) [ "traefik" "pihole" "syncthing" "excalidash" "mornye" "cadvisor" "beets-flask" "maloja" ]);
 }

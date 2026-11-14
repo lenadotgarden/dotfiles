@@ -42,6 +42,18 @@
     sops.secrets."hermes/dashboard_basic_auth_secret" = { owner = "hermes"; mode = "0400"; };
     sops.secrets."hermes/excalidash_api_key" = { owner = "hermes"; mode = "0400"; };
     sops.secrets."discord/bot_token" = { owner = "hermes"; mode = "0400"; };
+    sops.secrets."paperless/api_key" = {
+      owner = "hermes"; mode = "0400";
+      # Sans sopsFile explicite, sops.secrets résout contre le sopsFile par
+      # défaut de l'hôte (secrets/garden.yaml) - raté en prod : "the key
+      # 'paperless' cannot be found". Ce secret vit dans hermes-managed.yaml
+      # (seul fichier sops que hermes-git-propose peut toucher).
+      sopsFile = ../../secrets/hermes-managed.yaml;
+    };
+    sops.secrets."vikunja/mcp_token" = {
+      owner = "hermes"; mode = "0400";
+      sopsFile = ../../secrets/hermes-managed.yaml;
+    };
 
     # TELEGRAM_ALLOWED_USERS n'est pas un secret (juste ton chat_id) :
     # valeur Nix normale, pas besoin de sops pour ça.
@@ -70,6 +82,12 @@
         # Déclaré ici pour que le canal par défaut (cron + messages) soit stable.
         DISCORD_HOME_CHANNEL=1568658252634267791
         DISCORD_HOME_CHANNEL_NAME="#《🔔》notifs"
+        # Lu par Hermes via ${"\${PAPERLESS_API_KEY}"} dans mcp_servers.paperless.env
+        # (agent.secret_scope.get_secret, qui retombe sur os.environ en mono-profil) :
+        # jamais écrit en clair dans config.yaml ni dans le store Nix.
+        PAPERLESS_API_KEY=${config.sops.placeholder."paperless/api_key"}
+        # Idem pour le MCP Vikunja (header Authorization de mcp_servers.vikunja).
+        VIKUNJA_MCP_TOKEN=${config.sops.placeholder."vikunja/mcp_token"}
       '';
     };
 
@@ -105,6 +123,31 @@
         command = "claude";
         args = [ "mcp" "serve" ];
         timeout = 300;
+      };
+      # Paperless-ngx (docs.lena.sh) en MCP : lister/chercher/tagger des documents.
+      # Le token API est une credential - jamais en clair ici. La valeur littérale
+      # ci-dessous (dollar-accolade PAPERLESS_API_KEY) est un template résolu au
+      # lancement via agent.secret_scope.get_secret(), qui en mono-profil retombe
+      # sur os.environ de la passerelle (rempli par environmentFiles ci-dessous,
+      # lui-même rendu par sops). Vérifié dans le code (tools/mcp_tool_config.py) :
+      # ce n'est PAS un héritage de tout l'environnement - seule cette clé explicite
+      # traverse vers le sous-processus npx.
+      settings.mcp_servers.paperless = {
+        command = "npx";
+        args = [ "-y" "@baruchiro/paperless-mcp@latest" ];
+        env = {
+          PAPERLESS_URL = "http://localhost:28981";
+          PAPERLESS_API_KEY = "\${PAPERLESS_API_KEY}";
+        };
+        timeout = 60;
+      };
+      # Vikunja (tasks.lena.sh) en MCP officiel (intégré depuis la 2.7.0), en HTTP
+      # sur l'adresse locale (Traefik/NetBird-only répond 403 à garden lui-même).
+      # Token en lecture + écriture, jamais en clair : résolu depuis l'environnement.
+      settings.mcp_servers.vikunja = {
+        url = "http://localhost:3456/api/v2/mcp";
+        headers.Authorization = "Bearer \${VIKUNJA_MCP_TOKEN}";
+        timeout = 60;
       };
 
       # ── Routage des modèles ──────────────────────────────────────────
@@ -191,5 +234,19 @@
     # DirectSDK - sans ça la passerelle répond "Could not find ... 'claude'"
     # après chaque redémarrage, malgré un `claude auth login` déjà fait.
     systemd.services.hermes-agent.path = [ "/var/lib/hermes/.local" "/run/current-system/sw" ];
+
+    # Le script d'activation du module (hermes-agent-setup) force `chmod 2770`
+    # sur /var/lib/hermes/.hermes à CHAQUE switch. Or le groupe `hermes`
+    # contient aussi le compte admin (ubuntu) : le contrôle du gateway
+    # (hermes_cli/gateway_runtime_discovery.py, home_mode_unsafe) refuse alors
+    # le dossier en `unsafe_control_permissions` et TOUS les crons échouent
+    # (briefs matin/soir, rituel du dimanche) jusqu'à un chmod manuel.
+    # On repasse en 2750 (setgid conservé, plus d'écriture groupe) juste après.
+    system.activationScripts.hermes-home-private = {
+      deps = [ "hermes-agent-setup" ];
+      text = ''
+        chmod 2750 /var/lib/hermes/.hermes
+      '';
+    };
   };
 }

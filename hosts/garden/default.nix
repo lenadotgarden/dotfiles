@@ -122,7 +122,7 @@ in
     allowedTCPPorts = [ 22 2222 8443 ];
     allowedUDPPorts = [ 51820 41641 ]; # wireguard netbird (en pause) + tailscale
     trustedInterfaces = [ "wt0" "tailscale0" ];
-    # Traefik (réseau proxy, passerelle 172.30.0.1) joint radicale / cal.com / excalidash
+    # Traefik (réseau proxy, passerelle 172.30.0.1) joint radicale / excalidash
     interfaces.br-proxy.allowedTCPPorts = [ 5232 3100 6767 8008 8009 8010 ];
     logRefusedConnections = false;
   };
@@ -265,6 +265,6 @@ in
   # 7j au lieu de 30j : disque Oracle fixe (45 Go, non redimensionnable),
   # marge structurellement serrée avec Grafana/Nextcloud/Matrix/Hermes/Docker.
   nix.gc = { automatic = true; dates = "daily"; options = "--delete-older-than 7d"; };
-  services.journald.extraConfig = "SystemMaxUse=500M";
+  services.journald.settings.Journal.SystemMaxUse = "500M";
   security.sudo.execWheelOnly = true;
 }

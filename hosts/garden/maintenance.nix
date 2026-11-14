@@ -15,7 +15,6 @@ let
   # Images épinglées, signalées mais mises à jour à la main (migrations de base de données).
   manualProjects = {
     netbird = "netbirdio/netbird-server:latest netbirdio/dashboard:latest";
-    calcom = "calcom/cal.com:v6.2.0-arm postgres:16 redis:7";
   };
   mkAssoc = name: attrs: "declare -A ${name}=(${lib.concatStringsSep " " (lib.mapAttrsToList (k: v: "[${k}]=\"${v}\"") attrs)})";
 
@@ -107,8 +106,6 @@ let
     set -euo pipefail
     export PATH=${bin}:$PATH
     d=/var/backups/garden/dumps; mkdir -p "$d"; chmod 700 /var/backups/garden "$d"
-    docker exec calcom-database-1 sh -c 'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' | zstd -q -o "$d/calcom.sql.zst.new"
-    mv "$d/calcom.sql.zst.new" "$d/calcom.sql.zst"
     runuser -u postgres -- pg_dump matrix-synapse | zstd -q -o "$d/matrix-synapse.sql.zst.new"
     mv "$d/matrix-synapse.sql.zst.new" "$d/matrix-synapse.sql.zst"
     for f in netbird_netbird_data/store.db netbird_netbird_data/idp.db netbird_netbird_data/events.db excalidash_backend-data/dev.db; do

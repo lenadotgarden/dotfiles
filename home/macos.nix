@@ -8,7 +8,7 @@
     ./git
     ./tmux
     ./tmux/macos.nix
-    ./iterm2
+    ./ghostty
   ];
 
   home.username = "alex";

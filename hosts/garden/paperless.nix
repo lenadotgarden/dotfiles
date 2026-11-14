@@ -5,6 +5,8 @@ let
   mountPoint = "/mnt/paperless";
 in
 {
+  imports = [ ./paperless-mail.nix ];
+
   ############################################################
   # Paperless-ngx — gestion de documents (NixOS natif, module
   # nixpkgs services.paperless). Base de données Postgres locale
@@ -126,6 +128,13 @@ in
   systemd.services.paperless-consumer.wants = [ "rclone-paperless-mount.service" ];
   systemd.services.paperless-task-queue.after = [ "rclone-paperless-mount.service" ];
   systemd.services.paperless-task-queue.wants = [ "rclone-paperless-mount.service" ];
+
+  # ProtectSystem=strict rend le montage FUSE en lecture seule dans le namespace
+  # du service (EROFS sur media.lock) : on ouvre tout /mnt/paperless en écriture.
+  systemd.services.paperless-scheduler.serviceConfig.ReadWritePaths = [ "/mnt/paperless" ];
+  systemd.services.paperless-web.serviceConfig.ReadWritePaths = [ "/mnt/paperless" ];
+  systemd.services.paperless-consumer.serviceConfig.ReadWritePaths = [ "/mnt/paperless" ];
+  systemd.services.paperless-task-queue.serviceConfig.ReadWritePaths = [ "/mnt/paperless" ];
 
   # Traefik (br-proxy) doit pouvoir atteindre paperless-web pour docs.lena.sh.
   networking.firewall.interfaces.br-proxy.allowedTCPPorts = [ 28981 ];
