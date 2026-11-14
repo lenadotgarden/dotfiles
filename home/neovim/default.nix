@@ -462,6 +462,25 @@
            vim.keymap.set("n", "go", overview.focus, { desc = "Toggle focus between Overview sidebar and source buffer" })
         '';
       })
+
+      # LilyPond : coloration syntaxique dédiée (accords, variables, etc., bien plus
+      # riche que syntax/lilypond.vim de base) + lecteur MIDI/MP3 intégré (<F3>).
+      # La compilation + aperçu automatiques à la sauvegarde restent gérées par notre
+      # propre autocommande ci-dessous (ce plugin ne compile qu'à la demande, <F5>) ;
+      # <F6> reste dispo comme raccourci de secours pour ouvrir le PDF via Skim.
+      {
+        plugin = nvim-lilypond-suite;
+        type = "lua";
+        config = ''
+          require('nvls').setup({
+            lilypond = {
+              options = {
+                pdf_viewer = "open -a Skim",
+              },
+            },
+          })
+        '';
+      }
     ];
 
     initLua = ''
