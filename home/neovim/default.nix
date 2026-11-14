@@ -550,6 +550,17 @@
             end,
           })
 
+          -- Le thème "dms" (DankMaterialShell) se recharge tout seul en live quand
+          -- le fond d'écran/l'apparence change (voir plus bas dans ce fichier). Toute
+          -- réapplication de colorscheme fait un `hi clear`, qui efface les couleurs
+          -- lily* définies par nvls.setup() ci-dessus. On les redéfinit donc à chaque
+          -- changement de colorscheme, pas seulement une fois au démarrage.
+          vim.api.nvim_create_autocmd("ColorScheme", {
+            callback = function()
+              pcall(require("nvls").syntax)
+            end,
+          })
+
           -- Pas de vrai LSP LilyPond disponible : source nvim-cmp maison avec les
           -- commandes/mots-clés les plus courants, pour une autocomplétion légère
           -- sur les fichiers .ly sans avoir besoin d'un serveur LSP.
