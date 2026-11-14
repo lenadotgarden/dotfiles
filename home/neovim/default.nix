@@ -563,7 +563,7 @@
           end
         end
         table.insert(args, pdf)
-        vim.fn.jobstart(args, {})
+        vim.fn.jobstart(args)
       end
 
       vim.api.nvim_create_autocmd("BufWritePost", {
