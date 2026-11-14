@@ -171,7 +171,7 @@ in
       # Chaque utilisateur active "Scrobble to ListenBrainz" dans ses réglages perso et
       # colle la clé API Maloja (admin -> API Keys) à la place d'un vrai token LB.
       ListenBrainz.Enabled = true;
-      ListenBrainz.BaseURL = "http://100.79.103.184:42010/apis/listenbrainz/1/";
+      ListenBrainz.BaseURL = "http://100.95.31.43:42010/apis/listenbrainz/1/";
       # Discord Rich Presence (plugin .ndp téléchargé manuellement, cf.
       # systemd.services.navidrome.environment pour ND_PLUGINS_FOLDER) :
       Plugins.Enabled = true;
