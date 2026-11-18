@@ -16,7 +16,13 @@
   };
 
   # Tailscale (Client pour Headscale)
-  services.tailscale.enable = true;
+  services.tailscale = {
+    enable = true;
+    openFirewall = true;                   # UDP 41641 (connexions directes)
+    useRoutingFeatures = "client";         # exit nodes / subnet routes
+    extraSetFlags = [ "--operator=lena" ]; # `tailscale` sans sudo
+  };
+  networking.firewall.checkReversePath = "loose"; # requis pour les exit nodes
 
   # NetBird (self-hosted mesh VPN); the `netbird`/`netbird-ui` packages in
   # home/default.nix are just the CLI/tray - this is the daemon that actually
