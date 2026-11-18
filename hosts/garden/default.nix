@@ -276,9 +276,18 @@ in
     auto-optimise-store = true;
     allowed-users = [ "@wheel" ];
   };
-  # 7j au lieu de 30j : disque Oracle fixe (45 Go, non redimensionnable),
-  # marge structurellement serrée avec Grafana/Nextcloud/Matrix/Hermes/Docker.
-  nix.gc = { automatic = true; dates = "daily"; options = "--delete-older-than 7d"; };
+  # DÉSACTIVÉ le 2026-11-16 : /mnt/storage2 (.garden-data/docker, bind-mount
+  # de /var/lib/docker) est le MÊME disque ext4 que /nix/store (cf disk.nix,
+  # même UUID 56087f50 monté deux fois). nix-collect-garbage parcourt la
+  # racine réelle du store et efface tout ce qui n'est pas un chemin Nix
+  # valide — y compris /nix/store/.garden-data. Chaque run nocturne
+  # supprimait donc le content-store containerd, les images et les volumes
+  # Docker (pihole, excalidash...), d'où les pannes DNS/Traefik répétées
+  # du 2026-11-16. Tant que docker et le store partagent ce disque, le GC
+  # automatique doit rester désactivé ; lancer `nix-collect-garbage` à la
+  # main si besoin, docker arrêté. Solution propre à terme : partition/volume
+  # séparé pour /var/lib/docker.
+  nix.gc = { automatic = false; dates = "daily"; options = "--delete-older-than 7d"; };
   services.journald.settings.Journal.SystemMaxUse = "500M";
   security.sudo.execWheelOnly = true;
 }
