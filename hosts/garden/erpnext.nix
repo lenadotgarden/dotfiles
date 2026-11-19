@@ -219,6 +219,9 @@ in
           echo "ERPNEXT_DB_ROOT_PASSWORD=$db"
         } > ${secretDir}/secret.env
       fi
+      # Copie lisible par l'agent Hermes (génération de la clé API pour le MCP) ;
+      # jamais affichée dans le chat.
+      install -m 0400 -o hermes -g hermes ${secretDir}/admin-password /var/lib/hermes/incoming/erpnext-admin-password
     '';
   };
 
@@ -232,7 +235,9 @@ in
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
-      TimeoutStartSec = 1800; # premier démarrage : pull des images + création du site
+      TimeoutStartSec = 7200; # premier démarrage : pull des images (volume Oracle lent) + création du site
+      Restart = "on-failure"; # les couches déjà tirées sont conservées par Docker
+      RestartSec = 60;
       ExecStart = "${docker}/bin/docker compose -f ${composeFile} --env-file ${secretDir}/secret.env up -d --remove-orphans";
       ExecStop = "${docker}/bin/docker compose -f ${composeFile} --env-file ${secretDir}/secret.env stop";
     };
