@@ -150,14 +150,6 @@ in
       for p in udp tcp; do
         iptables -A DOCKER-USER -p $p --dport 53 -j DROP
       done
-      # 443 : seules les sources Tailscale/NetBird (CGNAT 100.64.0.0/10) ont
-      # le droit d'atteindre Traefik en HTTPS. Les clients dont la résolution
-      # DNS échappe au split-DNS Tailscale (DoH navigateur, etc.) et retombent
-      # sur l'IP publique reçoivent un échec de connexion franc au lieu d'un
-      # 403 Traefik déroutant -- et le port 443 n'est plus exposé à tout
-      # Internet. Le port 80 reste ouvert partout (défi ACME HTTP-01).
-      iptables -A DOCKER-USER -s 100.64.0.0/10 -p tcp --dport 443 -j ACCEPT
-      iptables -A DOCKER-USER -p tcp --dport 443 -j DROP
       iptables -A DOCKER-USER -j RETURN
       # wt0/tailscale0 <-> conteneurs
       for iface in wt0 tailscale0; do
