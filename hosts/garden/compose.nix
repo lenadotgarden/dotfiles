@@ -4,7 +4,7 @@
 
   # NETTOYAGE UNIQUE (retrait d'ERPNext et d'Actual Budget, 2026-11-19) : le volume
   # Oracle (/mnt/storage2) est trop petit/lent pour ERPNext. À retirer après un
-  # déploiement réussi.
+  # déploiement réussi (relancé pour débloquer comin).
   system.activationScripts.removeErpnextActual = ''
     d=${config.virtualisation.docker.package}/bin/docker
     if ${pkgs.coreutils}/bin/timeout 60 $d info >/dev/null 2>&1; then
