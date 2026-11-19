@@ -238,6 +238,30 @@ in
     };
   };
 
+  # Sauvegarde nocturne -> Storage Box Hetzner (rclone crypt) : dump MariaDB +
+  # fichiers du site. Les volumes Docker vivent déjà sur le volume Oracle
+  # (/var/lib/docker est un bind de /mnt/storage2). 14 jours de rétention.
+  systemd.services.erpnext-backup = {
+    description = "Sauvegarde ERPNext vers la Storage Box";
+    after = [ "garden-compose-erpnext.service" ];
+    path = [ docker pkgs.gzip pkgs.gnutar pkgs.coreutils pkgs.findutils pkgs.util-linux ];
+    serviceConfig = { Type = "oneshot"; TimeoutStartSec = 3600; };
+    script = ''
+      set -eu
+      mountpoint -q /mnt/hermes
+      d=/mnt/hermes/backups/erpnext
+      install -d $d
+      day=$(date +%F)
+      docker exec erpnext-db-1 sh -c 'mariadb-dump -uroot -p"$MARIADB_ROOT_PASSWORD" --all-databases --single-transaction' | gzip > $d/db-$day.sql.gz
+      docker exec erpnext-backend-1 tar czf - --ignore-failed-read -C /home/frappe/frappe-bench/sites ${hostname}/private/files ${hostname}/public/files ${hostname}/site_config.json > $d/files-$day.tar.gz
+      find $d -type f -mtime +14 -delete
+    '';
+  };
+  systemd.timers.erpnext-backup = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = { OnCalendar = "*-*-* 03:45:00"; Persistent = true; };
+  };
+
   # Traefik (br-proxy) doit pouvoir atteindre ERPNext pour erp.lena.sh.
   networking.firewall.interfaces.br-proxy.allowedTCPPorts = [ port ];
 
