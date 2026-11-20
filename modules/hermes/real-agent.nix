@@ -54,6 +54,10 @@
       owner = "hermes"; mode = "0400";
       sopsFile = ../../secrets/hermes-managed.yaml;
     };
+    sops.secrets."actual/password" = {
+      owner = "hermes"; mode = "0400";
+      sopsFile = ../../secrets/hermes-managed.yaml;
+    };
     sops.secrets."tailscale/api_key" = {
       owner = "hermes"; mode = "0400";
       sopsFile = ../../secrets/hermes-managed.yaml;
@@ -92,6 +96,8 @@
         PAPERLESS_API_KEY=${config.sops.placeholder."paperless/api_key"}
         # Idem pour le MCP Vikunja (header Authorization de mcp_servers.vikunja).
         VIKUNJA_MCP_TOKEN=${config.sops.placeholder."vikunja/mcp_token"}
+        # MCP Actual Budget (variable ACTUAL_PASSWORD de mcp_servers.actual.env).
+        ACTUAL_PASSWORD=${config.sops.placeholder."actual/password"}
       '';
     };
 
@@ -152,6 +158,20 @@
         url = "http://localhost:3456/api/v2/mcp";
         headers.Authorization = "Bearer \${VIKUNJA_MCP_TOKEN}";
         timeout = 60;
+      };
+      # Actual Budget (budget.lena.sh) en MCP communautaire (s-stefanov/actual-mcp),
+      # en stdio sur l'adresse locale. Lecture + écriture. Cache local du budget
+      # sur disque local (jamais sur le montage FUSE). Mot de passe via sops.
+      settings.mcp_servers.actual = {
+        command = "npx";
+        args = [ "-y" "actual-mcp" "--enable-write" ];
+        env = {
+          ACTUAL_SERVER_URL = "http://localhost:5006";
+          ACTUAL_PASSWORD = "\${ACTUAL_PASSWORD}";
+          ACTUAL_BUDGET_SYNC_ID = "10ad61cc-34b8-4f35-b303-b33f289212f8";
+          ACTUAL_DATA_DIR = "/var/lib/hermes/.local/share/actual-mcp";
+        };
+        timeout = 120;
       };
 
       # ── Routage des modèles ──────────────────────────────────────────
