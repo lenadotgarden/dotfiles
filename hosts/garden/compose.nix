@@ -1,6 +1,6 @@
 { config, lib, pkgs, ... }:
 {
-  imports = [ ./vikunja.nix ];
+  imports = [ ./vikunja.nix ./actual.nix ];
 
   ############################################################
   # Stack Docker (remplace Dokploy) : un docker-compose par service dans /srv/garden/<nom>
