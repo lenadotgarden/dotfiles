@@ -173,6 +173,18 @@
         };
         timeout = 120;
       };
+      # Second budget Actual : micro-entreprise (même serveur, autre Sync ID, autre cache local).
+      settings.mcp_servers.actual-micro = {
+        command = "npx";
+        args = [ "-y" "actual-mcp" "--enable-write" ];
+        env = {
+          ACTUAL_SERVER_URL = "http://localhost:5006";
+          ACTUAL_PASSWORD = "\${ACTUAL_PASSWORD}";
+          ACTUAL_BUDGET_SYNC_ID = "4925786f-57d8-44b9-b3e8-d6f87608d10b";
+          ACTUAL_DATA_DIR = "/var/lib/hermes/.local/share/actual-mcp-micro";
+        };
+        timeout = 120;
+      };
 
       # ── Routage des modèles ──────────────────────────────────────────
       # Plugins installés en user-space (~/.hermes/plugins) ; la passerelle
