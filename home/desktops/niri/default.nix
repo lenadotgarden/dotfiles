@@ -63,7 +63,7 @@ in
   # org.freedesktop.Notifications before DMS can, so popups get stuck on screen and
   # never reach DMS's notification center. Mask it under niri (xmonad's script
   # launches the dunst binary directly, so it's unaffected).
-  xdg.configFile."systemd/user/dunst.service".source = /dev/null;
+  xdg.configFile."systemd/user/dunst.service".source = config.lib.file.mkOutOfStoreSymlink "/dev/null";
 
   # DMS rewrites settings.json itself whenever its settings UI is used, so it can't be a
   # read-only xdg.configFile symlink. Seed it once from the repo; re-copy the live file
