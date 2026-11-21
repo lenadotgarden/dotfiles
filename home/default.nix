@@ -3,6 +3,14 @@
 let
   # yazi from its flake (master, compiled from source) or the cached nixpkgs build
   yaziPkg = if withFlakeYazi then inputs.yazi.packages.${pkgs.stdenv.hostPlatform.system}.default else pkgs.yazi;
+
+  # nixpkgs' pywal16 (which pywal now aliases to) passes makeWrapperArgs as one
+  # space-joined string ("--prefix PATH : <path>") instead of separate list items;
+  # the newer makeShellWrapper hook rejects that as a single malformed arg. Fix
+  # locally until upstream splits it (pkgs/by-name/py/pywal16/package.nix).
+  pywalPkg = pkgs.pywal.overrideAttrs (old: {
+    makeWrapperArgs = [ "--prefix" "PATH" ":" (lib.makeBinPath [ pkgs.imagemagick ]) ];
+  });
 in
 {
   imports = [
@@ -115,6 +123,9 @@ in
   # Applications et outils utilisateur
   home.packages = with pkgs; [
     fastfetch
+    file-roller
+    unzip
+    p7zip
     obsidian
     wl-clipboard
     vesktop
@@ -123,7 +134,7 @@ in
     pavucontrol
     pamixer
     wtype
-    pywal
+    pywalPkg
     awww
     hyprpicker
     libnotify
@@ -139,7 +150,6 @@ in
     karere     # Whatsapp Linux Client
     hypridle   # Sleep mode
     bluetuith  # TUI Bluetooth Manager
-    stremio-linux-shell # Stremio Media Player
     clipse # clipboard manager
     cliphist
     wl-clip-persist
@@ -214,6 +224,27 @@ in
   };
 
   # Fichier Desktop personnalisés (.desktop)
+  # Archives : file-roller (GUI, utilise unzip/7z en arrière-plan) par défaut
+  xdg.mimeApps = {
+    enable = true;
+    defaultApplications = lib.genAttrs [
+      "application/zip"
+      "application/x-zip-compressed"
+      "application/x-7z-compressed"
+      "application/x-rar"
+      "application/vnd.rar"
+      "application/x-tar"
+      "application/x-compressed-tar"
+      "application/x-bzip-compressed-tar"
+      "application/x-xz-compressed-tar"
+      "application/x-zstd-compressed-tar"
+      "application/gzip"
+      "application/x-bzip2"
+      "application/x-xz"
+      "application/zstd"
+    ] (_: "org.gnome.FileRoller.desktop");
+  };
+
   xdg.desktopEntries = {
     btop = {
       name = "btop";

@@ -52,7 +52,7 @@
       }
       auto-dark-mode-nvim
 
-      # DankMaterialShell integration: renders a `dms` colorscheme (~/.config/nvim/colors/dms.lua)
+      # Dux Shell (DMS) integration: renders a `dms` colorscheme (~/.config/nvim/colors/dms.lua)
       # via matugen once "neovim" is enabled under DMS Settings > Theme > Matugen Templates.
       # Needs: `dms ipc call settings set matugenTemplateNeovim true`, then a theme regen
       # (toggle light/dark once) to generate the file. No-ops gracefully on other hosts.
@@ -60,7 +60,7 @@
         name = "base46";
         doCheck = false;
         src = pkgs.fetchFromGitHub {
-          owner = "AvengeMedia";
+          owner = "duxlabs-dev";
           repo = "base46";
           rev = "83522e02c6c3b4ea901c4bffd9e0a5e0371c1fe6"; # v3.0
           hash = "sha256-kwDMC6rYzJYECmGnwn8JiAbffUq7hAXcUH6gPSkk2uI=";
