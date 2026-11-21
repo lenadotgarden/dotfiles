@@ -23,7 +23,12 @@
   # AZERTY for X11 sessions (xMonad). Niri takes its layout from the flake.
   services.xserver.xkb.layout = "fr";
 
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  # Not _latest: 7.3 hangs niri's backend init on this Raven/Picasso iGPU after
+  # config-load, with zero kernel-log errors (silent userspace deadlock, confirmed
+  # across repeated boots on 2026-10-22 during the Dux Shell migration). The known-good
+  # pre-migration line (7.1) is already EOL/removed from nixpkgs, so fall back to
+  # NixOS's own curated default instead of hand-pinning another _latest version.
+  boot.kernelPackages = pkgs.linuxPackages;
 
   # Disk swap on top of the zram swap from core/: big builds (Rust flake inputs
   # like niri, yazi, handy) otherwise get nix OOM-killed. The file lives on the

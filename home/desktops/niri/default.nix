@@ -68,9 +68,14 @@ in
   # DMS rewrites settings.json itself whenever its settings UI is used, so it can't be a
   # read-only xdg.configFile symlink. Seed it once from the repo; re-copy the live file
   # here manually whenever you want to snapshot further tweaks.
+  #
+  # DMS 2.0 (Dux Shell) renamed its own config dir from ~/.config/DankMaterialShell to
+  # ~/.config/dms (dux-shell's dirs.go: MigrateLegacyDirs). The binary auto-migrates an
+  # existing legacy dir on first launch and leaves a symlink behind, but seed fresh
+  # installs straight at the new path.
   home.activation = lib.mkIf (niriPackage == "myNiriDms") {
     seedDmsSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-      DMS_SETTINGS="$HOME/.config/DankMaterialShell/settings.json"
+      DMS_SETTINGS="$HOME/.config/dms/settings.json"
       if [ ! -e "$DMS_SETTINGS" ]; then
         run mkdir -p "$(dirname "$DMS_SETTINGS")"
         run install -m 644 "${./dms-settings.json}" "$DMS_SETTINGS"

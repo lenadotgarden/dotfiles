@@ -20,7 +20,15 @@
     # son propre pin (uv2nix) pour son packaging Python, à ne pas perturber.
     hermes-agent.url = "github:NousResearch/hermes-agent";
     wrapper-modules.url = "github:BirdeeHub/nix-wrapper-modules";
-    niri.url = "github:YaLTeR/niri";
+    # inputs.nixpkgs.follows matters here: niri dlopens the *system's* Mesa driver
+    # at runtime (/run/opengl-driver), so niri's own glibc must match the system's
+    # or dlopen fails with "version `GLIBC_x.y' not found" and GPU accel silently
+    # never comes up (niri loops forever on DeviceMissing instead of crashing -
+    # looked exactly like a hang during the Dux migration's nixpkgs bump).
+    niri = {
+      url = "github:YaLTeR/niri";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     home-manager = {
       url = "github:nix-community/home-manager";
@@ -43,9 +51,10 @@
     apple-silicon-support.url = "github:tpwrules/nixos-apple-silicon";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
 
-    # DankMaterialShell from upstream (nixpkgs' copy lags behind)
+    # Dux Shell (formerly DankMaterialShell/DMS, rebranded in v2.0) from upstream
+    # (nixpkgs' own dms-shell module/package still lags behind and keeps the old name)
     dms = {
-      url = "github:AvengeMedia/DankMaterialShell/stable"; # master needs a newer Go than nixpkgs has
+      url = "github:duxlabs-dev/dux-shell/stable"; # master needs a newer Go than nixpkgs has
       inputs.nixpkgs.follows = "nixpkgs";
     };
     helium.url = "github:schembriaiden/helium-browser-nix-flake";
@@ -191,7 +200,7 @@
               "XF86MonBrightnessUp".spawn-sh = "brightnessctl set 5%+";
               "XF86MonBrightnessDown".spawn-sh = "brightnessctl set 5%-";
             } // (if shell == "dms" then {
-              # DankMaterialShell (installed system-wide by hosts/thinkpad/dms.nix)
+              # Dux Shell / DMS (installed system-wide by hosts/thinkpad/dms.nix)
               "Mod+Space".spawn-sh = "dms ipc call spotlight toggle";
               "Mod+D".spawn-sh = "dms ipc call theme toggle";            # dark / light
               "Mod+Comma".spawn-sh = "dms ipc call settings toggle";
@@ -231,7 +240,7 @@
           };
         };
 
-        # ThinkPad T495s with DankMaterialShell instead of Noctalia
+        # ThinkPad T495s with Dux Shell (DMS) instead of Noctalia
         packages.myNiriDms = mkNiri {
           package = inputs'.niri.packages.niri;
           scale = 1.0;
