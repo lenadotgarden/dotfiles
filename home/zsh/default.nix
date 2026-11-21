@@ -101,6 +101,9 @@
         case "''${DEFAULT_WM:-niri}" in
           # no exec: if X dies you get a shell instead of an autologin respawn loop
           xmonad) startx ;;
+          # niri-session (not bare niri) so niri.service activates graphical-session.target;
+          # without it xdg-desktop-portal won't start and apps can't read light/dark.
+          niri) exec niri-session ;;
           *) exec ''${DEFAULT_WM:-niri} ;;
         esac
       fi
