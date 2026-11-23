@@ -310,6 +310,25 @@
           ];
         };
 
+        nixosConfigurations.macmini = nixpkgs.lib.nixosSystem {
+          specialArgs = { inherit inputs; };
+
+          modules = [
+            { nixpkgs.hostPlatform = "x86_64-linux"; }
+            inputs.blip.nixosModules.default
+            ./hosts/macmini/default.nix
+
+            inputs.home-manager.nixosModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.backupFileExtension = "backup";
+              home-manager.users.lena = import ./home/default.nix;
+              home-manager.extraSpecialArgs = { inherit inputs; niriPackage = "myNiriDms"; withHandy = false; withFsel = false; withFlakeYazi = false; withNiri = true; withXmonad = true; };
+            }
+          ];
+        };
+
         # garden — VPS Oracle Ampere A1 (aarch64), géré précédemment dans un
         # repo séparé (/etc/nixos sur le serveur), fusionné ici. Channel figé
         # (nixpkgs-garden) : indépendant des mises à jour du reste du flake.

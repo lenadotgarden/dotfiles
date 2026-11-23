@@ -8,6 +8,7 @@ Heyyyy this is my NixOS configuration!
 | --- | --- | --- |
 | `macbook` | Apple Silicon MacBook (Asahi) | `sudo nixos-rebuild switch --flake .#macbook` |
 | `thinkpad` | ThinkPad T495s | `sudo nixos-rebuild switch --flake .#thinkpad` |
+| `macmini` | Mac mini 2014 (Intel, same desktop as thinkpad) | `sudo nixos-rebuild switch --flake .#macmini` |
 
 - `core/` is shared by every NixOS host. Machine-specific settings (hostname, kernel, power, firmware) go in `hosts/<name>/`.
 - Each host keeps its own `hardware-configuration.nix`. For a new machine: `cp /etc/nixos/hardware-configuration.nix hosts/<name>/`, then `git add` it (flakes only see tracked files).
