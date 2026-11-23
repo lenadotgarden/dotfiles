@@ -14,6 +14,7 @@
     ../thinkpad/users.nix
     ../thinkpad/xmonad.nix
     ../thinkpad/dms.nix
+    ./remote-access.nix
   ];
 
   networking.hostName = "macmini";
@@ -21,6 +22,7 @@
   console.keyMap = "fr";
   console.earlySetup = true;
   services.xserver.xkb.layout = "fr";
+  services.xserver.xkb.variant = "mac"; # old Apple keyboard (with numpad)
 
   # Same kernel line as the ThinkPad (NixOS default LTS).
   boot.kernelPackages = pkgs.linuxPackages;
