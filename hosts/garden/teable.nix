@@ -71,7 +71,7 @@ in
   # Teable (alternative libre à Airtable, PostgreSQL) pour les projets pro et
   # le calendrier édito. Données sur le 2e volume Oracle (${dataDir}),
   # sauvegarde nocturne vers la Storage Box. Secrets générés une fois, hors store.
-  # Accès : Traefik (teable.lena.sh), même protection que Vikunja/Actual. Certificat LE : HTTP-01, l enregistrement DNS doit pointer sur l IP publique le temps de l émission.
+  # Accès : Traefik (teable.lena.sh), même protection que Vikunja/Actual. Certificat LE : HTTP-01 (DNSSEC actif sur lena.sh), l enregistrement DNS doit pointer sur l IP publique le temps de l émission.
   ############################################################
 
   systemd.tmpfiles.rules = [
