@@ -270,8 +270,10 @@
                 path = "~/Garden",
               },
             },
+            notes_subdir = "0 Inbox",
+            new_notes_location = "notes_subdir",
             daily_notes = {
-              folder = "1 Journal",
+              folder = "4 Journal",
               date_format = "%Y/%m/%Y-%m-%d %a",
               alias_format = "%B %d, %Y",
             },
