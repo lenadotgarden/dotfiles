@@ -117,6 +117,11 @@
       settings.discord.auto_thread = false;
       settings.display.tool_progress = "off";
       settings.display.interim_assistant_messages = false;
+      # Recherche web : sans réglage, l'autodétection tombe sur openai-native
+      # (inutilisable ici) puis sur un Firecrawl keyless injoignable. Exa en
+      # mode keyless (MCP public, sans clé) répond depuis garden : search + extract.
+      settings.web.search_backend = "exa";
+      settings.web.extract_backend = "exa";
       # CLI installs hors nixpkgs (defuddle, bw, codebase-memory-mcp, agent-reach)
       settings.mcp_servers.codebase-memory = {
         command = "/var/lib/hermes/.local/bin/codebase-memory-mcp";

@@ -252,6 +252,19 @@
           };
         };
 
+        # Mac mini 2014: old Apple keyboard (fr/mac; Option = Alt, Cmd = Super, so no
+        # Alt/Win swap), Magic Trackpad (Lightning) or MX Master 2S
+        packages.myNiriMacmini = mkNiri {
+          package = inputs'.niri.packages.niri;
+          xkbVariant = "mac";
+          scale = 1.0;
+          shell = "dms";
+          touchpad = {
+            tap = {};
+            natural-scroll = {};
+          };
+        };
+
         # ThinkPad T495s: 1080p screen, trackpad with physical buttons
         packages.myNiriThinkpad = mkNiri {
           package = inputs'.niri.packages.niri; # nixpkgs' niri 26.04 fails to build at the locked nixpkgs (missing libdisplay-info)
@@ -306,6 +319,25 @@
               home-manager.backupFileExtension = "backup";
               home-manager.users.lena = import ./home/default.nix;
               home-manager.extraSpecialArgs = { inherit inputs; niriPackage = "myNiriDms"; withHandy = false; withFsel = false; withFlakeYazi = false; withNiri = true; withXmonad = true; };
+            }
+          ];
+        };
+
+        nixosConfigurations.macmini = nixpkgs.lib.nixosSystem {
+          specialArgs = { inherit inputs; };
+
+          modules = [
+            { nixpkgs.hostPlatform = "x86_64-linux"; }
+            inputs.blip.nixosModules.default
+            ./hosts/macmini/default.nix
+
+            inputs.home-manager.nixosModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.backupFileExtension = "backup";
+              home-manager.users.lena = import ./home/default.nix;
+              home-manager.extraSpecialArgs = { inherit inputs; niriPackage = "myNiriMacmini"; withHandy = false; withFsel = false; withFlakeYazi = false; withNiri = true; withXmonad = true; };
             }
           ];
         };
