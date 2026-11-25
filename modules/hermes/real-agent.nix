@@ -54,6 +54,10 @@
       owner = "hermes"; mode = "0400";
       sopsFile = ../../secrets/hermes-managed.yaml;
     };
+    sops.secrets."teable/token" = {
+      owner = "hermes"; mode = "0400";
+      sopsFile = ../../secrets/hermes-managed.yaml;
+    };
     sops.secrets."actual/password" = {
       owner = "hermes"; mode = "0400";
       sopsFile = ../../secrets/hermes-managed.yaml;
@@ -98,6 +102,8 @@
         VIKUNJA_MCP_TOKEN=${config.sops.placeholder."vikunja/mcp_token"}
         # MCP Actual Budget (variable ACTUAL_PASSWORD de mcp_servers.actual.env).
         ACTUAL_PASSWORD=${config.sops.placeholder."actual/password"}
+        # MCP Teable (jeton d'accès personnel, variable TEABLE_API_KEY de mcp_servers.teable.env).
+        TEABLE_API_KEY=${config.sops.placeholder."teable/token"}
       '';
     };
 
@@ -177,6 +183,18 @@
           ACTUAL_DATA_DIR = "/var/lib/hermes/.local/share/actual-mcp";
         };
         timeout = 120;
+      };
+      # Teable (teable.lena.sh, calendrier édito) en MCP communautaire (teable-mcp,
+      # source relue : un seul fetch vers TEABLE_BASE_URL). Adresse locale, car le
+      # nom public répond 403 à garden. Lecture + écriture.
+      settings.mcp_servers.teable = {
+        command = "npx";
+        args = [ "-y" "teable-mcp@1.0.1" ];
+        env = {
+          TEABLE_BASE_URL = "http://172.30.0.1:3110/api";
+          TEABLE_API_KEY = "\${TEABLE_API_KEY}";
+        };
+        timeout = 60;
       };
       # Second budget Actual : micro-entreprise (même serveur, autre Sync ID, autre cache local).
       settings.mcp_servers.actual-micro = {
