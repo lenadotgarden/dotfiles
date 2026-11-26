@@ -306,14 +306,14 @@
           host = "thinkpad";
           extraModules = [ inputs.nixos-hardware.nixosModules.lenovo-thinkpad-t495 ];
           # swap only the left Alt/Win pair; keep right Alt as AltGr
-          wlHost = { xkbVariant = null; xkbOptions = "altwin:swap_lalt_lwin"; laptop = true; };
+          wlHost = { xkbVariant = null; xkbOptions = "altwin:swap_lalt_lwin"; laptop = true; terminal = "ghostty"; };
         };
 
         # Mac mini 2014: old Apple keyboard (fr/mac: Option = Alt, Cmd = Super, so no
         # Alt/Win swap), Magic Trackpad (Lightning) or MX Master 2S
         nixosConfigurations.macmini = mkWaylandHost {
           host = "macmini";
-          wlHost = { xkbVariant = "mac"; xkbOptions = null; laptop = false; };
+          wlHost = { xkbVariant = "mac"; xkbOptions = null; laptop = false; terminal = "kitty"; };
         };
         # garden — VPS Oracle Ampere A1 (aarch64), géré précédemment dans un
         # repo séparé (/etc/nixos sur le serveur), fusionné ici. Channel figé

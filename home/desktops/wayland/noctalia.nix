@@ -10,7 +10,7 @@
 # Dark/light: Super+D (noctalia msg theme-mode-toggle). Every app that has a
 # Noctalia template (ghostty, gtk, btop, the compositor borders) follows.
 let
-  templates = [ "ghostty" "gtk3" "gtk4" "btop" compositor ];
+  templates = [ wlHost.terminal "gtk3" "gtk4" "btop" compositor ];
 
   reload = if compositor == "sway" then "swaymsg reload" else "mmsg dispatch reload_config";
 

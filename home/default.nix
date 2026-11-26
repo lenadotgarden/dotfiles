@@ -1,4 +1,4 @@
-{ config, lib, pkgs, inputs, withHandy, withFsel, withFlakeYazi, withNiri, withXmonad, withWayland ? false, compositor ? "niri", ... }:
+{ config, lib, pkgs, inputs, withHandy, withFsel, withFlakeYazi, withNiri, withXmonad, withWayland ? false, compositor ? "niri", wlHost ? { terminal = "ghostty"; }, ... }:
 
 let
   # yazi from its flake (master, compiled from source) or the cached nixpkgs build
@@ -36,9 +36,10 @@ in
     ./tmux
     ./librewolf
   ]
-  # kitty on niri hosts; the Wayland hosts (sway/mango) use ghostty, themed by Noctalia
-  ++ lib.optional (!withWayland) ./kitty
-  ++ lib.optional withWayland ./ghostty
+  # kitty on niri hosts; the Wayland hosts (sway/mango) use wlHost.terminal (ghostty, or kitty
+  # on GPUs older than OpenGL 4.3), themed by Noctalia
+  ++ lib.optional (!withWayland || wlHost.terminal == "kitty") ./kitty
+  ++ lib.optional (withWayland && wlHost.terminal == "ghostty") ./ghostty
   # fsel is built with naersk (one derivation per Rust crate): heavy to build
   ++ lib.optional withFsel ./fsel
   ++ lib.optional withNiri ./desktops/niri
@@ -265,7 +266,7 @@ in
     btop = {
       name = "btop";
       comment = "Resource Monitor";
-      exec = "${if withWayland then "ghostty" else "kitty"} -e btop";
+      exec = "${if withWayland then wlHost.terminal else "kitty"} -e btop";
       icon = "btop";
       terminal = false;
       categories = [ "System" "Monitor" ];

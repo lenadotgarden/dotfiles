@@ -10,14 +10,17 @@ let
   noctaliaPkg = inputs.self.packages.${system}.myNoctalia;
   noctalia = lib.getExe noctaliaPkg;
   ipc = "${noctalia} msg";
-  term = lib.getExe pkgs.ghostty;
+  # ghostty needs OpenGL 4.3: the 2011 Mac mini (HD 3000, GL 3.3) uses kitty instead
+  isKitty = wlHost.terminal == "kitty";
+  term = if isKitty then lib.getExe pkgs.kitty else lib.getExe pkgs.ghostty;
+  termHere = dir: if isKitty then "${term} --directory=${dir}" else "${term} --working-directory=${dir}";
   rofimojiBin = lib.getExe pkgs.rofimoji;
 
   # AZERTY: the digit row gives symbols without Shift
   azertyDigits = [ "ampersand" "eacute" "quotedbl" "apostrophe" "parenleft" ];
   wsKeys = lib.imap1 (i: k: { n = toString i; key = k; }) azertyDigits;
 
-  nvimGarden = "${term} --working-directory=${config.home.homeDirectory}/Garden -e nvim";
+  nvimGarden = "${termHere "${config.home.homeDirectory}/Garden"} -e nvim";
 
   # Placeholder colours (Mono, dark) used until Noctalia renders its own
   # files on first start; Noctalia then overwrites them on every palette change.
@@ -38,6 +41,29 @@ let
     client.urgent           $error    $surface  $on_surface         $error     $error
     client.placeholder      $surface  $surface  $on_surface_variant $surface   $surface
     client.background       $surface
+  '';
+  seedKitty = ''
+    foreground #e4e4e4
+    background #111111
+    cursor #ededed
+    selection_foreground #ffffff
+    selection_background #3a3a3a
+    color0 #2e2e2e
+    color1 #c9a3a3
+    color2 #a3a3a3
+    color3 #bdbdbd
+    color4 #8f8f8f
+    color5 #cfcfcf
+    color6 #9a9a9a
+    color7 #d4d4d4
+    color8 #666666
+    color9 #dbb8b8
+    color10 #b8b8b8
+    color11 #d8d8d8
+    color12 #a8a8a8
+    color13 #e6e6e6
+    color14 #b0b0b0
+    color15 #ffffff
   '';
   seedGhostty = ''
     palette = 0=#2e2e2e
@@ -90,7 +116,7 @@ in
       home.sessionVariables = {
         DEFAULT_WM = compositor; # read by home/zsh to start the session on TTY1
         NIXOS_OZONE_WL = "1";    # Electron apps natively on Wayland
-        TERMINAL = "ghostty";
+        TERMINAL = wlHost.terminal;
       };
 
       # Files that Noctalia owns and rewrites (so they can't be read-only store
@@ -102,7 +128,7 @@ in
             printf '%s' "$2" > "$1"
           fi
         }
-        seed "$HOME/.config/ghostty/themes/noctalia" ${lib.escapeShellArg seedGhostty}
+        ${if isKitty then ''seed "$HOME/.config/kitty/themes/noctalia.conf" ${lib.escapeShellArg seedKitty}'' else ''seed "$HOME/.config/ghostty/themes/noctalia" ${lib.escapeShellArg seedGhostty}''}
         ${lib.optionalString (compositor == "sway") ''seed "$HOME/.config/sway/noctalia" ${lib.escapeShellArg seedSway}''}
       '';
     }
