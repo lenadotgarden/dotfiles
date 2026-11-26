@@ -115,8 +115,8 @@ in
           terminal = term;
           bars = [ ]; # Noctalia is the bar
           gaps = { inner = 6; outer = 0; };
-          window = { border = 1; titlebar = false; };
-          floating = { border = 1; titlebar = false; };
+          window = { border = 3; titlebar = false; };
+          floating = { border = 3; titlebar = false; };
           focus.followMouse = "no";
 
           input = {
@@ -244,9 +244,9 @@ in
           layer_shadows = 0;
           layer_animations = 0;
           focused_opacity = 1.0;
-          unfocused_opacity = 1.0;
+          unfocused_opacity = 0.85; # dims windows that are not focused
           border_radius = 0;
-          border_px = 1;
+          border_px = 3;
           gap_inner_horizontal = 6;
           gap_inner_vertical = 6;
           gap_outer_horizontal = 0;

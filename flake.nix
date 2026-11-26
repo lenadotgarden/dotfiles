@@ -66,7 +66,7 @@
     let
       # Wayland desktop of the thinkpad and the mac mini: Noctalia shell + a compositor.
       # One switch for both machines: "sway" or "mango" (MangoWC), then rebuild.
-      compositor = "sway";
+      compositor = "mango";
 
       mkWaylandHost = { host, wlHost, extraModules ? [ ] }:
         assert builtins.elem compositor [ "sway" "mango" ];
