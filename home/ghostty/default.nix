@@ -19,7 +19,7 @@ in
       window-padding-x = 14;
       window-padding-y = 14;
 
-      background-opacity = 0.94;
+      background-opacity = 1;
 
       cursor-style = "block";
       cursor-style-blink = true;
@@ -31,6 +31,7 @@ in
       # Catppuccin Mocha (sombre) / Latte (clair), bascule automatique avec
       # l'apparence du Mac - thèmes livrés nativement par Ghostty.
       theme = "dark:Catppuccin Mocha,light:Catppuccin Latte";
+      background-opacity = 0.94;
       macos-titlebar-style = "hidden";
       background-blur-radius = 20;
       # false (pas true) : sur clavier français, Option produit les caractères

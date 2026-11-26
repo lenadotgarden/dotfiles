@@ -32,6 +32,13 @@
         };
       };
 
+      # Iosevka is the system font (sans, serif, mono): GTK, Qt, Electron, Noctalia
+      fonts.fontconfig.defaultFonts = {
+        sansSerif = [ "Iosevka" ];
+        serif = [ "Iosevka" ];
+        monospace = [ "Iosevka" ];
+      };
+
       # Backlight keys without root
       services.udev.packages = [ pkgs.brightnessctl ];
       users.users.lena.extraGroups = [ "video" ];

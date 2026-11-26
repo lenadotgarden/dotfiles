@@ -19,18 +19,18 @@ let
 
   nvimGarden = "${term} --working-directory=${config.home.homeDirectory}/Garden -e nvim";
 
-  # Placeholder colours (Catppuccin Mocha) used until Noctalia renders its own
+  # Placeholder colours (Mono, dark) used until Noctalia renders its own
   # files on first start; Noctalia then overwrites them on every palette change.
   seedSway = ''
-    set $primary            #b4befe
-    set $on_primary         #11111b
-    set $secondary          #cba6f7
-    set $tertiary           #f5c2e7
-    set $error              #f38ba8
-    set $surface            #1e1e2e
-    set $on_surface         #cdd6f4
-    set $on_surface_variant #a6adc8
-    set $outline            #45475a
+    set $primary            #ededed
+    set $on_primary         #111111
+    set $secondary          #bdbdbd
+    set $tertiary           #8a8a8a
+    set $error              #c9a3a3
+    set $surface            #111111
+    set $on_surface         #e4e4e4
+    set $on_surface_variant #8f8f8f
+    set $outline            #333333
 
     client.focused          $primary  $surface  $on_surface         $primary   $primary
     client.focused_inactive $outline  $surface  $on_surface_variant $outline   $outline
@@ -40,27 +40,27 @@ let
     client.background       $surface
   '';
   seedGhostty = ''
-    palette = 0=#45475a
-    palette = 1=#f38ba8
-    palette = 2=#a6e3a1
-    palette = 3=#f9e2af
-    palette = 4=#89b4fa
-    palette = 5=#f5c2e7
-    palette = 6=#94e2d5
-    palette = 7=#bac2de
-    palette = 8=#585b70
-    palette = 9=#f38ba8
-    palette = 10=#a6e3a1
-    palette = 11=#f9e2af
-    palette = 12=#89b4fa
-    palette = 13=#f5c2e7
-    palette = 14=#94e2d5
-    palette = 15=#a6adc8
-    background = #1e1e2e
-    foreground = #cdd6f4
-    cursor-color = #f5e0dc
-    selection-background = #585b70
-    selection-foreground = #cdd6f4
+    palette = 0=#2e2e2e
+    palette = 1=#c9a3a3
+    palette = 2=#a3a3a3
+    palette = 3=#bdbdbd
+    palette = 4=#8f8f8f
+    palette = 5=#cfcfcf
+    palette = 6=#9a9a9a
+    palette = 7=#d4d4d4
+    palette = 8=#666666
+    palette = 9=#dbb8b8
+    palette = 10=#b8b8b8
+    palette = 11=#d8d8d8
+    palette = 12=#a8a8a8
+    palette = 13=#e6e6e6
+    palette = 14=#b0b0b0
+    palette = 15=#ffffff
+    background = #111111
+    foreground = #e4e4e4
+    cursor-color = #ededed
+    selection-background = #3a3a3a
+    selection-foreground = #ffffff
   '';
 in
 {
@@ -114,9 +114,9 @@ in
           modifier = "Mod4";
           terminal = term;
           bars = [ ]; # Noctalia is the bar
-          gaps = { inner = 10; outer = 4; };
-          window = { border = 2; titlebar = false; };
-          floating = { border = 2; titlebar = false; };
+          gaps = { inner = 6; outer = 0; };
+          window = { border = 1; titlebar = false; };
+          floating = { border = 1; titlebar = false; };
           focus.followMouse = "no";
 
           input = {
@@ -146,6 +146,7 @@ in
             "Mod4+s" = "exec ${ipc} panel-toggle control-center";
             "Mod4+comma" = "exec ${ipc} settings-toggle";
             "Mod4+Shift+l" = "exec ${ipc} session lock";
+            "Mod4+d" = "exec ${ipc} theme-mode-toggle";
             "Ctrl+Mod4+space" = "exec ${rofimojiBin} --action type";
             "Ctrl+Shift+s" = "exec ${ipc} screenshot-region";
             "Mod1+Tab" = "exec ${ipc} window-switcher hold";
@@ -226,12 +227,12 @@ in
           layer_animations = 0;
           focused_opacity = 1.0;
           unfocused_opacity = 1.0;
-          border_radius = 10;
-          border_px = 2;
-          gap_inner_horizontal = 10;
-          gap_inner_vertical = 10;
-          gap_outer_horizontal = 4;
-          gap_outer_vertical = 4;
+          border_radius = 0;
+          border_px = 1;
+          gap_inner_horizontal = 6;
+          gap_inner_vertical = 6;
+          gap_outer_horizontal = 0;
+          gap_outer_vertical = 0;
 
           sloppy_focus = 0;
           tag_num = 5;
@@ -246,6 +247,7 @@ in
             "SUPER,s,spawn_shell,${ipc} panel-toggle control-center"
             "SUPER,comma,spawn_shell,${ipc} settings-toggle"
             "SUPER+SHIFT,l,spawn_shell,${ipc} session lock"
+            "SUPER,d,spawn_shell,${ipc} theme-mode-toggle"
             "CTRL+SUPER,space,spawn_shell,${rofimojiBin} --action type"
             "CTRL+SHIFT,s,spawn_shell,${ipc} screenshot-region"
             "ALT,Tab,spawn_shell,${ipc} window-switcher hold"
