@@ -316,7 +316,7 @@ in
           scroller_default_proportion = 0.5;
           scroller_default_proportion_single = 1.0;
           scroller_proportion_preset = "0.333,0.5,0.667,1.0";
-          scroller_structs = 0;           # no reserved strip on the sides
+          scroller_structs = 8;           # = outer gap: the scroller ignores gap_outer_horizontal on the sides
           scroller_prefer_center = 0;     # centring pushed windows away from the screen edges
 
           # Trackpad: 3 fingers = move focus between columns, 4 fingers = tags / overview
