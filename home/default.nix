@@ -1,4 +1,4 @@
-{ config, lib, pkgs, inputs, withHandy, withFsel, withFlakeYazi, withNiri, withXmonad, ... }:
+{ config, lib, pkgs, inputs, withHandy, withFsel, withFlakeYazi, withNiri, withXmonad, withWayland ? false, compositor ? "niri", wlHost ? { terminal = "ghostty"; }, ... }:
 
 let
   # yazi from its flake (master, compiled from source) or the cached nixpkgs build
@@ -11,6 +11,18 @@ let
   pywalPkg = pkgs.pywal.overrideAttrs (old: {
     makeWrapperArgs = [ "--prefix" "PATH" ":" (lib.makeBinPath [ pkgs.imagemagick ]) ];
   });
+
+  # nixpkgs' Electron wrapper passes --enable-features=WaylandWindowDecorations under
+  # NIXOS_OZONE_WL: the app then draws its OWN rounded frame and shadow (and the tiling
+  # layout shifts around the invisible shadow margin). Disable it so the compositor
+  # draws the (square) borders. A disable overrides an enable on the Chromium command line.
+  noCsd = name: pkg: pkgs.symlinkJoin {
+    name = "${pkg.name}-nocsd";
+    paths = [ pkg ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''wrapProgram $out/bin/${name} --add-flags "--disable-features=WaylandWindowDecorations"'';
+    inherit (pkg) meta;
+  };
 in
 {
   imports = [
@@ -19,16 +31,20 @@ in
     # ---------------------------
 
     ./neovim
-    ./kitty
     ./zsh
     ./git
     ./tmux
     ./librewolf
   ]
+  # kitty on niri hosts; the Wayland hosts (sway/mango) use wlHost.terminal (ghostty, or kitty
+  # on GPUs older than OpenGL 4.3), themed by Noctalia
+  ++ lib.optional (!withWayland || wlHost.terminal == "kitty") ./kitty
+  ++ lib.optional (withWayland && wlHost.terminal == "ghostty") ./ghostty
   # fsel is built with naersk (one derivation per Rust crate): heavy to build
   ++ lib.optional withFsel ./fsel
   ++ lib.optional withNiri ./desktops/niri
-  ++ lib.optional withXmonad ./desktops/xmonad;
+  ++ lib.optional withXmonad ./desktops/xmonad
+  ++ lib.optional withWayland ./desktops/wayland;
 
   home.username = "lena";
   home.homeDirectory = "/home/lena";
@@ -128,7 +144,7 @@ in
     p7zip
     obsidian
     wl-clipboard
-    vesktop
+    (if withWayland then noCsd "vesktop" vesktop else vesktop)
     wlsunset
     bitwarden-desktop
     pavucontrol
@@ -168,8 +184,9 @@ in
   ++ lib.optional withHandy inputs.handy.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
   # Gestionnaire de mise en veille Hypridle avec économie d'énergie écran
+  # (Wayland hosts: Noctalia does idle, lock and screen-off itself, see home/desktops/wayland)
   services.hypridle = {
-    enable = true;
+    enable = !withWayland;
     settings = {
       general = {
         lock_cmd = "pidof hyprlock || hyprlock";
@@ -249,7 +266,7 @@ in
     btop = {
       name = "btop";
       comment = "Resource Monitor";
-      exec = "kitty -e btop";
+      exec = "${if withWayland then wlHost.terminal else "kitty"} -e btop";
       icon = "btop";
       terminal = false;
       categories = [ "System" "Monitor" ];

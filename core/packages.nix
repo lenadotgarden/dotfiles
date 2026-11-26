@@ -27,7 +27,8 @@
   # NetBird (self-hosted mesh VPN); the `netbird`/`netbird-ui` packages in
   # home/default.nix are just the CLI/tray - this is the daemon that actually
   # owns /var/run/netbird/sock, without which `netbird up` can't connect.
-  services.netbird.enable = true;
+  # Désactivé (2026-11-26) : Tailscale est le réseau privé, netbird.lena.sh ne répond plus.
+  # services.netbird.enable = true;
 
   # Bluetooth enable
   hardware.bluetooth.enable = true;

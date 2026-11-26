@@ -8,6 +8,12 @@
   programs.fzf = {
     enable = true;
     enableZshIntegration = true;
+    # indices ANSI (-1 = couleur par défaut du terminal) : suit la palette Noctalia
+    colors = {
+      fg = "-1"; bg = "-1"; hl = "4";
+      "fg+" = "-1"; "bg+" = "0"; "hl+" = "12";
+      info = "3"; prompt = "2"; pointer = "5"; marker = "2"; spinner = "3"; header = "8";
+    };
   };
 
   programs.zsh = {
@@ -66,13 +72,21 @@
       PROMPT='%n%F{8}@%f%m %F{4}%~%f%F{3}''${vcs_info_msg_0_}%f %F{2}>%f '
 
       # Personnalisation des couleurs de saisie (gras, sans forcer de couleur : suit la couleur de texte par défaut du terminal donc s'adapte aux thèmes clair/sombre)
+      # Couleurs ANSI uniquement (0-15) : elles viennent de la palette du terminal, donc de Noctalia
+      # (ghostty). Le prompt, la coloration, les suggestions et fzf changent avec le thème du bureau.
+      ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
       typeset -A ZSH_HIGHLIGHT_STYLES
-      ZSH_HIGHLIGHT_STYLES[command]='bold'
-      ZSH_HIGHLIGHT_STYLES[command-kw]='bold'
-      ZSH_HIGHLIGHT_STYLES[builtin]='bold'
-      ZSH_HIGHLIGHT_STYLES[alias]='bold'
-      ZSH_HIGHLIGHT_STYLES[function]='bold'
-      ZSH_HIGHLIGHT_STYLES[arg0]='bold'
+      ZSH_HIGHLIGHT_STYLES[command]='fg=2,bold'
+      ZSH_HIGHLIGHT_STYLES[command-kw]='fg=5,bold'
+      ZSH_HIGHLIGHT_STYLES[builtin]='fg=2,bold'
+      ZSH_HIGHLIGHT_STYLES[alias]='fg=2,bold'
+      ZSH_HIGHLIGHT_STYLES[function]='fg=2,bold'
+      ZSH_HIGHLIGHT_STYLES[arg0]='fg=2,bold'
+      ZSH_HIGHLIGHT_STYLES[unknown-token]='fg=1'
+      ZSH_HIGHLIGHT_STYLES[path]='fg=4,underline'
+      ZSH_HIGHLIGHT_STYLES[single-quoted-argument]='fg=3'
+      ZSH_HIGHLIGHT_STYLES[double-quoted-argument]='fg=3'
+      ZSH_HIGHLIGHT_STYLES[comment]='fg=8'
 
       fastfetch --logo nixos2
 
@@ -80,21 +94,6 @@
       if [[ -f ~/.deepseek_api_key ]]; then
         export DEEPSEEK_API_KEY="$(cat ~/.deepseek_api_key)"
       fi
-
-      # `dms restart` only works when dms.service is systemd-managed; ours isn't
-      # (niri spawns it directly, see hosts/thinkpad/dms.nix), so upstream's
-      # restart just kills it with nothing left to relaunch it. Do it ourselves.
-      dms() {
-        if [[ "$1" == "restart" ]]; then
-          command dms kill
-          # setsid execs its argument directly, so it can't be handed the
-          # `command` builtin - resolve the real binary path first.
-          local dms_bin="$(command -v dms)"
-          (setsid "$dms_bin" run >/tmp/dms-run.log 2>&1 < /dev/null &)
-        else
-          command dms "$@"
-        fi
-      }
 
       # Auto-start WM on TTY1 if not already inside a graphical session
       if [[ "$(tty)" == "/dev/tty1" ]] && [[ -z "$WAYLAND_DISPLAY" ]] && [[ -z "$DISPLAY" ]]; then
@@ -104,7 +103,13 @@
           # niri-session (not bare niri) so niri.service activates graphical-session.target;
           # without it xdg-desktop-portal won't start and apps can't read light/dark.
           niri) exec niri-session ;;
-          *) exec ''${DEFAULT_WM:-niri} ;;
+          # sway / mango : pas de exec. Si le compositeur plante au démarrage, on garde un shell
+          # (au lieu d'une boucle d'autologin) et l'erreur est dans ~/.cache/wm-session.log.
+          *)
+            mkdir -p ~/.cache
+            ''${DEFAULT_WM:-niri} 2> ~/.cache/wm-session.log
+            echo "''${DEFAULT_WM:-niri} s'est arrêté (code $?). Journal : ~/.cache/wm-session.log"
+            ;;
         esac
       fi
     '';

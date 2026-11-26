@@ -1,8 +1,8 @@
 { config, lib, pkgs, ... }:
 
 # Mac mini 2014 (Macmini7,1): i5-4278U (Haswell, 2c/4t), Intel Iris 5100, 16 GB, 256 GB SSD.
-# Same desktop as the ThinkPad (niri + Dux Shell, xMonad fallback): users, dms and
-# xmonad modules are shared with hosts/thinkpad/.
+# Same desktop as the ThinkPad (Noctalia + sway or mango): the users module is
+# shared with hosts/thinkpad/.
 {
   imports = [
     ../../core/boot.nix
@@ -12,8 +12,7 @@
     # Generated on the Mac mini: cp /etc/nixos/hardware-configuration.nix hosts/macmini/
     ./hardware-configuration.nix
     ../thinkpad/users.nix
-    ../thinkpad/xmonad.nix
-    ../thinkpad/dms.nix
+    ../../core/wayland.nix # Noctalia + sway or mango (flake.nix `compositor`)
     ./remote-access.nix
   ];
 
@@ -21,8 +20,6 @@
 
   console.keyMap = "fr";
   console.earlySetup = true;
-  services.xserver.xkb.layout = "fr";
-  services.xserver.xkb.variant = "mac"; # old Apple keyboard (with numpad)
 
   # Same kernel line as the ThinkPad (NixOS default LTS).
   boot.kernelPackages = pkgs.linuxPackages;

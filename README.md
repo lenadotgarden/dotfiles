@@ -10,6 +10,7 @@ Heyyyy this is my NixOS configuration!
 | `thinkpad` | ThinkPad T495s | `sudo nixos-rebuild switch --flake .#thinkpad` |
 | `macmini` | Mac mini 2014 (Intel, same desktop as thinkpad) | `sudo nixos-rebuild switch --flake .#macmini` |
 
+- **Desktop of `thinkpad` and `macmini`:** Noctalia + sway, or MangoWC. One switch for both: `compositor = "sway";` at the top of `outputs` in `flake.nix` (`"sway"` or `"mango"`), then rebuild. Shortcuts are the same on both (Super = apps, Alt = windows, see `home/desktops/wayland`). The `macbook` still runs niri.
 - `core/` is shared by every NixOS host. Machine-specific settings (hostname, kernel, power, firmware) go in `hosts/<name>/`.
 - Each host keeps its own `hardware-configuration.nix`. For a new machine: `cp /etc/nixos/hardware-configuration.nix hosts/<name>/`, then `git add` it (flakes only see tracked files).
 - Per-machine niri values (keyboard variant, screen scale, touchpad) are the arguments of `mkNiri` in `flake.nix`.

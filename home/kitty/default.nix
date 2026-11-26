@@ -1,4 +1,4 @@
-{ pkgs, niriPackage ? null, ... }:
+{ pkgs, lib, niriPackage ? null, withWayland ? false, ... }:
 
 let
   # DankMaterialShell (thinkpad) generates its own kitty colours via matugen;
@@ -17,8 +17,8 @@ in
       enable_audio_bell = false;
       confirm_os_window_close = 0;
       window_padding_width = 14;
-      background_opacity = "0.94";
-      dynamic_background_opacity = true;
+      background_opacity = if withWayland then "1.0" else "0.94";
+      dynamic_background_opacity = !withWayland;
 
       # Curseur & Style
       cursor_shape = "block";
@@ -56,7 +56,10 @@ in
     };
     extraConfig = ''
       cursor none
-    '' + (if usesDmsTheme then ''
+    '' + (if withWayland then ''
+      # Noctalia (sway/mango hosts) writes ~/.config/kitty/themes/noctalia.conf on every palette change
+      include themes/noctalia.conf
+    '' else if usesDmsTheme then ''
       # DankMaterialShell/matugen theme: regenerated on wallpaper change and on
       # `dms ipc call theme toggle` (Mod+D), then hot-reloaded via SIGUSR1.
       include dank-theme.conf
