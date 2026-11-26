@@ -103,7 +103,13 @@
           # niri-session (not bare niri) so niri.service activates graphical-session.target;
           # without it xdg-desktop-portal won't start and apps can't read light/dark.
           niri) exec niri-session ;;
-          *) exec ''${DEFAULT_WM:-niri} ;;
+          # sway / mango : pas de exec. Si le compositeur plante au démarrage, on garde un shell
+          # (au lieu d'une boucle d'autologin) et l'erreur est dans ~/.cache/wm-session.log.
+          *)
+            mkdir -p ~/.cache
+            ''${DEFAULT_WM:-niri} 2> ~/.cache/wm-session.log
+            echo "''${DEFAULT_WM:-niri} s'est arrêté (code $?). Journal : ~/.cache/wm-session.log"
+            ;;
         esac
       fi
     '';
