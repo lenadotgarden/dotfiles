@@ -11,6 +11,18 @@ let
   pywalPkg = pkgs.pywal.overrideAttrs (old: {
     makeWrapperArgs = [ "--prefix" "PATH" ":" (lib.makeBinPath [ pkgs.imagemagick ]) ];
   });
+
+  # nixpkgs' Electron wrapper passes --enable-features=WaylandWindowDecorations under
+  # NIXOS_OZONE_WL: the app then draws its OWN rounded frame and shadow (and the tiling
+  # layout shifts around the invisible shadow margin). Disable it so the compositor
+  # draws the (square) borders. A disable overrides an enable on the Chromium command line.
+  noCsd = name: pkg: pkgs.symlinkJoin {
+    name = "${pkg.name}-nocsd";
+    paths = [ pkg ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''wrapProgram $out/bin/${name} --add-flags "--disable-features=WaylandWindowDecorations"'';
+    inherit (pkg) meta;
+  };
 in
 {
   imports = [
@@ -131,7 +143,7 @@ in
     p7zip
     obsidian
     wl-clipboard
-    vesktop
+    (if withWayland then noCsd "vesktop" vesktop else vesktop)
     wlsunset
     bitwarden-desktop
     pavucontrol
