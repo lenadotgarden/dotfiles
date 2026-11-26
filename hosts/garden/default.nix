@@ -45,7 +45,10 @@ in
   };
   # DNS hôte : résolveur VCN Oracle puis publics (pas de systemd-resolved :
   # le port 53 du host est publié par Pi-hole/Docker).
-  networking.nameservers = [ "169.254.169.254" "9.9.9.9" "1.1.1.1" ];
+  # Quad9 (9.9.9.9) répond REFUSED ou timeout depuis cette IP (testé le 2026-11-26) : ça
+  # faisait échouer au hasard des résolutions (web_search Exa, connecteurs) via le
+  # forwarder Tailscale. Résolveurs publics vérifiés OK : 1.1.1.1, 1.0.0.1, 8.8.8.8.
+  networking.nameservers = [ "169.254.169.254" "1.1.1.1" "1.0.0.1" "8.8.8.8" ];
   services.resolved.enable = false;
   networking.timeServers = [ "169.254.169.254" ];
   time.timeZone = "UTC";
