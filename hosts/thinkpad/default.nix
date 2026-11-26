@@ -11,17 +11,14 @@
     ./hardware-configuration.nix
     ./users.nix
     ./power.nix
-    ./xmonad.nix
-    ./dms.nix
+    ../../core/wayland.nix # Noctalia + sway or mango (flake.nix `compositor`)
   ];
 
   networking.hostName = "thinkpad";
 
-  # AZERTY in the TTY and at the LUKS passphrase prompt
+  # AZERTY in the TTY and at the LUKS passphrase prompt (the compositor sets its own, see flake.nix)
   console.keyMap = "fr";
   console.earlySetup = true;
-  # AZERTY for X11 sessions (xMonad). Niri takes its layout from the flake.
-  services.xserver.xkb.layout = "fr";
 
   # Not _latest: 7.3 hangs niri's backend init on this Raven/Picasso iGPU after
   # config-load, with zero kernel-log errors (silent userspace deadlock, confirmed

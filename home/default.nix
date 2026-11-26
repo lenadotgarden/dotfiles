@@ -1,4 +1,4 @@
-{ config, lib, pkgs, inputs, withHandy, withFsel, withFlakeYazi, withNiri, withXmonad, ... }:
+{ config, lib, pkgs, inputs, withHandy, withFsel, withFlakeYazi, withNiri, withXmonad, withWayland ? false, compositor ? "niri", ... }:
 
 let
   # yazi from its flake (master, compiled from source) or the cached nixpkgs build
@@ -11,6 +11,9 @@ let
   pywalPkg = pkgs.pywal.overrideAttrs (old: {
     makeWrapperArgs = [ "--prefix" "PATH" ":" (lib.makeBinPath [ pkgs.imagemagick ]) ];
   });
+  # Screen on/off for hypridle, per compositor
+  screenOff = if compositor == "niri" then "niri msg action power-off-monitors" else "${pkgs.wlopm}/bin/wlopm --off '*'";
+  screenOn = if compositor == "niri" then "niri msg action power-on-monitors" else "${pkgs.wlopm}/bin/wlopm --on '*'";
 in
 {
   imports = [
@@ -28,7 +31,8 @@ in
   # fsel is built with naersk (one derivation per Rust crate): heavy to build
   ++ lib.optional withFsel ./fsel
   ++ lib.optional withNiri ./desktops/niri
-  ++ lib.optional withXmonad ./desktops/xmonad;
+  ++ lib.optional withXmonad ./desktops/xmonad
+  ++ lib.optional withWayland ./desktops/wayland;
 
   home.username = "lena";
   home.homeDirectory = "/home/lena";
@@ -174,7 +178,7 @@ in
       general = {
         lock_cmd = "pidof hyprlock || hyprlock";
         before_sleep_cmd = "loginctl lock-session";
-        after_sleep_cmd = "niri msg action power-on-monitors";
+        after_sleep_cmd = screenOn;
       };
       listener = [
         {
@@ -184,8 +188,8 @@ in
         }
         {
           timeout = 300;
-          on-timeout = "niri msg action power-off-monitors";
-          on-resume = "niri msg action power-on-monitors";
+          on-timeout = screenOff;
+          on-resume = screenOn;
         }
         {
           timeout = 600;

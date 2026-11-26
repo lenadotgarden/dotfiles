@@ -51,12 +51,9 @@
     apple-silicon-support.url = "github:tpwrules/nixos-apple-silicon";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
 
-    # Dux Shell (formerly DankMaterialShell/DMS, rebranded in v2.0) from upstream
-    # (nixpkgs' own dms-shell module/package still lags behind and keeps the old name)
-    dms = {
-      url = "github:duxlabs-dev/dux-shell/stable"; # master needs a newer Go than nixpkgs has
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    # MangoWC (the sway alternative, see `compositor` below). Not following nixpkgs:
+    # the locked nixpkgs has no wlroots 0.20 / mango yet, upstream pins its own.
+    mango.url = "github:mangowm/mango";
     helium.url = "github:schembriaiden/helium-browser-nix-flake";
     antigravity-nix.url = "github:jacopone/antigravity-nix";
     fsel.url = "github:Mjoyufull/fsel";
@@ -66,6 +63,40 @@
   };
 
   outputs = inputs@{ self, nixpkgs, flake-parts, ... }:
+    let
+      # Wayland desktop of the thinkpad and the mac mini: Noctalia shell + a compositor.
+      # One switch for both machines: "sway" or "mango" (MangoWC), then rebuild.
+      compositor = "sway";
+
+      mkWaylandHost = { host, wlHost, extraModules ? [ ] }:
+        assert builtins.elem compositor [ "sway" "mango" ];
+        nixpkgs.lib.nixosSystem {
+          specialArgs = { inherit inputs compositor; };
+          modules = [
+            { nixpkgs.hostPlatform = "x86_64-linux"; }
+            inputs.blip.nixosModules.default
+            ./hosts/${host}/default.nix
+          ]
+          ++ extraModules
+          # declares programs.mango (not in the locked nixpkgs)
+          ++ nixpkgs.lib.optional (compositor == "mango") inputs.mango.nixosModules.mango
+          ++ [
+            inputs.home-manager.nixosModules.home-manager
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.backupFileExtension = "backup";
+              home-manager.users.lena = import ./home/default.nix;
+              home-manager.extraSpecialArgs = {
+                inherit inputs compositor wlHost;
+                niriPackage = null;
+                withHandy = false; withFsel = false; withFlakeYazi = false;
+                withNiri = false; withXmonad = false; withWayland = true;
+              };
+            }
+          ];
+        };
+    in
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [ (inputs.import-tree ./modules) ];
 
@@ -239,41 +270,6 @@
             scroll-factor = 0.25;
           };
         };
-
-        # ThinkPad T495s with Dux Shell (DMS) instead of Noctalia
-        packages.myNiriDms = mkNiri {
-          package = inputs'.niri.packages.niri;
-          scale = 1.0;
-          shell = "dms";
-          xkbOptions = "altwin:swap_lalt_lwin"; # swap only the left Alt/Win pair; keep right Alt as AltGr
-          touchpad = {
-            tap = {};
-            natural-scroll = {};
-          };
-        };
-
-        # Mac mini 2014: old Apple keyboard (fr/mac; Option = Alt, Cmd = Super, so no
-        # Alt/Win swap), Magic Trackpad (Lightning) or MX Master 2S
-        packages.myNiriMacmini = mkNiri {
-          package = inputs'.niri.packages.niri;
-          xkbVariant = "mac";
-          scale = 1.0;
-          shell = "dms";
-          touchpad = {
-            tap = {};
-            natural-scroll = {};
-          };
-        };
-
-        # ThinkPad T495s: 1080p screen, trackpad with physical buttons
-        packages.myNiriThinkpad = mkNiri {
-          package = inputs'.niri.packages.niri; # nixpkgs' niri 26.04 fails to build at the locked nixpkgs (missing libdisplay-info)
-          scale = 1.0;
-          touchpad = {
-            tap = {};
-            natural-scroll = {};
-          };
-        };
       };
 
       flake = {
@@ -302,46 +298,19 @@
             }
           ];
         };
-
-        nixosConfigurations.thinkpad = nixpkgs.lib.nixosSystem {
-          specialArgs = { inherit inputs; };
-
-          modules = [
-            { nixpkgs.hostPlatform = "x86_64-linux"; }
-            inputs.nixos-hardware.nixosModules.lenovo-thinkpad-t495
-            inputs.blip.nixosModules.default
-            ./hosts/thinkpad/default.nix
-
-            inputs.home-manager.nixosModules.home-manager
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.backupFileExtension = "backup";
-              home-manager.users.lena = import ./home/default.nix;
-              home-manager.extraSpecialArgs = { inherit inputs; niriPackage = "myNiriDms"; withHandy = false; withFsel = false; withFlakeYazi = false; withNiri = true; withXmonad = true; };
-            }
-          ];
+        nixosConfigurations.thinkpad = mkWaylandHost {
+          host = "thinkpad";
+          extraModules = [ inputs.nixos-hardware.nixosModules.lenovo-thinkpad-t495 ];
+          # swap only the left Alt/Win pair; keep right Alt as AltGr
+          wlHost = { xkbVariant = null; xkbOptions = "altwin:swap_lalt_lwin"; };
         };
 
-        nixosConfigurations.macmini = nixpkgs.lib.nixosSystem {
-          specialArgs = { inherit inputs; };
-
-          modules = [
-            { nixpkgs.hostPlatform = "x86_64-linux"; }
-            inputs.blip.nixosModules.default
-            ./hosts/macmini/default.nix
-
-            inputs.home-manager.nixosModules.home-manager
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.backupFileExtension = "backup";
-              home-manager.users.lena = import ./home/default.nix;
-              home-manager.extraSpecialArgs = { inherit inputs; niriPackage = "myNiriMacmini"; withHandy = false; withFsel = false; withFlakeYazi = false; withNiri = true; withXmonad = true; };
-            }
-          ];
+        # Mac mini 2014: old Apple keyboard (fr/mac: Option = Alt, Cmd = Super, so no
+        # Alt/Win swap), Magic Trackpad (Lightning) or MX Master 2S
+        nixosConfigurations.macmini = mkWaylandHost {
+          host = "macmini";
+          wlHost = { xkbVariant = "mac"; xkbOptions = null; };
         };
-
         # garden — VPS Oracle Ampere A1 (aarch64), géré précédemment dans un
         # repo séparé (/etc/nixos sur le serveur), fusionné ici. Channel figé
         # (nixpkgs-garden) : indépendant des mises à jour du reste du flake.

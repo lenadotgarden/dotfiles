@@ -1,7 +1,7 @@
 { config, lib, pkgs, ... }:
 
-# TLP is gone (see dms.nix): it fought power-profiles-daemon over the CPU
-# governor, and DMS's power-saver button needs ppd to actually work. Battery
+# TLP is gone: it fought power-profiles-daemon (core/wayland.nix) over the CPU
+# governor, and Noctalia's power-profile button needs ppd. Battery
 # charge-threshold care (the one TLP feature worth keeping) is replicated
 # directly via thinkpad_acpi's sysfs knobs below.
 {
