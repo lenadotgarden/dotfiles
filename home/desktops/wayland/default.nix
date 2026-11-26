@@ -249,10 +249,11 @@ in
           unfocused_opacity = 1.0; # no transparency anywhere (battery)
           border_radius = 0;
           border_px = 3;
-          gap_inner_horizontal = 12;
-          gap_inner_vertical = 12;
-          gap_outer_horizontal = 14;
-          gap_outer_vertical = 14;
+          no_border_when_single = 1; # border only when the workspace has 2+ windows
+          gap_inner_horizontal = 6;
+          gap_inner_vertical = 6;
+          gap_outer_horizontal = 7;
+          gap_outer_vertical = 7;
           smart_gaps = 0;
 
           # Animations: short, ease-out (quint), no bounce. Windows zoom in and fade out,
@@ -264,10 +265,10 @@ in
           animation_fade_out = 1;
           zoom_initial_ratio = 0.9;
           fade_in_begin_opacity = 0.6;
-          animation_duration_open = 260;
-          animation_duration_close = 180;
-          animation_duration_move = 280;
-          animation_duration_tag = 280;
+          animation_duration_open = 140;
+          animation_duration_close = 100;
+          animation_duration_move = 150;
+          animation_duration_tag = 150;
           animation_duration_focus = 0;
           animation_curve_open = "0.22,1.0,0.36,1.0";
           animation_curve_move = "0.22,1.0,0.36,1.0";
