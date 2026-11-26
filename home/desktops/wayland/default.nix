@@ -187,7 +187,7 @@ in
             "Mod4+d" = "exec ${ipc} theme-mode-toggle";
             "Ctrl+Mod4+space" = "exec ${rofimojiBin} --action type";
             "Ctrl+Shift+s" = "exec ${ipc} screenshot-region";
-            "Mod4+Shift+v" = "exec dictate";
+            "Mod1+space" = "exec dictate";
             "Mod1+Tab" = "exec ${ipc} window-switcher hold";
             "Mod4+q" = "kill";
             "Mod4+Shift+r" = "reload";
@@ -343,7 +343,7 @@ in
             "SUPER,d,spawn_shell,${ipc} theme-mode-toggle"
             "CTRL+SUPER,space,spawn_shell,${rofimojiBin} --action type"
             "CTRL+SHIFT,s,spawn_shell,${ipc} screenshot-region"
-            "SUPER+SHIFT,v,spawn_shell,dictate"
+            "ALT,space,spawn_shell,dictate"
             "ALT,Tab,spawn_shell,${ipc} window-switcher hold"
             "SUPER,q,killclient,"
             "SUPER+SHIFT,r,reload_config"
