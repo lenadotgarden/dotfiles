@@ -92,6 +92,7 @@ let
         border = "outline_variant";
         border_width = 1.0;
         capsule = false;
+        color = "on_surface";       # widget text: some widgets defaulted to a derived role that renders black in dark mode
         capsule_radius = 0.0;       # also shapes the hover highlight: square, not a pill
         reserve_space = true;
         start = [ "workspaces" "active_window" ];
