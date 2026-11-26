@@ -8,6 +8,12 @@
   programs.fzf = {
     enable = true;
     enableZshIntegration = true;
+    # indices ANSI (-1 = couleur par défaut du terminal) : suit la palette Noctalia
+    colors = {
+      fg = "-1"; bg = "-1"; hl = "4";
+      "fg+" = "-1"; "bg+" = "0"; "hl+" = "12";
+      info = "3"; prompt = "2"; pointer = "5"; marker = "2"; spinner = "3"; header = "8";
+    };
   };
 
   programs.zsh = {
@@ -66,13 +72,21 @@
       PROMPT='%n%F{8}@%f%m %F{4}%~%f%F{3}''${vcs_info_msg_0_}%f %F{2}>%f '
 
       # Personnalisation des couleurs de saisie (gras, sans forcer de couleur : suit la couleur de texte par défaut du terminal donc s'adapte aux thèmes clair/sombre)
+      # Couleurs ANSI uniquement (0-15) : elles viennent de la palette du terminal, donc de Noctalia
+      # (ghostty). Le prompt, la coloration, les suggestions et fzf changent avec le thème du bureau.
+      ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=8'
       typeset -A ZSH_HIGHLIGHT_STYLES
-      ZSH_HIGHLIGHT_STYLES[command]='bold'
-      ZSH_HIGHLIGHT_STYLES[command-kw]='bold'
-      ZSH_HIGHLIGHT_STYLES[builtin]='bold'
-      ZSH_HIGHLIGHT_STYLES[alias]='bold'
-      ZSH_HIGHLIGHT_STYLES[function]='bold'
-      ZSH_HIGHLIGHT_STYLES[arg0]='bold'
+      ZSH_HIGHLIGHT_STYLES[command]='fg=2,bold'
+      ZSH_HIGHLIGHT_STYLES[command-kw]='fg=5,bold'
+      ZSH_HIGHLIGHT_STYLES[builtin]='fg=2,bold'
+      ZSH_HIGHLIGHT_STYLES[alias]='fg=2,bold'
+      ZSH_HIGHLIGHT_STYLES[function]='fg=2,bold'
+      ZSH_HIGHLIGHT_STYLES[arg0]='fg=2,bold'
+      ZSH_HIGHLIGHT_STYLES[unknown-token]='fg=1'
+      ZSH_HIGHLIGHT_STYLES[path]='fg=4,underline'
+      ZSH_HIGHLIGHT_STYLES[single-quoted-argument]='fg=3'
+      ZSH_HIGHLIGHT_STYLES[double-quoted-argument]='fg=3'
+      ZSH_HIGHLIGHT_STYLES[comment]='fg=8'
 
       fastfetch --logo nixos2
 

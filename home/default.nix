@@ -11,9 +11,6 @@ let
   pywalPkg = pkgs.pywal.overrideAttrs (old: {
     makeWrapperArgs = [ "--prefix" "PATH" ":" (lib.makeBinPath [ pkgs.imagemagick ]) ];
   });
-  # Screen on/off for hypridle, per compositor
-  screenOff = if compositor == "niri" then "niri msg action power-off-monitors" else "${pkgs.wlopm}/bin/wlopm --off '*'";
-  screenOn = if compositor == "niri" then "niri msg action power-on-monitors" else "${pkgs.wlopm}/bin/wlopm --on '*'";
 in
 {
   imports = [
@@ -22,12 +19,14 @@ in
     # ---------------------------
 
     ./neovim
-    ./kitty
     ./zsh
     ./git
     ./tmux
     ./librewolf
   ]
+  # kitty on niri hosts; the Wayland hosts (sway/mango) use ghostty, themed by Noctalia
+  ++ lib.optional (!withWayland) ./kitty
+  ++ lib.optional withWayland ./ghostty
   # fsel is built with naersk (one derivation per Rust crate): heavy to build
   ++ lib.optional withFsel ./fsel
   ++ lib.optional withNiri ./desktops/niri
@@ -172,13 +171,14 @@ in
   ++ lib.optional withHandy inputs.handy.packages.${pkgs.stdenv.hostPlatform.system}.default;
 
   # Gestionnaire de mise en veille Hypridle avec économie d'énergie écran
+  # (Wayland hosts: Noctalia does idle, lock and screen-off itself, see home/desktops/wayland)
   services.hypridle = {
-    enable = true;
+    enable = !withWayland;
     settings = {
       general = {
         lock_cmd = "pidof hyprlock || hyprlock";
         before_sleep_cmd = "loginctl lock-session";
-        after_sleep_cmd = screenOn;
+        after_sleep_cmd = "niri msg action power-on-monitors";
       };
       listener = [
         {
@@ -188,8 +188,8 @@ in
         }
         {
           timeout = 300;
-          on-timeout = screenOff;
-          on-resume = screenOn;
+          on-timeout = "niri msg action power-off-monitors";
+          on-resume = "niri msg action power-on-monitors";
         }
         {
           timeout = 600;
@@ -253,7 +253,7 @@ in
     btop = {
       name = "btop";
       comment = "Resource Monitor";
-      exec = "kitty -e btop";
+      exec = "${if withWayland then "ghostty" else "kitty"} -e btop";
       icon = "btop";
       terminal = false;
       categories = [ "System" "Monitor" ];

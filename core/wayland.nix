@@ -20,9 +20,6 @@
     })
 
     {
-      # Lock screen (started at login by the compositor, and by hypridle)
-      security.pam.services.hyprlock = { };
-
       # Needed by home-manager (dconf.settings) and GTK apps
       programs.dconf.enable = true;
 
