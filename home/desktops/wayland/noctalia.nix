@@ -76,6 +76,7 @@ let
         border = "outline_variant";
         border_width = 1.0;
         capsule = false;
+        capsule_radius = 0.0;       # also shapes the hover highlight: square, not a pill
         reserve_space = true;
         start = [ "workspaces" "active_window" ];
         center = [ "clock" ];
@@ -88,6 +89,7 @@ let
       workspaces = {
         style = "minimal";
         labels_only_when_occupied = true;
+        capsule_radius = 0.0;
         separator = "·";
       };
     };

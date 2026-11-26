@@ -139,6 +139,15 @@ in
             { command = "sleep 2 && ${ipc} session lock"; } # lock at login (TTY autologin)
           ];
 
+          modes.resize = {
+            h = "resize shrink width 20 px";
+            l = "resize grow width 20 px";
+            k = "resize shrink height 20 px";
+            j = "resize grow height 20 px";
+            Escape = "mode default";
+            Return = "mode default";
+          };
+
           keybindings = {
             "Mod4+Return" = "exec ${term}";
             "Mod4+o" = "exec ${nvimGarden}";
@@ -173,6 +182,7 @@ in
             "Mod1+equal" = "resize grow width 10 ppt";
             "Mod1+Shift+minus" = "resize shrink height 10 ppt";
             "Mod1+Shift+equal" = "resize grow height 10 ppt";
+            "Mod1+r" = "mode resize";
 
             "--locked XF86AudioRaiseVolume" = "exec ${ipc} volume-up 5";
             "--locked XF86AudioLowerVolume" = "exec ${ipc} volume-down 5";
@@ -192,7 +202,15 @@ in
         };
         # Last line wins: Noctalia's generated client.* colours override the defaults above.
         # (written as `include ~/...` so Noctalia's own apply script finds it and leaves the file alone)
+        # Trackpad: 3 fingers = move focus, 4 fingers = workspaces (natural direction)
         extraConfig = ''
+          bindgesture swipe:3:left focus right
+          bindgesture swipe:3:right focus left
+          bindgesture swipe:3:up focus down
+          bindgesture swipe:3:down focus up
+          bindgesture swipe:4:left workspace next
+          bindgesture swipe:4:right workspace prev
+
           include ~/.config/sway/noctalia
         '';
       };
@@ -239,6 +257,26 @@ in
 
           # niri-like columns
           tag_rule = map (n: "id:${toString n},layout_name:scroller") (lib.range 1 5);
+          # scroller tuning: presets like niri (1/3, 1/2, 2/3, full), Alt+R cycles them,
+          # also with a single window (ignored by default)
+          scroller_ignore_proportion_single = 0;
+          scroller_default_proportion = 0.5;
+          scroller_default_proportion_single = 1.0;
+          scroller_proportion_preset = "0.333,0.5,0.667,1.0";
+          scroller_prefer_center = 1;
+
+          # Trackpad: 3 fingers = move focus between columns, 4 fingers = tags / overview
+          gesture_live = 1;
+          gesturebind = [
+            "none,left,3,focusdir,right"
+            "none,right,3,focusdir,left"
+            "none,up,3,focusdir,down"
+            "none,down,3,focusdir,up"
+            "none,left,4,viewnext_have_client"
+            "none,right,4,viewprev_have_client"
+            "none,up,4,toggleoverview"
+            "none,down,4,toggleoverview"
+          ];
 
           bind = [
             "SUPER,Return,spawn,${term}"
