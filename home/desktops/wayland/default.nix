@@ -76,7 +76,10 @@ in
         wtype
         brightnessctl
         kdePackages.dolphin
+        adwaita-icon-theme   # without an icon theme every app icon lookup falls back slowly (launcher)
       ];
+
+      dconf.settings."org/gnome/desktop/interface".icon-theme = "Adwaita";
 
       services.network-manager-applet.enable = true;
       services.kdeconnect = {
@@ -250,10 +253,10 @@ in
           border_radius = 0;
           border_px = 3;
           no_border_when_single = 1; # border only when the workspace has 2+ windows
-          gap_inner_horizontal = 6;
-          gap_inner_vertical = 6;
-          gap_outer_horizontal = 7;
-          gap_outer_vertical = 7;
+          gap_inner_horizontal = 8;
+          gap_inner_vertical = 8;
+          gap_outer_horizontal = 8;   # same as inner: even spacing everywhere
+          gap_outer_vertical = 8;
           smart_gaps = 0;
 
           # Animations: short, ease-out (quint), no bounce. Windows zoom in and fade out,

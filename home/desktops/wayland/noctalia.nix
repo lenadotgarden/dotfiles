@@ -27,8 +27,16 @@ let
         borders = true;
         border_color = "outline_variant";
       };
-      animation.speed = 1.4;              # snappy
+      animation.enabled = false;          # panels (launcher...) open instantly
       shadow.alpha = 0.0;                 # flat
+
+      # Launcher: lightest layout, no per-app origin lookups, no network refresh
+      launcher = {
+      layout = "simple";
+      show_app_origin_indicator = false;
+      fetch_exchange_rates = false;
+      default_view = "recent";
+      };
     };
 
     theme = {
