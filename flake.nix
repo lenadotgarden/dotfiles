@@ -313,7 +313,7 @@
         # Alt/Win swap), Magic Trackpad (Lightning) or MX Master 2S
         nixosConfigurations.macmini = mkWaylandHost {
           host = "macmini";
-          wlHost = { xkbVariant = "mac"; xkbOptions = null; laptop = false; terminal = "kitty"; handy = true; };
+          wlHost = { xkbVariant = "mac"; xkbOptions = null; laptop = false; terminal = "kitty"; handy = false; }; # handy: bun needs AVX2, crashes on the 2011 CPU
         };
         # garden — VPS Oracle Ampere A1 (aarch64), géré précédemment dans un
         # repo séparé (/etc/nixos sur le serveur), fusionné ici. Channel figé
