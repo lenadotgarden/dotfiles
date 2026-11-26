@@ -8,7 +8,7 @@ let
   noctalia = lib.getExe inputs.self.packages.${system}.myNoctalia;
   term = lib.getExe pkgs.kitty;
   hyprlock = lib.getExe pkgs.hyprlock;
-  rofimoji = lib.getExe pkgs.rofimoji;
+  rofimojiBin = lib.getExe pkgs.rofimoji;
 
   # AZERTY: the digit row gives symbols without Shift
   azertyDigits = [ "ampersand" "eacute" "quotedbl" "apostrophe" "parenleft" ];
@@ -97,7 +97,7 @@ in
         "Mod4+Return" = "exec ${term}";
         "Mod4+o" = "exec ${term} -d ~/Garden -e nvim";
         "Mod4+space" = "exec ${launcher}";
-        "Ctrl+Mod4+space" = "exec ${rofimoji} --action type";
+        "Ctrl+Mod4+space" = "exec ${rofimojiBin} --action type";
         "Ctrl+Shift+s" = "exec ${screenshot}";
         "Mod4+q" = "kill";
         "Mod4+Shift+r" = "reload";
@@ -183,7 +183,7 @@ in
         "SUPER,Return,spawn,${term}"
         "SUPER,o,spawn_shell,${term} -d ~/Garden -e nvim"
         "SUPER,space,spawn_shell,${launcher}"
-        "CTRL+SUPER,space,spawn_shell,${rofimoji} --action type"
+        "CTRL+SUPER,space,spawn_shell,${rofimojiBin} --action type"
         "CTRL+SHIFT,s,spawn_shell,${screenshot}"
         "SUPER,q,killclient,"
         "SUPER+SHIFT,r,reload_config"
