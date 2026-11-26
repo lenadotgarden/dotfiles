@@ -320,9 +320,9 @@ in
             "NONE,XF86MonBrightnessUp,spawn_shell,${ipc} brightness-up 5"
             "NONE,XF86MonBrightnessDown,spawn_shell,${ipc} brightness-down 5"
           ]
+          # AZERTY symbol names only: with the fr layout "1" and "ampersand" are the same key,
+          # and mango rejects the duplicate as a binding conflict.
           ++ lib.concatMap (w: [
-            "ALT,${w.n},view,${w.n},0"
-            "ALT+SHIFT,${w.n},tag,${w.n},0"
             "ALT,${w.key},view,${w.n},0"
             "ALT+SHIFT,${w.key},tag,${w.n},0"
           ]) wsKeys;
