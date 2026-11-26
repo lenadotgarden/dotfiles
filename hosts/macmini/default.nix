@@ -36,6 +36,9 @@
   hardware.cpu.intel.updateMicrocode = true;
   hardware.enableRedistributableFirmware = true;
 
+  # Wi-Fi power saving makes latency jumpy with the proprietary wl driver
+  networking.networkmanager.wifi.powersave = false;
+
   # Wi-Fi: the Broadcom BCM4360 needs the proprietary `wl` driver (broadcom-sta,
   # flagged insecure in nixpkgs). Ethernet works out of the box; if `wl` fails to
   # build on a new kernel, use Ethernet or a USB Wi-Fi dongle instead.
