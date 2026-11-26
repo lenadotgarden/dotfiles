@@ -36,6 +36,10 @@
   hardware.cpu.intel.updateMicrocode = true;
   hardware.enableRedistributableFirmware = true;
 
+  # The mouse is Bluetooth: it must reconnect by itself after every boot
+  # (core/packages.nix keeps the adapter off at boot by default).
+  hardware.bluetooth.powerOnBoot = lib.mkForce true;
+
   # Wi-Fi power saving makes latency jumpy with the proprietary wl driver
   networking.networkmanager.wifi.powersave = false;
 
