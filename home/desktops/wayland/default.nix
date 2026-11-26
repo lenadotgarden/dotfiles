@@ -228,6 +228,8 @@ in
         # Noctalia writes ~/.config/mango/noctalia.conf (colours); optional until its first run
         extraConfig = ''
           source_optional=~/.config/mango/noctalia.conf
+          # after it, so these border colours win (see noctalia.nix, template mango-borders)
+          source_optional=~/.config/mango/noctalia-borders.conf
         '';
         settings = {
           xkb_rules_layout = "fr";
@@ -244,13 +246,34 @@ in
           layer_shadows = 0;
           layer_animations = 0;
           focused_opacity = 1.0;
-          unfocused_opacity = 0.85; # dims windows that are not focused
+          unfocused_opacity = 1.0; # no transparency anywhere (battery)
           border_radius = 0;
           border_px = 3;
-          gap_inner_horizontal = 6;
-          gap_inner_vertical = 6;
-          gap_outer_horizontal = 0;
-          gap_outer_vertical = 0;
+          gap_inner_horizontal = 12;
+          gap_inner_vertical = 12;
+          gap_outer_horizontal = 14;
+          gap_outer_vertical = 14;
+          smart_gaps = 0;
+
+          # Animations: short, ease-out (quint), no bounce. Windows zoom in and fade out,
+          # tags and moves glide. Layer animations stay off (Noctalia draws its own).
+          animations = 1;
+          animation_type_open = "zoom";
+          animation_type_close = "fade";
+          animation_fade_in = 1;
+          animation_fade_out = 1;
+          zoom_initial_ratio = 0.9;
+          fade_in_begin_opacity = 0.6;
+          animation_duration_open = 260;
+          animation_duration_close = 180;
+          animation_duration_move = 280;
+          animation_duration_tag = 280;
+          animation_duration_focus = 0;
+          animation_curve_open = "0.22,1.0,0.36,1.0";
+          animation_curve_move = "0.22,1.0,0.36,1.0";
+          animation_curve_tag = "0.22,1.0,0.36,1.0";
+          animation_curve_focus = "0.22,1.0,0.36,1.0";
+          animation_curve_close = "0.5,0.0,0.75,0.0";
 
           sloppy_focus = 0;
           tag_num = 5;

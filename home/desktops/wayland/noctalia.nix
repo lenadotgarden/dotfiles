@@ -39,6 +39,14 @@ let
         enable_builtin_templates = true;
         builtin_ids = templates;
         enable_community_templates = false;
+      } // lib.optionalAttrs (compositor == "mango") {
+        # Window borders: focused = palette primary (near white / near black), unfocused = a
+        # surface step barely above the background. Much stronger contrast than the stock
+        # mango template, which uses one mid-grey outline for all other windows.
+        user.mango-borders = {
+          input_path = "templates/mango-borders.conf";
+          output_path = "$XDG_CONFIG_HOME/mango/noctalia-borders.conf";
+        };
       };
     };
 
@@ -121,4 +129,9 @@ in
   xdg.configFile."noctalia/config.toml".source =
     (pkgs.formats.toml { }).generate "noctalia-config.toml" settings;
   xdg.configFile."noctalia/palettes/Mono.json".source = ./palettes/Mono.json;
+  xdg.configFile."noctalia/templates/mango-borders.conf".text = ''
+    border_color = 0x{{colors.surface_container_high.default.hex_stripped}}ff
+    focus_color = 0x{{colors.primary.default.hex_stripped}}ff
+    urgent_color = 0x{{colors.error.default.hex_stripped}}ff
+  '';
 }
