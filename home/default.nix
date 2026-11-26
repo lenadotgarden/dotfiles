@@ -44,7 +44,9 @@ in
   ++ lib.optional withFsel ./fsel
   ++ lib.optional withNiri ./desktops/niri
   ++ lib.optional withXmonad ./desktops/xmonad
-  ++ lib.optional withWayland ./desktops/wayland;
+  ++ lib.optional withWayland ./desktops/wayland
+  # light French dictation where Handy is not available (old CPU)
+  ++ lib.optional (withWayland && !withHandy) ./stt;
 
   home.username = "lena";
   home.homeDirectory = "/home/lena";
