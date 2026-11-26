@@ -51,9 +51,15 @@
     apple-silicon-support.url = "github:tpwrules/nixos-apple-silicon";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
 
-    # MangoWC (the sway alternative, see `compositor` below). Not following nixpkgs:
-    # the locked nixpkgs has no wlroots 0.20 / mango yet, upstream pins its own.
-    mango.url = "github:mangowm/mango";
+    # MangoWC (the sway alternative, see `compositor` below). Must follow nixpkgs
+    # (like niri): mango dlopens the system's Mesa at runtime, so its glibc has to
+    # match the system's, otherwise "EGL_EXT_platform_base not supported" /
+    # "couldn't create renderer" and it never starts. The locked nixpkgs has
+    # wlroots_0_20 and scenefx.
+    mango = {
+      url = "github:mangowm/mango";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     helium.url = "github:schembriaiden/helium-browser-nix-flake";
     antigravity-nix.url = "github:jacopone/antigravity-nix";
     fsel.url = "github:Mjoyufull/fsel";
