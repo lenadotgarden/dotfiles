@@ -248,16 +248,14 @@
               "XF86MonBrightnessUp".spawn-sh = "dms ipc call brightness increment 10 \"\"";
               "XF86MonBrightnessDown".spawn-sh = "dms ipc call brightness decrement 10 \"\"";
             } else {
-              "Mod+Space".spawn-sh = "${lib.getExe self'.packages.myNoctalia} ipc call launcher toggle";
+              "Mod+Space".spawn-sh = "${lib.getExe self'.packages.myNoctalia} msg panel-toggle launcher";
             });
           };
         };
       in {
-        # Custom wrapped packages (like Niri from the tutorial) go here
-        packages.myNoctalia = inputs.wrapper-modules.wrappers.noctalia-shell.wrap {
-          inherit pkgs;
-          settings = builtins.fromJSON (builtins.readFile ./home/desktops/niri/noctalia.json);
-        };
+        # Noctalia v5 (native shell, nixpkgs `noctalia`; noctalia-shell v3/v4 was removed).
+        # Config is ~/.config/noctalia/config.toml, edited from its settings UI.
+        packages.myNoctalia = pkgs.noctalia;
 
         # MacBook: Retina screen, Apple trackpad
         packages.myNiri = mkNiri {

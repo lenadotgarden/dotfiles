@@ -76,7 +76,7 @@ fi
 # reload noctalia
 if command -v noctalia-shell > /dev/null; then
     # Tell Noctalia to update the wallpaper and colors!
-    noctalia-shell ipc call state set-wallpaper "eDP-1" "$selected_wall"
+    noctalia msg wallpaper-set "$selected_wall"
 fi
 
 # reload kitty & nvim

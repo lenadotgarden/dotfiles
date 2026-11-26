@@ -16,7 +16,7 @@ let
   wsKeys = lib.imap1 (i: k: { n = toString i; key = k; }) azertyDigits;
 
   screenshot = ''grim -g "$(slurp)" - | swappy -f -'';
-  launcher = "${noctalia} ipc call launcher toggle";
+  launcher = "${noctalia} msg panel-toggle launcher";
 
   # Dark palette shared with kitty (#11111b)
   colors = { focus = "b4befe"; idle = "313244"; root = "11111b"; };
